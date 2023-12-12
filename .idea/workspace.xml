@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="780945ca-7512-4737-925f-3071b4b7fe04" name="Changes" comment="navbar component added" />
+    <list default="true" id="780945ca-7512-4737-925f-3071b4b7fe04" name="Changes" comment="navbar component added">
+      <change afterPath="$PROJECT_DIR$/frontend/src/components/Post.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/routes/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/routes/+page.svelte" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -18,6 +22,7 @@
         <option value="Navlinks" />
         <option value="+page" />
         <option value="Logo" />
+        <option value="Post" />
       </list>
     </option>
   </component>
@@ -47,6 +52,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "frontend-post",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -54,10 +60,15 @@
     "nodejs_package_manager_path": "npm",
     "prettierjs.PrettierConfiguration.Package": "C:\\Users\\simon\\Desktop\\Harmonize\\frontend\\node_modules\\prettier",
     "settings.editor.selected.configurable": "preferences.pluginManager",
-    "ts.external.directory.path": "C:\\Program Files\\JetBrains\\WebStorm 2023.2.4\\plugins\\javascript-impl\\jsLanguageServicesImpl\\external",
+    "ts.external.directory.path": "C:\\Users\\simon\\Desktop\\Harmonize\\frontend\\node_modules\\typescript\\lib",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\simon\Desktop\Harmonize\frontend\src\components" />
+    </key>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -69,6 +80,7 @@
       <workItem from="1702370012076" duration="830000" />
       <workItem from="1702370855693" duration="175000" />
       <workItem from="1702371199836" duration="16258000" />
+      <workItem from="1702392503613" duration="978000" />
     </task>
     <task id="LOCAL-00001" summary="new branch navbar component">
       <option name="closed" value="true" />
