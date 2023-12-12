@@ -27,4 +27,4 @@
 ## Libs
 
 * [Spotify](https://pkg.go.dev/github.com/zmb3/spotify)
-* [Apple Music](https://pkg.go.dev/github.com/minchao/go-apple-music#section-readme)
+* [Deezer](https://pkg.go.dev/github.com/stayradiated/deezer)
