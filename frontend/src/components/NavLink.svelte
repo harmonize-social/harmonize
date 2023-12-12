@@ -4,13 +4,11 @@
   export let id = 1;
 </script>
 <style>
-  .navlink1{
-      grid-area: navlink1;
-      display: flex;
-  }
-  .navlink1 a{
-      margin-left: 50px;
-      margin-top: 10px;
+    .navlink1 a{
+        grid-area: navlink1;
+        display: flex;
+      margin-left: 30px;
+        margin-top:10px;
       flex-direction: row;
       align-items: center;
       justify-content: center;
@@ -20,14 +18,12 @@
       align-items: center;
       justify-content: center;
   }
-  .navlink2{
+  .navlink2 a{
       grid-area: navlink2;
       display:flex;
-
-  }
-  .navlink2 a{
       margin-left: 50px;
-      margin-top: 10px;
+      margin-top:10px;
+      margin-right: 50px;
       flex-direction: row;
       align-items: center;
       justify-content: center;
