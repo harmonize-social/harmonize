@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 export let caption = "Caption" ;
 export let description = "Post Description";
 export let music = "Music Title";
@@ -26,6 +26,6 @@ export let comments = ['Comment 1', 'Comment 2', 'Comment 3'];
     {:else}
         <p>No comments</p>
     {/each}
-
+    
 
 </div>
