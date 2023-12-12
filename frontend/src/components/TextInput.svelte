@@ -1,20 +1,23 @@
 <script>
-    export let value = '';
-    export let placeholder = '';
-    export let disabled = false;
-  
-    function handleChange(event) {
-      value = event.target.value;
-    }
-  </script>
-  
-  <input
-    type="text"
-    bind:value={value}
-    placeholder={placeholder}
-    {disabled}
-    on:input={handleChange}
-  />
+  export let value = '';
+  export let placeholder = '';
+  export let disabled = false;
+
+  function handleChange(event) {
+    value = event.target.value;
+  }
+</script>
+
+<input
+type="text"
+bind:value={value}
+placeholder={placeholder}
+{disabled && 'disabled'}
+on:input={handleChange}
+/>
+
+
+
 
 <!--
 <script>
