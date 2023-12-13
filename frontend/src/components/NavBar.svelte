@@ -3,17 +3,17 @@
     import NavLink from "./NavLink.svelte";
     import Logo from "./Logo.svelte";
     import {page} from "$app/stores";
-
+    export let current_page = $page.url.pathname;
     export let title: string = 'navbar';
     export let url1: string = '#';
     export let url2: string = '#';
     export let text1: string = 'Dashboard';
     export let text2: string = 'Settings';
-    switch($page.url.pathname){
+    switch(current_page){
         case '/':
-            url1 = '/dashboard';
+            url1 = '/profile';
             url2 = '/settings';
-            text1 = 'Dashboard';
+            text1 = 'Profile';
             text2 = 'Settings';
             break;
         case '/settings':
@@ -23,9 +23,9 @@
             text2 = 'Profile';
             break;
         default:
-            url1 = '/profile';
+            url1 = '/dashboard';
             url2 = '/settings';
-            text1 = 'Profile';
+            text1 = 'Dashboard';
             text2 = 'Settings';
             break;}
 
@@ -45,7 +45,7 @@
 </style>
 
     <nav class={title}>
-        <Logo alt="Harmonize Logo" source="harmonize_logo.png"></Logo>
+        <Logo alt="Harmonize Logo" source="../../static/harmonize_logo.png"></Logo>
         <NavLink text={text1} url={url1} id={1} ></NavLink>
         <NavLink text={text2} url={url2} id={2}></NavLink>
         <TextInputNav title = 'textInputNav' placeholder= "Search"></TextInputNav>

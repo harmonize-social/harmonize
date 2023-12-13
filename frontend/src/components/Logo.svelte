@@ -1,6 +1,6 @@
-<script>
+<script lang="ts">
   export let alt = 'Harmonize Logo';
-  export let source = 'harmonize_logo.png';
+  export let source = '../../static/harmonize_logo.png';
 </script>
 <style>
   .logo{
