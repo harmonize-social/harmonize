@@ -12,7 +12,7 @@
       display: flex;
       flex-direction: column;
       flex-wrap: wrap;
-        align-items: center;
+      align-items: center;
       height: 92vh;
     }
   
