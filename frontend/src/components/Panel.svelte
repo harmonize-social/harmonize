@@ -1,5 +1,6 @@
 <script>
     export let title = 'Panel';
+    
   </script>
   
   <style>
@@ -10,8 +11,9 @@
       box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
       display: flex;
       flex-direction: column;
+      flex-wrap: wrap;
       align-items: center;
-      height: 100vh;
+      height: 92vh;
     }
   
     .panel h2 {
