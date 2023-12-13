@@ -4,12 +4,13 @@
   
   <style>
     .panel {
-      background-color: darkgrey;
+      background-color: #B931FC;
       border-radius: 10px;
       padding: 20px;
       box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
       display: flex;
       flex-direction: column;
+      align-items: center;
       height: 100vh;
     }
   
