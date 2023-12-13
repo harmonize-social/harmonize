@@ -8,20 +8,20 @@ import (
     "log"
     "net/http" // used to access the request and response object of the api
     "os"       // used to read the environment variable
-    "strconv"  // package used to covert string into int type
     "github.com/gorilla/mux" // used to get the params from the route
     "github.com/joho/godotenv" // package used to read the .env file
     _ "github.com/lib/pq"      // postgres golang driver
+    "github.com/google/uuid" // uuid
 )
 
 // used https://codesource.io/build-a-crud-application-in-golang-with-postgresql/
 
 type response struct {
-    ID      int64  `json:"id,omitempty"`
+    ID string  `json:"id,omitempty"`
     Message string `json:"message,omitempty"`
 }
 
-// create connection with db
+// Create connection with db
 func createConnection() *sql.DB {
     // load .env file
     err := godotenv.Load(".env")
@@ -72,7 +72,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
     // format a response object
     res := response{
-        ID:      insertID,
+        ID: insertID.String(),
         Message: "User created successfully",
     }
 
@@ -84,18 +84,19 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 func GetUser(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
     w.Header().Set("Access-Control-Allow-Origin", "*")
-    // get the userid from the request params, key is "id"
+    
+    // get the userid from the request params
     params := mux.Vars(r)
 
-    // convert the id type from string to int
-    id, err := strconv.Atoi(params["id"])
+    // convert the id type from string to uuid.UUID
+    userID, err := uuid.Parse(params["id"])
 
     if err != nil {
-        log.Fatalf("Unable to convert the string into int.  %v", err)
+        log.Fatalf("Unable to parse the UUID. %v", err)
     }
 
     // call the getUser function with user id to retrieve a single user
-    user, err := getUser(int64(id))
+    user, err := getUser(userID)
 
     if err != nil {
         log.Fatalf("Unable to get user. %v", err)
@@ -116,8 +117,8 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
     // get the userid from the request params, key is "id"
     params := mux.Vars(r)
 
-    // convert the id type from string to int
-    id, err := strconv.Atoi(params["id"])
+    // convert the id type from string to uuid.UUID
+    userID, err := uuid.Parse(params["id"])
 
     if err != nil {
         log.Fatalf("Unable to convert the string into int.  %v", err)
@@ -134,14 +135,14 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
     }
 
     // call update user to update the user
-    updatedRows := updateUser(int64(id), user)
+    updatedRows := updateUser(userID, user)
 
     // format the message string
     msg := fmt.Sprintf("User updated successfully. Total rows/record affected %v", updatedRows)
 
     // format the response message
     res := response{
-        ID:      int64(id),
+        ID: userID.String(),
         Message: msg,
     }
 
@@ -160,22 +161,22 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
     // get the userid from the request params, key is "id"
     params := mux.Vars(r)
 
-    // convert the id in string to int
-    id, err := strconv.Atoi(params["id"])
+     // convert the id in string to uuid.UUID
+     userID, err := uuid.Parse(params["id"])
 
     if err != nil {
-        log.Fatalf("Unable to convert the string into int.  %v", err)
+        log.Fatalf("Unable to parse the UUID.  %v", err)
     }
 
-    // call the deleteUser, convert the int to int64
-    deletedRows := deleteUser(int64(id))
+    // call deleteUser, convert the int
+    deletedRows := deleteUser(userID)
 
     // format the message string
     msg := fmt.Sprintf("User updated successfully. Total rows/record affected %v", deletedRows)
 
     // format the reponse message
     res := response{
-        ID:      int64(id),
+        ID: userID.String(),
         Message: msg,
     }
 
@@ -185,7 +186,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 //------------------------- handler functions ----------------
 // insert one user in the DB
-func insertUser(user models.User) int64 {
+func insertUser(user models.User) uuid.UUID {
 
     // create the postgres db connection
     db := createConnection()
@@ -195,27 +196,26 @@ func insertUser(user models.User) int64 {
 
     // create the insert sql query
     // returning userid will return the id of the inserted user
-    sqlStatement := `INSERT INTO users (email, username, password_hash) VALUES ($1, $2, $3) RETURNING userid`
+    sqlStatement := `INSERT INTO users (id, email, username, password_hash) VALUES ($1, $2, $3, $4) RETURNING id`
 
-    // the inserted id will store in this id
-    var id int64
+    // generate a new UUID for the user
+	userID := uuid.New()
 
     // execute the sql statement
-    // Scan function will save the insert id in the id
-    err := db.QueryRow(sqlStatement, user.Email, user.Username, user.Password).Scan(&id)
+    err := db.QueryRow(sqlStatement, userID, user.Email, user.Username, user.Password).Scan(&userID)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
     }
 
-    fmt.Printf("Inserted a single record %v", id)
+    fmt.Printf("Inserted a single record %v", userID)
 
     // return the inserted id
-    return id
+    return userID
 }
 
 // get one user from the DB by its userid
-func getUser(id int64) (models.User, error) {
+func getUser(userID uuid.UUID) (models.User, error) {
     // create the postgres db connection
     db := createConnection()
 
@@ -229,7 +229,7 @@ func getUser(id int64) (models.User, error) {
     sqlStatement := `SELECT * FROM users WHERE userid=$1`
 
     // execute the sql statement
-    row := db.QueryRow(sqlStatement, id)
+    row := db.QueryRow(sqlStatement, userID)
 
     // unmarshal the row object to user
     err := row.Scan(&user.ID, &user.Email, &user.Username, &user.Password)
@@ -248,51 +248,8 @@ func getUser(id int64) (models.User, error) {
     return user, err
 }
 
-// get one user from the DB by its userid
-func getAllUsers() ([]models.User, error) {
-    // create the postgres db connection
-    db := createConnection()
-
-    // close the db connection
-    defer db.Close()
-
-    var users []models.User
-
-    // create the select sql query
-    sqlStatement := `SELECT * FROM users`
-
-    // execute the sql statement
-    rows, err := db.Query(sqlStatement)
-
-    if err != nil {
-        log.Fatalf("Unable to execute the query. %v", err)
-    }
-
-    // close the statement
-    defer rows.Close()
-
-    // iterate over the rows
-    for rows.Next() {
-        var user models.User
-
-        // unmarshal the row object to user
-        err = rows.Scan(&user.ID, &user.Email, &user.Username, &user.Password)
-
-        if err != nil {
-            log.Fatalf("Unable to scan the row. %v", err)
-        }
-
-        // append the user in the users slice
-        users = append(users, user)
-
-    }
-
-    // return empty user on error
-    return users, err
-}
-
 // update user in the DB
-func updateUser(id int64, user models.User) int64 {
+func updateUser(userID uuid.UUID, user models.User) int64 {
 
     // create the postgres db connection
     db := createConnection()
@@ -304,7 +261,7 @@ func updateUser(id int64, user models.User) int64 {
     sqlStatement := `UPDATE users SET email=$2, username=$3, password_hash=$4 WHERE userid=$1`
 
     // execute the sql statement
-    res, err := db.Exec(sqlStatement, id, user.Email, user.Username, user.Password)
+    res, err := db.Exec(sqlStatement, userID, user.Email, user.Username, user.Password)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
@@ -323,7 +280,7 @@ func updateUser(id int64, user models.User) int64 {
 }
 
 // delete user in the DB
-func deleteUser(id int64) int64 {
+func deleteUser(userID uuid.UUID) int64 {
 
     // create the postgres db connection
     db := createConnection()
@@ -335,7 +292,7 @@ func deleteUser(id int64) int64 {
     sqlStatement := `DELETE FROM users WHERE userid=$1`
 
     // execute the sql statement
-    res, err := db.Exec(sqlStatement, id)
+    res, err := db.Exec(sqlStatement, userID)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
