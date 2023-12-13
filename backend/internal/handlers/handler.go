@@ -14,12 +14,14 @@ import (
     _ "github.com/lib/pq"      // postgres golang driver
 )
 
+// used https://codesource.io/build-a-crud-application-in-golang-with-postgresql/
+
 type response struct {
     ID      int64  `json:"id,omitempty"`
     Message string `json:"message,omitempty"`
 }
 
-// create connection with postgres db
+// create connection with db
 func createConnection() *sql.DB {
     // load .env file
     err := godotenv.Load(".env")
