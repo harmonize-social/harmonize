@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS libraries(
 
 CREATE TABLE IF NOT EXISTS images(
     id uuid primary key,
-    path varchar(64),
+    path varchar(64)
 );
 
 CREATE TABLE IF NOT EXISTS platforms(

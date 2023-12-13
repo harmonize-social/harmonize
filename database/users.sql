@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS users (
     id uuid primary key,
     email varchar(64) unique not null,
     username varchar(64) unique not null,
-    password_hash varchar(256) not null,
+    password_hash varchar(256) not null
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
@@ -20,5 +20,5 @@ CREATE TABLE IF NOT EXISTS follows(
     id uuid PRIMARY KEY,
     followed_id uuid references users (id),
     follower_id uuid references users (id),
-    date timestamptz,
+    date timestamptz
 );
