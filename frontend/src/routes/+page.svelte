@@ -1,15 +1,6 @@
-
 <script>
-  import TextInput from '../components/TextInput.svelte';
 </script>
+<h1>Welcome to SvelteKit</h1>
 
-<style>
-  /* Voeg eventuele globale stijlen toe */
-</style>
 
-<main>
-  <h1>Welcome to SvelteKit</h1>
-  <p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
-
-  <TextInput />
-</main>
+<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
