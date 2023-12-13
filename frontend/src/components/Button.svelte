@@ -4,7 +4,7 @@
   </script>
   
   <style>
-    .button {
+    button {
       background-color: blue;
       color: white;
       padding: 10px 20px;
@@ -15,6 +15,6 @@
     }
   </style>
   
-  <a href={link}>
-    <button class="button">{buttonText}</button>
+  <a class="button" href={link}>
+    <button>{buttonText}</button>
   </a>

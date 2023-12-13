@@ -11,17 +11,31 @@
     data = {caption, description};
 </script>
 <style>
+    .form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .caption {
+        width: 25rem;
+        height: 2rem;
+        margin-bottom: .25rem;
+    }
+    .description {
+        width: 50rem;
+        height: 6rem;
+        margin-bottom: 2rem;
+    }
 
 </style>
 <NavBar current_page="/newpost" >
 
 </NavBar>
-<Panel>
-        <h3>New Post</h3>
-    <form action="/connection" method="POST">
-        <input class="caption.input" type="text" name={caption} placeholder="Insert a caption for your post"/>
-        <input class="description.input" type="text" name={description} placeholder="Insert a description for your post"/>
+<Panel title="New Post">
+    <div class="form">
+        <input class="caption" type="text" name={caption} placeholder="Insert a caption for your post"/>
+        <input class="description" type="text" name={description} placeholder="Insert a description for your post"/>
         <Button buttonText="Get the music on your platform!" link="/connection"></Button>
-    </form>
-
+    </div>
 </Panel>
+<!--TODO: Adjust input fields to TextInput and Button-->
