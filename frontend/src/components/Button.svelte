@@ -2,9 +2,9 @@
     export let buttonText = 'Click me';
     export let link = '#';
   </script>
-  
+
   <style>
-    .button {
+    button {
       background-color: blue;
       color: white;
       padding: 10px 20px;
@@ -14,7 +14,7 @@
       cursor: pointer;
     }
   </style>
-  
+
   <a href={link}>
-    <button class="button">{buttonText}</button>
+    <button>{buttonText}</button>
   </a>
