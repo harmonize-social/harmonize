@@ -1,35 +1,22 @@
-<script>
-  export let value = '';
-  export let placeholder = '';
-  export let disabled = false;
+<!-- TextInput.svelte -->
 
-  function handleChange(event) {
-    value = event.target.value;
-  }
+<script>
+  export let title = 'TextInput';
+  export let placeholder = 'Search';
 </script>
 
-<input
-type="text"
-bind:value={value}
-placeholder={placeholder}
-{disabled && 'disabled'}
-on:input={handleChange}
-/>
-
-
-
-
-<!--
-<script>
-  import TextInput from './TextInput.svelte';
-  
-  let inputValue = ''; // Je kunt deze variabele gebruiken om de waarde bij te houden.
-
-  function handleInputChange(value) {
-    console.log('Nieuwe waarde:', value);
+<style>
+  .TextInput {
+    margin-top: 6px;
+    margin-right: 8px;
+    width: 200px;
+    height: 40px; /* Aangepaste hoogte */
+    border-radius: 20px; /* Gehalveerde border-radius voor een rondere look */
+    border: 1px solid black;
+    padding: 8px;
+    box-sizing: border-box;
+    font-size: 14px; /* Aangepaste lettergrootte */
   }
-</script>
+</style>
 
-<TextInput bind:value={inputValue} placeholder="Voer tekst in" on:input={handleInputChange} />
--->
-
+<input type="text" class={title} placeholder={placeholder} />
