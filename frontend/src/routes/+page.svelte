@@ -1,5 +1,4 @@
 <script>
-    import Panel from '../components/Panel.svelte';
 </script>
 <h1>Welcome to SvelteKit</h1>
 
