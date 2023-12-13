@@ -5,9 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="780945ca-7512-4737-925f-3071b4b7fe04" name="Changes" comment="navbar component added">
-      <change afterPath="$PROJECT_DIR$/frontend/src/components/Post.svelte" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/routes/+page.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/routes/+page.svelte" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/Post.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/Post.svelte" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,7 +78,7 @@
       <workItem from="1702370012076" duration="830000" />
       <workItem from="1702370855693" duration="175000" />
       <workItem from="1702371199836" duration="16258000" />
-      <workItem from="1702392503613" duration="978000" />
+      <workItem from="1702392503613" duration="1281000" />
     </task>
     <task id="LOCAL-00001" summary="new branch navbar component">
       <option name="closed" value="true" />

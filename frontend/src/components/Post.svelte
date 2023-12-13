@@ -26,6 +26,6 @@ export let comments = ['Comment 1', 'Comment 2', 'Comment 3'];
     {:else}
         <p>No comments</p>
     {/each}
-    
+
 
 </div>
