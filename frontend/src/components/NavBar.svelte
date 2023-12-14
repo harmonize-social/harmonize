@@ -11,7 +11,7 @@
     switch(current_page){
         case '/':
             url1 = '/profile';
-            url2 = '/settings';
+            url2 = '/profile/settings';
             text1 = 'Profile';
             text2 = 'Settings';
             break;
@@ -23,7 +23,7 @@
             break;
         default:
             url1 = '/dashboard';
-            url2 = '/settings';
+            url2 = '/profile/settings';
             text1 = 'Dashboard';
             text2 = 'Settings';
             break;}
