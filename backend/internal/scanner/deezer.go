@@ -29,7 +29,7 @@ func ScanDeezerUserPlaylists(id int) {
         index += limit
     }
     for _, playlist := range all {
-        fmt.Printf("%s\n\r", playlist.Title)
+        fmt.Printf("Playlist: %s\n\r", playlist.Title)
     }
 }
 
@@ -49,7 +49,7 @@ func ScanDeezerUserAlbums(id int) {
         index += limit
     }
     for _, playlist := range all {
-        fmt.Printf("%s\n\r", playlist.Title)
+        fmt.Printf("Album: %s\n\r", playlist.Title)
     }
 }
 
@@ -69,7 +69,7 @@ func ScanDeezerUserTracks(id int) {
         index += limit
     }
     for _, playlist := range all {
-        fmt.Printf("%s\n\r", playlist.Title)
+        fmt.Printf("Track: %s\n\r", playlist.Title)
     }
 }
 func ScanDeezerUserArtists(id int) {
@@ -88,6 +88,6 @@ func ScanDeezerUserArtists(id int) {
         index += limit
     }
     for _, playlist := range all {
-        fmt.Printf("%s\n\r", playlist.Name)
+        fmt.Printf("Artist: %s\n\r", playlist.Name)
     }
 }
