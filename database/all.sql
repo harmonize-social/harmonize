@@ -1,6 +1,6 @@
 DROP TABLE user_liked_songs;
 DROP TABLE user_followed_playlists;
-DROP TABLE user_followed_albums;
+DROP TABLE user_liked_albums;
 DROP TABLE user_followed_artists;
 
 DROP TABLE saved_posts;
@@ -186,7 +186,7 @@ CREATE TABLE IF NOT EXISTS user_followed_artists(
 );
 
 
-CREATE TABLE IF NOT EXISTS user_followed_albums(
+CREATE TABLE IF NOT EXISTS user_liked_albums(
     id UUID PRIMARY KEY,
     library_id UUID REFERENCES libraries (id) NOT NULL,
     album_id UUID REFERENCES platform_albums (id) NOT NULL
