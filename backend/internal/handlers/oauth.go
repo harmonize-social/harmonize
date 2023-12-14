@@ -1,6 +1,7 @@
 package handlers
 
 import (
+    "backend/internal/scanner"
     "encoding/json"
     "fmt"
     "net/http"
@@ -10,8 +11,8 @@ import (
 )
 
 const (
-    SPOTIFY_REDIRECT = "http://127.0.0.1:8080/oauth/callback/spotify"
-    DEEZER_REDIRECT = "http://127.0.0.1:8080/oauth/callback/deezer"
+    SPOTIFY_REDIRECT = "http://127.0.0.1:8080/api/oauth/callback/spotify"
+    DEEZER_REDIRECT = "http://127.0.0.1:8080/api/oauth/callback/deezer"
 )
 
 type Url struct {
@@ -89,6 +90,8 @@ func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
     // TODO: Save these
     fmt.Fprintf(w, "AccessToken: %s\n", token.AccessToken)
     fmt.Fprintf(w, "RefreshToken: %s", token.RefreshToken)
+    client := auth.NewClient(token)
+    go scanner.ScanSpotify(client)
 }
 
 func DeezerCallback(w http.ResponseWriter, r *http.Request) {
