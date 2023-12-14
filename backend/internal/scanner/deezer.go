@@ -72,4 +72,22 @@ func ScanDeezerUserTracks(id int) {
         fmt.Printf("%s\n\r", playlist.Title)
     }
 }
-func ScanDeezerUserArtists(id int) {}
+func ScanDeezerUserArtists(id int) {
+    index := 0
+    limit := 5
+    var all []deezer.Artist
+    for len(all) >= index {
+        list, err := deezer.GetUserArtists(id, index, limit)
+        if err != nil {
+            fmt.Printf("%s", err)
+            break
+        }
+        for _, playlist := range list {
+            all = append(all, playlist)
+        }
+        index += limit
+    }
+    for _, playlist := range all {
+        fmt.Printf("%s\n\r", playlist.Name)
+    }
+}
