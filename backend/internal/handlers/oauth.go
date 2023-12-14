@@ -10,6 +10,7 @@ import (
     "time"
 
     "github.com/markbates/goth/providers/deezer"
+    deezer2 "github.com/stayradiated/deezer"
     "github.com/zmb3/spotify"
 )
 
@@ -145,15 +146,11 @@ func DeezerCallback(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintf(w, "%s", err)
         return
     }
-    var user DeezerUser
+    var user deezer2.User
     json.Unmarshal(body2, &user)
     if err != nil {
         fmt.Fprintf(w, "%s", err)
         return
     }
     go scanner.ScanDeezer(user.ID)
-}
-
-type DeezerUser struct {
-    ID int `json:"id"`
 }
