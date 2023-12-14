@@ -12,6 +12,7 @@ import (
     "github.com/joho/godotenv" // package used to read the .env file
     _ "github.com/lib/pq"      // postgres golang driver
     "github.com/google/uuid" // uuid
+    "strings"
 )
 
 // used https://codesource.io/build-a-crud-application-in-golang-with-postgresql/
@@ -49,13 +50,23 @@ func createConnection() *sql.DB {
     return db
 }
 
+// setCommonHeaders sets common headers for CORS
+func setCommonHeaders(w http.ResponseWriter) {
+    w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
+    w.Header().Set("Access-Control-Allow-Origin", "*")
+}
+
+// setAdditionalHeaders sets additional headers specific to some handler functions
+func setAdditionalHeaders(w http.ResponseWriter, methods ...string) {
+    w.Header().Set("Access-Control-Allow-Methods", strings.Join(methods, ","))
+    w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+}
+
 func CreateUser(w http.ResponseWriter, r *http.Request) {
     // set the header to content type x-www-form-urlencoded
     // Allow all origin to handle cors issue
-    w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Methods", "POST")
-    w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+    setCommonHeaders(w)
+    setAdditionalHeaders(w, "POST")
 
     // create an empty user of type models.User
     var user models.User
@@ -82,8 +93,8 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 // GetUser will return a single user by its id
 func GetUser(w http.ResponseWriter, r *http.Request) {
-    w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
-    w.Header().Set("Access-Control-Allow-Origin", "*")
+
+    setCommonHeaders(w)
     
     // get the userid from the request params
     params := mux.Vars(r)
@@ -109,10 +120,8 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 // UpdateUser update user's detail in the postgres db
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
-    w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Methods", "PUT")
-    w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+    setCommonHeaders(w)
+    setAdditionalHeaders(w, "PUT")
 
     // get the userid from the request params, key is "id"
     params := mux.Vars(r)
@@ -153,10 +162,8 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 // DeleteUser delete user's detail in the postgres db
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
-    w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Methods", "DELETE")
-    w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+    setCommonHeaders(w)
+    setAdditionalHeaders(w, "DELETE")
 
     // get the userid from the request params, key is "id"
     params := mux.Vars(r)
