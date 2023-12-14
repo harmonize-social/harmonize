@@ -17,12 +17,8 @@ func main() {
     //
     mount(router, "/api/user", routers.UserRouter())
     mount(router, "/api/oauth", routers.OAuthRouter())
-
-    /* Just an example right now
-       // Album routes
-       path := "/api/album"
-       routers.RouterAlbum(path, router)
-    */
+    mount(router, "/api/post", routers.PostRouter())
+    mount(router, "/api/like", routers.LikeRouter())
 
     fmt.Println("Starting server on port 8080")
 
