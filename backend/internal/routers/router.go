@@ -6,13 +6,21 @@ import (
 )
 
 // Router is used in main.go
-func Router() *mux.Router {
-	router := mux.NewRouter()
+func RouterUser(path string, r *mux.Router) {
+	router := r
 
-	router.HandleFunc("/api/user/{id}", handlers.GetUser).Methods("GET", "OPTIONS")
-	router.HandleFunc("/api/newuser", handlers.CreateUser).Methods("POST", "OPTIONS")
-	router.HandleFunc("/api/user/{id}", handlers.UpdateUser).Methods("PUT", "OPTIONS")
-	router.HandleFunc("/api/deleteuser/{id}", handlers.DeleteUser).Methods("DELETE", "OPTIONS")
-
-	return router
+	router.HandleFunc(path+"/{id}", handlers.CreateUser).Methods("POST")
+	router.HandleFunc(path+"/{id}", handlers.GetUser).Methods("GET", "OPTIONS")
+	router.HandleFunc(path+"/{id}", handlers.UpdateUser).Methods("PUT", "OPTIONS")
+	router.HandleFunc(path+"/{id}", handlers.DeleteUser).Methods("DELETE")
 }
+
+/* Just an example right now
+func RouterAlbum(path string, r *mux.Router) {
+	router := r
+
+	router.HandleFunc(path+"/{id}", handlers.CreateAlbum).Methods("POST")
+	router.HandleFunc(path+"/{id}", handlers.GetAlbum).Methods("GET", "OPTIONS")
+	router.HandleFunc(path+"/{id}", handlers.UpdateAlbum).Methods("PUT", "OPTIONS")
+	router.HandleFunc(path+"/{id}", handlers.DeleteAlbum).Methods("DELETE")
+}*/

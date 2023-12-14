@@ -4,7 +4,7 @@ import (
     "github.com/google/uuid"
 )
 
-type UserFollowedAlbums struct { // Is albums niet beter 'liked' ipv 'followed'?
+type UserLikedAlbums struct {
 	ID uuid.UUID `json:"id"`
     LibraryId uuid.UUID `json:"library_id"`
     AlbumId uuid.UUID `json:"album_id"`
