@@ -72,6 +72,7 @@ func ScanDeezerUserTracks(id int) {
         fmt.Printf("Track: %s\n\r", playlist.Title)
     }
 }
+
 func ScanDeezerUserArtists(id int) {
     index := 0
     limit := 5
