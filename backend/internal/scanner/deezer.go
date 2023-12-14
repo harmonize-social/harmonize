@@ -1,21 +1,38 @@
 package scanner
 
 import (
-    "github.com/jbaxx/go-deezer/deezer"
+    "fmt"
+
+    "github.com/stayradiated/deezer"
 )
 
 func ScanDeezer(id int) {
-    client := deezer.NewClient()
-    go ScanDeezerUserPlaylists(client, id)
-    go ScanDeezerUserAlbums(client, id)
-    go ScanDeezerUserTracks(client, id)
-    go ScanDeezerUserArtists(client, id)
+    go ScanDeezerUserPlaylists(id)
+    go ScanDeezerUserAlbums(id)
+    go ScanDeezerUserTracks(id)
+    go ScanDeezerUserArtists(id)
 }
 
-func ScanDeezerUserPlaylists(client *deezer.Client, id int) {
-
+func ScanDeezerUserPlaylists(id int) {
+    index := 0
+    limit := 5
+    var all []deezer.Playlist
+    for len(all) >= index {
+        list, err := deezer.GetUserPlaylists(id, index, limit)
+        if err != nil {
+            fmt.Printf("%s", err)
+            break
+        }
+        for _, playlist := range list {
+            all = append(all, playlist)
+        }
+        index += limit
+    }
+    for _, playlist := range all {
+        fmt.Printf("%s\n\r", playlist.Title)
+    }
 }
 
-func ScanDeezerUserAlbums(client *deezer.Client, id int)  {}
-func ScanDeezerUserTracks(client *deezer.Client, id int)  {}
-func ScanDeezerUserArtists(client *deezer.Client, id int) {}
+func ScanDeezerUserAlbums(id int)  {}
+func ScanDeezerUserTracks(id int)  {}
+func ScanDeezerUserArtists(id int) {}
