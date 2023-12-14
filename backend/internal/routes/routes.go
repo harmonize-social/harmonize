@@ -13,6 +13,7 @@ func NewRouter() *http.ServeMux {
     // Define your routes here
     mux.HandleFunc("/oauth/spotify", handlers.OauthSpotify)
     mux.HandleFunc("/oauth/deezer", handlers.OauthDeezer)
+    mux.HandleFunc("/callback", handlers.OauthCallback)
 
     return mux
 }
