@@ -1,27 +1,38 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"net/http"
-	"backend/internal/routers"
-	"github.com/gorilla/mux"
+    "backend/internal/routers"
+    "fmt"
+    "log"
+    "net/http"
+    "strings"
+
+    "github.com/gorilla/mux"
 )
 
 func main() {
-	router := mux.NewRouter()
+    router := mux.NewRouter()
 
-	// User routes
-	path := "/api/user"
-	routers.RouterUser(path, router)
+    // User routes
+    //
+    mount(router, "/api/user", routers.UserRouter())
 
-	/* Just an example right now
-	// Album routes
-	path := "/api/album"
-	routers.RouterAlbum(path, router)
-	*/
+    /* Just an example right now
+    // Album routes
+    path := "/api/album"
+    routers.RouterAlbum(path, router)
+    */
 
-	fmt.Println("Starting server on port 8080")
+    fmt.Println("Starting server on port 8080")
 
-	log.Fatal(http.ListenAndServe(":8080", router))
+    log.Fatal(http.ListenAndServe(":8080", router))
+}
+
+func mount(r *mux.Router, path string, handler http.Handler) {
+    r.PathPrefix(path).Handler(
+        http.StripPrefix(
+            strings.TrimSuffix(path, "/"),
+            handler,
+        ),
+    )
 }
