@@ -15,7 +15,7 @@
             text1 = 'Profile';
             text2 = 'Settings';
             break;
-        case '/settings':
+        case '/profile/settings':
             url1 = '/dashboard';
             url2 = '/profile';
             text1 = 'Dashboard';
