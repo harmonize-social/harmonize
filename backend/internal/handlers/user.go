@@ -1,24 +1,24 @@
 package handlers
 
 import (
+    "backend/internal/models" // models package where User schema is defined
     "database/sql"
     "encoding/json" // package to encode and decode the json into struct and vice versa
     "fmt"
-    "backend/internal/models" // models package where User schema is defined
+    "github.com/google/uuid"   // uuid
+    "github.com/gorilla/mux"   // used to get the params from the route
+    "github.com/joho/godotenv" // package used to read the .env file
+    _ "github.com/lib/pq"      // postgres golang driver
     "log"
     "net/http" // used to access the request and response object of the api
     "os"       // used to read the environment variable
-    "github.com/gorilla/mux" // used to get the params from the route
-    "github.com/joho/godotenv" // package used to read the .env file
-    _ "github.com/lib/pq"      // postgres golang driver
-    "github.com/google/uuid" // uuid
     "strings"
 )
 
 // used https://codesource.io/build-a-crud-application-in-golang-with-postgresql/
 
 type response struct {
-    ID string  `json:"id,omitempty"`
+    ID      string `json:"id,omitempty"`
     Message string `json:"message,omitempty"`
 }
 
@@ -83,7 +83,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
     // format a response object
     res := response{
-        ID: insertID.String(),
+        ID:      insertID.String(),
         Message: "User created successfully",
     }
 
@@ -95,7 +95,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 func GetUser(w http.ResponseWriter, r *http.Request) {
 
     setCommonHeaders(w)
-    
+
     // get the userid from the request params
     params := mux.Vars(r)
 
@@ -151,7 +151,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
     // format the response message
     res := response{
-        ID: userID.String(),
+        ID:      userID.String(),
         Message: msg,
     }
 
@@ -168,8 +168,8 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
     // get the userid from the request params, key is "id"
     params := mux.Vars(r)
 
-     // convert the id in string to uuid.UUID
-     userID, err := uuid.Parse(params["id"])
+    // convert the id in string to uuid.UUID
+    userID, err := uuid.Parse(params["id"])
 
     if err != nil {
         log.Fatalf("Unable to parse the UUID.  %v", err)
@@ -183,7 +183,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
     // format the reponse message
     res := response{
-        ID: userID.String(),
+        ID:      userID.String(),
         Message: msg,
     }
 
@@ -191,7 +191,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(res)
 }
 
-//------------------------- handler functions ----------------
+// ------------------------- handler functions ----------------
 // insert one user in the DB
 func insertUser(user models.User) uuid.UUID {
 
@@ -206,7 +206,7 @@ func insertUser(user models.User) uuid.UUID {
     sqlStatement := `INSERT INTO users (id, email, username, password_hash) VALUES ($1, $2, $3, $4) RETURNING id`
 
     // generate a new UUID for the user
-	userID := uuid.New()
+    userID := uuid.New()
 
     // execute the sql statement
     err := db.QueryRow(sqlStatement, userID, user.Email, user.Username, user.Password).Scan(&userID)
