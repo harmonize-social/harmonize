@@ -1,7 +1,8 @@
 package handlers
 
 import (
-    "backend/internal/models" // models package where User schema is defined
+    "backend/internal/models"
+    "backend/internal/repositories"
 
     "database/sql"
     "encoding/json" // package to encode and decode the json into struct and vice versa
@@ -11,39 +12,9 @@ import (
     _ "github.com/lib/pq"      // postgres golang driver
     "log"
     "net/http" // used to access the request and response object of the api
-	"github.com/joho/godotenv"
-	"os" // used to read the environment variable
 )
 
 // used https://codesource.io/build-a-crud-application-in-golang-with-postgresql/
-
-// Create connection with db
-func createConnection() *sql.DB {
-    // load .env file
-    err := godotenv.Load(".env")
-
-    if err != nil {
-        log.Fatalf("Error loading .env file")
-    }
-
-    // Open the connection
-    db, err := sql.Open("postgres", os.Getenv("POSTGRES_URL"))
-
-    if err != nil {
-        panic(err)
-    }
-
-    // check the connection
-    err = db.Ping()
-
-    if err != nil {
-        panic(err)
-    }
-
-    fmt.Println("Connected to database!")
-    // return the connection
-    return db
-}
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
     // Set headers
@@ -178,7 +149,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 func insertUser(user models.User) uuid.UUID {
 
     // create the postgres db connection
-    db := createConnection()
+    db := repositories.CreateConnection()
 
     // close the db connection
     defer db.Close()
@@ -206,7 +177,7 @@ func insertUser(user models.User) uuid.UUID {
 // get one user from the DB by its userid
 func getUser(userID uuid.UUID) (models.User, error) {
     // create the postgres db connection
-    db := createConnection()
+    db := repositories.CreateConnection()
 
     // close the db connection
     defer db.Close()
@@ -241,7 +212,7 @@ func getUser(userID uuid.UUID) (models.User, error) {
 func updateUser(userID uuid.UUID, user models.User) int64 {
 
     // create the postgres db connection
-    db := createConnection()
+    db := repositories.CreateConnection()
 
     // close the db connection
     defer db.Close()
@@ -272,7 +243,7 @@ func updateUser(userID uuid.UUID, user models.User) int64 {
 func deleteUser(userID uuid.UUID) int64 {
 
     // create the postgres db connection
-    db := createConnection()
+    db := repositories.CreateConnection()
 
     // close the db connection
     defer db.Close()
