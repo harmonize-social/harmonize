@@ -14,7 +14,6 @@ func ScanSpotify(client spotify.Client) {
 }
 
 func ScanSpotifyUserPlaylists(client *spotify.Client) {
-    // Playlists
     playlistsPage, err := client.CurrentUsersPlaylists()
     if err != nil {
         fmt.Printf("err current playlists")
@@ -33,7 +32,6 @@ func ScanSpotifyUserPlaylists(client *spotify.Client) {
 }
 
 func ScanSpotifyUserAlbums(client *spotify.Client) {
-    // Albums
     albumsPage, err := client.CurrentUsersAlbums()
     if err != nil {
         fmt.Printf("err current playlists")
@@ -56,7 +54,6 @@ func ScanSpotifyUserAlbums(client *spotify.Client) {
 }
 
 func ScanSpotifyUserTracks(client *spotify.Client) {
-    // Tracks
     savedTracksPage, err := client.CurrentUsersTracks()
     if err != nil {
         fmt.Printf("err current playlists")
@@ -79,14 +76,13 @@ func ScanSpotifyUserTracks(client *spotify.Client) {
 }
 
 func ScanSpotifyUserArtists(client *spotify.Client) {
-    // Artists
     followedArtistsPage, err := client.CurrentUsersFollowedArtists()
     if err != nil {
         fmt.Printf("err current playlists")
     }
     err = nil
     artists := followedArtistsPage.Artists
-    // artists = append(artists, followedArtistsPage.Artists...)
+    // TODO: Loop?
     for i, artist := range artists {
         fmt.Printf("Artist %d: %s\n\r", i, artist.Name)
     }
