@@ -1,10 +1,9 @@
 package scanner
 
 import (
-    "fmt"
 )
 
-func ScanDeezer() {
+func ScanDeezer(ID int) {
     go ScanDeezerUserPlaylists()
     go ScanDeezerUserAlbums()
     go ScanDeezerUserTracks()
