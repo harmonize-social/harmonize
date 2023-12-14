@@ -1,5 +1,4 @@
 <script>
-  export let title = 'textInputNav';
   export let placeholder = 'Search';
 
 </script>
@@ -12,8 +11,8 @@
       height: 55px;
       border-radius: 50px;
       border: 1px solid black;
-
+      color: rebeccapurple;
   }
 
 </style>
-<input type="text" class={title} placeholder={placeholder}>
+<input type="text" class="textInputNav" placeholder={placeholder}>

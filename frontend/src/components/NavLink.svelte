@@ -12,6 +12,7 @@
       flex-direction: row;
       align-items: center;
       justify-content: center;
+        text-decoration: none;
   }
   .navlink1 p{
       flex-direction: row;
@@ -27,6 +28,14 @@
       flex-direction: row;
       align-items: center;
       justify-content: center;
+      text-decoration: none;
+      color: rebeccapurple;
+  }
+  .navlink2 a:hover{
+      text-decoration: underline antiquewhite;
+  }
+  .navlink1 a:hover{
+      text-decoration: underline antiquewhite;
   }
   .navlink2 p{
       flex-direction: row;
