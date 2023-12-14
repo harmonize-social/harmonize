@@ -11,7 +11,7 @@ import Button from "../../../components/Button.svelte";
 <Panel title="Your music library">
     <TextInput placeholder="Search in your library"></TextInput>    
     <div class="library">
-
+        
     </div>
     <div class="syncbutton">
         <Button buttonText="Sync Library" link="/connection"></Button>
