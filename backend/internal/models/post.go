@@ -6,7 +6,7 @@ import (
 
 type Post struct {
 	ID uuid.UUID `json:"id"`
-	UserID uuid.UUID `json:"user_id"`
+	UserId uuid.UUID `json:"user_id"`
 	Caption string `json:"caption"`
 	Type string `json:"type"`
 	TypeSpecificId uuid.UUID `json:"type_specific_id"`
