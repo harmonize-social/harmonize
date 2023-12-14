@@ -11,6 +11,7 @@ require (
 
 require (
 	github.com/golang/protobuf v1.4.2 // indirect
+	github.com/jbaxx/go-deezer v0.0.2 // indirect
 	github.com/markbates/goth v1.78.0 // indirect
 	github.com/zmb3/spotify v1.3.0 // indirect
 	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
