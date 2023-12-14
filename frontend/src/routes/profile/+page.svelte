@@ -3,19 +3,25 @@
     import NavBar from "../../components/NavBar.svelte";
     import Post from "../../components/Post.svelte";
     let posts = [Post, Post, Post];
-    let count : number  = 1;
-    function countPost(count : number) {
-        for (const Post in posts) {
-            count += 1;}
-        return count;
-    }
 </script>
+<style>
+    .feed{
+        display: flex;
+        flex-direction: row;
+    }
+    .post{
+        display: flex;
+ 
+    }
+</style>
 <NavBar current_page="/profile"></NavBar>
 <Panel title="Profile">
-    {#each posts as Post}
-    <div class="post" id={"post" + count}>
-        <Post caption="Caption Post {count}" description="{count} Post Description" music="Music Title"
-              platform="Streaming Platform" {countPost(count)}></Post>
+    <div class="feed">
+        {#each posts as Post, i}
+        <div class="post" id={"post" + (i+1)}>
+            <Post caption="Caption Post {i+1}" music="Music Title"
+                  platform="Streaming Platform"></Post>
+        </div>
+        {/each}
     </div>
-    {/each}
 </Panel>
