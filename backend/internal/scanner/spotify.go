@@ -1,15 +1,16 @@
 package scanner
 
 import (
+    "encoding/json"
     "fmt"
 
     "github.com/zmb3/spotify"
 )
 
-func FetchSpotify(client spotify.Client) {
-    playlists := FetchSpotifyUserPlaylists(&client)
-    go FetchSpotifyUserAlbums(&client)
-    go FetchSpotifyUserTracks(&client)
+func ScanSpotify(client spotify.Client) {
+    // go FetchSpotifyUserPlaylists(&client)
+    // go FetchSpotifyUserAlbums(&client)
+    // go FetchSpotifyUserTracks(&client)
     go FetchSpotifyUserArtists(&client)
 }
 
@@ -66,19 +67,25 @@ func FetchSpotifyUserTracks(client *spotify.Client) []spotify.SavedTrack {
 
 func FetchSpotifyUserArtists(client *spotify.Client) []spotify.FullArtist {
     after := "-1"
-    limit := 50
-    total := 1000
+    limit := 5
+    returned := limit
     var artists []spotify.FullArtist
-    for len(artists) < total {
+    for returned == limit {
+        fmt.Printf("Start: %d/%d\n\r", returned, limit)
         list, err := client.CurrentUsersFollowedArtistsOpt(limit, after)
         if err != nil {
             fmt.Printf("%s", err)
             break
         }
-        for _, playlist := range list.Artists {
-            artists = append(artists, playlist)
-        }
+        returned = len(list.Artists)
+        jsonBytes, _ := json.Marshal(list)
+        fmt.Printf("Full: %s\n\r", string(jsonBytes))
+        artists = append(artists, list.Artists...)
         after = list.Artists[len(list.Artists)-1].ID.String()
+        fmt.Printf("End: %d/%d\n\r", returned, limit)
+    }
+    for _, artist := range artists {
+        fmt.Printf("%s\n\r", artist.Name)
     }
     return artists
 }
