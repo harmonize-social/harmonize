@@ -1,32 +1,32 @@
-DROP TABLE user_liked_songs;
-DROP TABLE user_followed_playlists;
-DROP TABLE user_liked_albums;
-DROP TABLE user_followed_artists;
+DROP IF EXISTS TABLE user_liked_songs;
+DROP IF EXISTS TABLE user_followed_playlists;
+DROP IF EXISTS TABLE user_liked_albums;
+DROP IF EXISTS TABLE user_followed_artists;
 
-DROP TABLE saved_posts;
-DROP TABLE comment;
-DROP TABLE likes;
-DROP TABLE posts;
+DROP IF EXISTS TABLE saved_posts;
+DROP IF EXISTS TABLE comment;
+DROP IF EXISTS TABLE likes;
+DROP IF EXISTS TABLE posts;
 
-DROP TABLE platform_playlists;
-DROP TABLE platform_songs;
-DROP TABLE platform_albums;
-DROP TABLE platform_artists;
+DROP IF EXISTS TABLE platform_playlists;
+DROP IF EXISTS TABLE platform_songs;
+DROP IF EXISTS TABLE platform_albums;
+DROP IF EXISTS TABLE platform_artists;
 
-DROP TABLE playlist_songs;
-DROP TABLE playlists;
-DROP TABLE songs;
-DROP TABLE albums;
-DROP TABLE artists;
+DROP IF EXISTS TABLE playlist_songs;
+DROP IF EXISTS TABLE playlists;
+DROP IF EXISTS TABLE songs;
+DROP IF EXISTS TABLE albums;
+DROP IF EXISTS TABLE artists;
 
-DROP TABLE platforms;
-DROP TABLE images;
-DROP TABLE libraries;
-DROP TABLE connections;
-DROP TABLE follows;
-DROP TABLE subscriptions;
-DROP TABLE sessions;
-DROP TABLE users;
+DROP IF EXISTS TABLE platforms;
+DROP IF EXISTS TABLE images;
+DROP IF EXISTS TABLE libraries;
+DROP IF EXISTS TABLE connections;
+DROP IF EXISTS TABLE follows;
+DROP IF EXISTS TABLE subscriptions;
+DROP IF EXISTS TABLE sessions;
+DROP IF EXISTS TABLE users;
 
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
