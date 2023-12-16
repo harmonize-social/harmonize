@@ -1,28 +1,28 @@
 package main
 
 import (
-    "backend/internal/routers"
-    "fmt"
-    "log"
-    "net/http"
-    "strings"
+	"backend/internal/repositories"
+	"backend/internal/routers"
 
-    "github.com/gorilla/mux"
+	"fmt"
+	"log"
+	"net/http"
+	"strings"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
+    repositories.CreateConnection()
+
     router := mux.NewRouter()
 
     // User routes
     //
     mount(router, "/api/user", routers.UserRouter())
     mount(router, "/api/oauth", routers.OAuthRouter())
-
-    /* Just an example right now
-       // Album routes
-       path := "/api/album"
-       routers.RouterAlbum(path, router)
-    */
+    mount(router, "/api/post", routers.PostRouter())
+    mount(router, "/api/like", routers.LikeRouter())
 
     fmt.Println("Starting server on port 8080")
 

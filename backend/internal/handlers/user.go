@@ -1,70 +1,24 @@
 package handlers
 
 import (
-    "backend/internal/models" // models package where User schema is defined
+    "backend/internal/models"
+    "backend/internal/repositories"
+
+    "context"
     "database/sql"
     "encoding/json" // package to encode and decode the json into struct and vice versa
     "fmt"
     "github.com/google/uuid"   // uuid
     "github.com/gorilla/mux"   // used to get the params from the route
-    "github.com/joho/godotenv" // package used to read the .env file
     _ "github.com/lib/pq"      // postgres golang driver
     "log"
     "net/http" // used to access the request and response object of the api
-    "os"       // used to read the environment variable
-    "strings"
 )
 
 // used https://codesource.io/build-a-crud-application-in-golang-with-postgresql/
 
-type response struct {
-    ID      string `json:"id,omitempty"`
-    Message string `json:"message,omitempty"`
-}
-
-// Create connection with db
-func createConnection() *sql.DB {
-    // load .env file
-    err := godotenv.Load(".env")
-
-    if err != nil {
-        log.Fatalf("Error loading .env file")
-    }
-
-    // Open the connection
-    db, err := sql.Open("postgres", os.Getenv("POSTGRES_URL"))
-
-    if err != nil {
-        panic(err)
-    }
-
-    // check the connection
-    err = db.Ping()
-
-    if err != nil {
-        panic(err)
-    }
-
-    fmt.Println("Connected to database!")
-    // return the connection
-    return db
-}
-
-// setCommonHeaders sets common headers for CORS
-func setCommonHeaders(w http.ResponseWriter) {
-    w.Header().Set("Content-Type", "application/x-www-form-urlencoded")
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-}
-
-// setAdditionalHeaders sets additional headers specific to some handler functions
-func setAdditionalHeaders(w http.ResponseWriter, methods ...string) {
-    w.Header().Set("Access-Control-Allow-Methods", strings.Join(methods, ","))
-    w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-}
-
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-    // set the header to content type x-www-form-urlencoded
-    // Allow all origin to handle cors issue
+    // Set headers
     setCommonHeaders(w)
     setAdditionalHeaders(w, "POST")
 
@@ -91,7 +45,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(res)
 }
 
-// GetUser will return a single user by its id
+// Will return a single user by its id
 func GetUser(w http.ResponseWriter, r *http.Request) {
 
     setCommonHeaders(w)
@@ -117,7 +71,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(user)
 }
 
-// UpdateUser update user's detail in the postgres db
+// Update user's detail in the postgres db
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
     setCommonHeaders(w)
@@ -159,7 +113,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(res)
 }
 
-// DeleteUser delete user's detail in the postgres db
+// Delete user's detail in the postgres db
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
     setCommonHeaders(w)
@@ -195,21 +149,15 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 // insert one user in the DB
 func insertUser(user models.User) uuid.UUID {
 
-    // create the postgres db connection
-    db := createConnection()
-
-    // close the db connection
-    defer db.Close()
-
-    // create the insert sql query
-    // returning userid will return the id of the inserted user
+    // Create the insert sql query
+    // Will return the id of the inserted user
     sqlStatement := `INSERT INTO users (id, email, username, password_hash) VALUES ($1, $2, $3, $4) RETURNING id`
 
     // generate a new UUID for the user
     userID := uuid.New()
 
     // execute the sql statement
-    err := db.QueryRow(sqlStatement, userID, user.Email, user.Username, user.Password).Scan(&userID)
+    err := repositories.Pool.QueryRow(context.Background(), sqlStatement, userID, user.Email, user.Username, user.Password).Scan(&userID)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
@@ -223,20 +171,15 @@ func insertUser(user models.User) uuid.UUID {
 
 // get one user from the DB by its userid
 func getUser(userID uuid.UUID) (models.User, error) {
-    // create the postgres db connection
-    db := createConnection()
-
-    // close the db connection
-    defer db.Close()
 
     // create a user of models.User type
     var user models.User
 
     // create the select sql query
-    sqlStatement := `SELECT * FROM users WHERE userid=$1`
+    sqlStatement := `SELECT * FROM users WHERE id=$1`
 
     // execute the sql statement
-    row := db.QueryRow(sqlStatement, userID)
+    row := repositories.Pool.QueryRow(context.Background(), sqlStatement, userID)
 
     // unmarshal the row object to user
     err := row.Scan(&user.ID, &user.Email, &user.Username, &user.Password)
@@ -258,28 +201,18 @@ func getUser(userID uuid.UUID) (models.User, error) {
 // update user in the DB
 func updateUser(userID uuid.UUID, user models.User) int64 {
 
-    // create the postgres db connection
-    db := createConnection()
-
-    // close the db connection
-    defer db.Close()
-
     // create the update sql query
-    sqlStatement := `UPDATE users SET email=$2, username=$3, password_hash=$4 WHERE userid=$1`
+    sqlStatement := `UPDATE users SET email=$2, username=$3, password_hash=$4 WHERE id=$1`
 
     // execute the sql statement
-    res, err := db.Exec(sqlStatement, userID, user.Email, user.Username, user.Password)
+    res, err := repositories.Pool.Exec(context.Background(), sqlStatement, userID, user.Email, user.Username, user.Password)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
     }
 
     // check how many rows affected
-    rowsAffected, err := res.RowsAffected()
-
-    if err != nil {
-        log.Fatalf("Error while checking the affected rows. %v", err)
-    }
+    rowsAffected := res.RowsAffected()
 
     fmt.Printf("Total rows/record affected %v", rowsAffected)
 
@@ -289,28 +222,18 @@ func updateUser(userID uuid.UUID, user models.User) int64 {
 // delete user in the DB
 func deleteUser(userID uuid.UUID) int64 {
 
-    // create the postgres db connection
-    db := createConnection()
-
-    // close the db connection
-    defer db.Close()
-
     // create the delete sql query
-    sqlStatement := `DELETE FROM users WHERE userid=$1`
+    sqlStatement := `DELETE FROM users WHERE id=$1`
 
     // execute the sql statement
-    res, err := db.Exec(sqlStatement, userID)
+    res, err := repositories.Pool.Exec(context.Background(), sqlStatement, userID)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
     }
 
     // check how many rows affected
-    rowsAffected, err := res.RowsAffected()
-
-    if err != nil {
-        log.Fatalf("Error while checking the affected rows. %v", err)
-    }
+    rowsAffected := res.RowsAffected()
 
     fmt.Printf("Total rows/record affected %v", rowsAffected)
 
