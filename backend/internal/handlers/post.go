@@ -145,7 +145,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 }
 
 // ------------------------- handler functions ----------------
-// insert one user in the DB
+// insert one post in the DB
 func insertPost(post models.Post) uuid.UUID {
 
     // create the insert sql query

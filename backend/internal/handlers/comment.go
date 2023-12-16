@@ -145,7 +145,7 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 }
 
 // ------------------------- handler functions ----------------
-// insert one user in the DB
+// insert one comment in the DB
 func insertComment(comment models.Comment) uuid.UUID {
 
     // create the insert sql query
