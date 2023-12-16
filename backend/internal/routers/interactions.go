@@ -34,3 +34,13 @@ func CommentRouter() *mux.Router {
     router.HandleFunc("/{id}", handlers.DeleteComment).Methods("DELETE")
     return router
 }
+
+func SavedPostRouter() *mux.Router {
+    router := mux.NewRouter()
+
+    router.HandleFunc("/", handlers.CreateSavedPost).Methods("POST")
+    router.HandleFunc("/{id}", handlers.GetSavedPost).Methods("GET")
+    router.HandleFunc("/{id}", handlers.UpdateSavedPost).Methods("PUT")
+    router.HandleFunc("/{id}", handlers.DeleteSavedPost).Methods("DELETE")
+    return router
+}
