@@ -1,20 +1,20 @@
 package handlers
 
 import (
-    "backend/cmd/backend"
-	"backend/internal/models" // models package where User schema is defined
-	//"backend/internal/repositories"
+    "backend/internal/models" // models package where User schema is defined
+    "backend/internal/repositories"
 
-	"context"
-	"database/sql"
-	"encoding/json" // package to encode and decode the json into struct and vice versa
-	"fmt"
-	"log"
-	"net/http" // used to access the request and response object of the api
+    "context"
+    "database/sql"
+    "encoding/json" // package to encode and decode the json into struct and vice versa
+    "fmt"
+    "log"
+    "net/http" // used to access the request and response object of the api
 
-	"github.com/google/uuid" // uuid
-	"github.com/gorilla/mux" // used to get the params from the route
-	_ "github.com/lib/pq"    // likegres golang driver
+    "github.com/google/uuid" // uuid
+    "github.com/gorilla/mux" // used to get the params from the route
+    "github.com/jackc/pgx/v4/pgxpool"
+    _ "github.com/lib/pq" // likegres golang driver
 )
 
 func CreateLike(w http.ResponseWriter, r *http.Request) {
@@ -132,7 +132,7 @@ func insertLike(like models.Like) uuid.UUID {
 // get one like from the DB by its likeID
 func getLike(likeID uuid.UUID) (models.Like, error) {
 
-    db := main.Pool
+    db := Pool
 
     // create a like of models.Like type
     var like models.Like
@@ -163,13 +163,11 @@ func getLike(likeID uuid.UUID) (models.Like, error) {
 // delete like in the DB
 func deleteLike(likeID uuid.UUID) int64 {
 
-    db := main.Pool
-
     // create the delete sql query
     sqlStatement := `DELETE FROM likes WHERE id=$1`
 
     // execute the sql statement
-    res, err := db.Exec(context.Background(), sqlStatement, likeID)
+    res, err := repositories.Pool.Exec(context.Background(), sqlStatement, likeID)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)

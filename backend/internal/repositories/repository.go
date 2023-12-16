@@ -1,5 +1,5 @@
 package repositories
-/*
+
 import (
     "context"
     "fmt"
@@ -10,9 +10,10 @@ import (
     "github.com/joho/godotenv"
 )
 
+var Pool *pgxpool.Pool
 
 // CreateConnection creates a connection pool with the database
-func CreateConnection() (*pgxpool.Pool, error) {
+func CreateConnection() error {
     // Load .env file
     err := godotenv.Load(".env")
     if err != nil {
@@ -22,20 +23,22 @@ func CreateConnection() (*pgxpool.Pool, error) {
     // Create a new connection pool
     config, err := pgxpool.ParseConfig(os.Getenv("POSTGRES_URL"))
     if err != nil {
-        return nil, fmt.Errorf("Unable to parse connection string: %v", err)
+        return fmt.Errorf("Unable to parse connection string: %v", err)
     }
 
     pool, err := pgxpool.ConnectConfig(context.Background(), config)
     if err != nil {
-        return nil, fmt.Errorf("Unable to connect to database: %v", err)
+        return fmt.Errorf("Unable to connect to database: %v", err)
     }
 
     // Check the connection
     if err := pool.Ping(context.Background()); err != nil {
         pool.Close()
-        return nil, fmt.Errorf("Unable to ping database: %v", err)
+        return fmt.Errorf("Unable to ping database: %v", err)
     }
 
+    Pool = pool
+
     fmt.Println("Connected to the database!")
-    return pool, nil
-}*/
+    return nil
+}
