@@ -13,7 +13,6 @@ import (
 
     "github.com/google/uuid" // uuid
     "github.com/gorilla/mux" // used to get the params from the route
-    "github.com/jackc/pgx/v4/pgxpool"
     _ "github.com/lib/pq" // likegres golang driver
 )
 
@@ -107,8 +106,6 @@ func DeleteLike(w http.ResponseWriter, r *http.Request) {
 // insert one like in the DB
 func insertLike(like models.Like) uuid.UUID {
 
-    db := main.Pool
-
     // create the insert sql query
     // will return the id of the inserted like
     sqlStatement := `INSERT INTO likes (id, post_id, user_id) VALUES ($1, $2, $3) RETURNING id`
@@ -117,7 +114,7 @@ func insertLike(like models.Like) uuid.UUID {
     likeID := uuid.New()
 
     // execute the sql statement
-    err := db.QueryRow(context.Background(), sqlStatement, likeID, like.PostId, like.UserId).Scan(&likeID)
+    err := repositories.Pool.QueryRow(context.Background(), sqlStatement, likeID, like.PostId, like.UserId).Scan(&likeID)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
@@ -132,8 +129,6 @@ func insertLike(like models.Like) uuid.UUID {
 // get one like from the DB by its likeID
 func getLike(likeID uuid.UUID) (models.Like, error) {
 
-    db := Pool
-
     // create a like of models.Like type
     var like models.Like
 
@@ -141,7 +136,7 @@ func getLike(likeID uuid.UUID) (models.Like, error) {
     sqlStatement := `SELECT * FROM likes WHERE id=$1`
 
     // execute the sql statement
-    row := db.QueryRow(context.Background(), sqlStatement, likeID)
+    row := repositories.Pool.QueryRow(context.Background(), sqlStatement, likeID)
 
     // unmarshal the row object to like
     err := row.Scan(&like.ID, &like.PostId, &like.UserId)

@@ -1,9 +1,8 @@
 package handlers
 
 import (
-    "backend/cmd/backend"
     "backend/internal/models"
-    //"backend/internal/repositories"
+    "backend/internal/repositories"
 
     "context"
     "database/sql"
@@ -150,8 +149,6 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 // insert one user in the DB
 func insertUser(user models.User) uuid.UUID {
 
-    db := main.Pool
-
     // Create the insert sql query
     // Will return the id of the inserted user
     sqlStatement := `INSERT INTO users (id, email, username, password_hash) VALUES ($1, $2, $3, $4) RETURNING id`
@@ -160,7 +157,7 @@ func insertUser(user models.User) uuid.UUID {
     userID := uuid.New()
 
     // execute the sql statement
-    err := db.QueryRow(context.Background(), sqlStatement, userID, user.Email, user.Username, user.Password).Scan(&userID)
+    err := repositories.Pool.QueryRow(context.Background(), sqlStatement, userID, user.Email, user.Username, user.Password).Scan(&userID)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
@@ -174,11 +171,6 @@ func insertUser(user models.User) uuid.UUID {
 
 // get one user from the DB by its userid
 func getUser(userID uuid.UUID) (models.User, error) {
-    
-    db := main.Pool
-
-    // close the db connection
-    defer db.Close()
 
     // create a user of models.User type
     var user models.User
@@ -187,7 +179,7 @@ func getUser(userID uuid.UUID) (models.User, error) {
     sqlStatement := `SELECT * FROM users WHERE id=$1`
 
     // execute the sql statement
-    row := db.QueryRow(context.Background(), sqlStatement, userID)
+    row := repositories.Pool.QueryRow(context.Background(), sqlStatement, userID)
 
     // unmarshal the row object to user
     err := row.Scan(&user.ID, &user.Email, &user.Username, &user.Password)
@@ -209,16 +201,11 @@ func getUser(userID uuid.UUID) (models.User, error) {
 // update user in the DB
 func updateUser(userID uuid.UUID, user models.User) int64 {
 
-    db := main.Pool
-
-    // close the db connection
-    defer db.Close()
-
     // create the update sql query
     sqlStatement := `UPDATE users SET email=$2, username=$3, password_hash=$4 WHERE id=$1`
 
     // execute the sql statement
-    res, err := db.Exec(context.Background(), sqlStatement, userID, user.Email, user.Username, user.Password)
+    res, err := repositories.Pool.Exec(context.Background(), sqlStatement, userID, user.Email, user.Username, user.Password)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
@@ -235,16 +222,11 @@ func updateUser(userID uuid.UUID, user models.User) int64 {
 // delete user in the DB
 func deleteUser(userID uuid.UUID) int64 {
 
-    db := main.Pool
-
-    // close the db connection
-    defer db.Close()
-
     // create the delete sql query
     sqlStatement := `DELETE FROM users WHERE id=$1`
 
     // execute the sql statement
-    res, err := db.Exec(context.Background(), sqlStatement, userID)
+    res, err := repositories.Pool.Exec(context.Background(), sqlStatement, userID)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)

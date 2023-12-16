@@ -1,17 +1,20 @@
 package main
 
 import (
-    "backend/internal/routers"
+	"backend/internal/repositories"
+	"backend/internal/routers"
 
-    "fmt"
-    "log"
-    "net/http"
-    "strings"
+	"fmt"
+	"log"
+	"net/http"
+	"strings"
 
-    "github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 )
 
 func main() {
+    repositories.CreateConnection()
+
     router := mux.NewRouter()
 
     // User routes

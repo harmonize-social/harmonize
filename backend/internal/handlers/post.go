@@ -1,9 +1,8 @@
 package handlers
 
 import (
-    "backend/cmd/backend"
 	"backend/internal/models" // models package where User schema is defined
-	//"backend/internal/repositories"
+	"backend/internal/repositories"
 	"context"
 
 	"database/sql"
@@ -149,11 +148,6 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 // insert one user in the DB
 func insertPost(post models.Post) uuid.UUID {
 
-    db := main.Pool
-
-    // close the db connection
-    defer db.Close()
-
     // create the insert sql query
     // will return the id of the inserted post
     sqlStatement := `INSERT INTO posts (id, user_id, caption, type, type_specific_id) VALUES ($1, $2, $3, $4, $5) RETURNING id`
@@ -162,7 +156,7 @@ func insertPost(post models.Post) uuid.UUID {
     postID := uuid.New()
 
     // execute the sql statement
-    err := db.QueryRow(context.Background(), sqlStatement, postID, post.UserId, post.Caption, post.Type, post.TypeSpecificId).Scan(&postID)
+    err := repositories.Pool.QueryRow(context.Background(), sqlStatement, postID, post.UserId, post.Caption, post.Type, post.TypeSpecificId).Scan(&postID)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
@@ -176,11 +170,6 @@ func insertPost(post models.Post) uuid.UUID {
 
 // get one post from the DB by its postID
 func getPost(postID uuid.UUID) (models.Post, error) {
-    
-    db := main.Pool
-
-    // close the db connection
-    defer db.Close()
 
     // create a post of models.Post type
     var post models.Post
@@ -189,7 +178,7 @@ func getPost(postID uuid.UUID) (models.Post, error) {
     sqlStatement := `SELECT * FROM posts WHERE id=$1`
 
     // execute the sql statement
-    row := db.QueryRow(context.Background(), sqlStatement, postID)
+    row := repositories.Pool.QueryRow(context.Background(), sqlStatement, postID)
 
     // unmarshal the row object to post
     err := row.Scan(&post.ID, &post.UserId, &post.Caption, &post.Type, &post.TypeSpecificId)
@@ -211,16 +200,11 @@ func getPost(postID uuid.UUID) (models.Post, error) {
 // update post in the DB
 func updatePost(postID uuid.UUID, post models.Post) int64 {
 
-    db := main.Pool
-
-    // close the db connection
-    defer db.Close()
-
     // create the update sql query
     sqlStatement := `UPDATE posts SET user_id=$2, caption=$3, type=$4, type=$5 WHERE userid=$1`
 
     // execute the sql statement
-    res, err := db.Exec(context.Background(), sqlStatement, postID, post.UserId, post.Caption, post.Type, post.TypeSpecificId)
+    res, err := repositories.Pool.Exec(context.Background(), sqlStatement, postID, post.UserId, post.Caption, post.Type, post.TypeSpecificId)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
@@ -237,16 +221,11 @@ func updatePost(postID uuid.UUID, post models.Post) int64 {
 // delete post in the DB
 func deletePost(postID uuid.UUID) int64 {
 
-    db := main.Pool
-
-    // close the db connection
-    defer db.Close()
-
     // create the delete sql query
     sqlStatement := `DELETE FROM posts WHERE id=$1`
 
     // execute the sql statement
-    res, err := db.Exec(context.Background(), sqlStatement, postID)
+    res, err := repositories.Pool.Exec(context.Background(), sqlStatement, postID)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
