@@ -24,3 +24,13 @@ func LikeRouter() *mux.Router {
     router.HandleFunc("/{id}", handlers.DeleteLike).Methods("DELETE")
     return router
 }
+
+func CommentRouter() *mux.Router {
+    router := mux.NewRouter()
+
+    router.HandleFunc("/", handlers.CreateComment).Methods("POST")
+    router.HandleFunc("/{id}", handlers.GetComment).Methods("GET")
+    router.HandleFunc("/{id}", handlers.UpdateComment).Methods("PUT")
+    router.HandleFunc("/{id}", handlers.DeleteComment).Methods("DELETE")
+    return router
+}
