@@ -1,5 +1,5 @@
 package repositories
-
+/*
 import (
     "context"
     "fmt"
@@ -9,6 +9,7 @@ import (
     "github.com/jackc/pgx/v4/pgxpool"
     "github.com/joho/godotenv"
 )
+
 
 // CreateConnection creates a connection pool with the database
 func CreateConnection() (*pgxpool.Pool, error) {
@@ -37,4 +38,4 @@ func CreateConnection() (*pgxpool.Pool, error) {
 
     fmt.Println("Connected to the database!")
     return pool, nil
-}
+}*/

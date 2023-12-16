@@ -1,10 +1,11 @@
 package handlers
 
 import (
+    "backend/cmd/backend"
 	"backend/internal/models" // models package where User schema is defined
-	"backend/internal/repositories"
-	"context"
+	//"backend/internal/repositories"
 
+	"context"
 	"database/sql"
 	"encoding/json" // package to encode and decode the json into struct and vice versa
 	"fmt"
@@ -106,14 +107,7 @@ func DeleteLike(w http.ResponseWriter, r *http.Request) {
 // insert one like in the DB
 func insertLike(like models.Like) uuid.UUID {
 
-    // create the postgres db connection
-    db, errDB := repositories.CreateConnection()
-    if errDB != nil {
-        log.Fatalf("Error creating database connection: %v", errDB)
-    }
-
-    // close the db connection
-    defer db.Close()
+    db := main.Pool
 
     // create the insert sql query
     // will return the id of the inserted like
@@ -137,14 +131,8 @@ func insertLike(like models.Like) uuid.UUID {
 
 // get one like from the DB by its likeID
 func getLike(likeID uuid.UUID) (models.Like, error) {
-    // create the postgres db connection
-    db, errDB := repositories.CreateConnection()
-    if errDB != nil {
-        log.Fatalf("Error creating database connection: %v", errDB)
-    }
 
-    // close the db connection
-    defer db.Close()
+    db := main.Pool
 
     // create a like of models.Like type
     var like models.Like
@@ -175,14 +163,7 @@ func getLike(likeID uuid.UUID) (models.Like, error) {
 // delete like in the DB
 func deleteLike(likeID uuid.UUID) int64 {
 
-    // create the postgres db connection
-    db, errDB := repositories.CreateConnection()
-    if errDB != nil {
-        log.Fatalf("Error creating database connection: %v", errDB)
-    }
-
-    // close the db connection
-    defer db.Close()
+    db := main.Pool
 
     // create the delete sql query
     sqlStatement := `DELETE FROM likes WHERE id=$1`

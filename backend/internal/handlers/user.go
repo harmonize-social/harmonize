@@ -1,8 +1,9 @@
 package handlers
 
 import (
+    "backend/cmd/backend"
     "backend/internal/models"
-    "backend/internal/repositories"
+    //"backend/internal/repositories"
 
     "context"
     "database/sql"
@@ -149,14 +150,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 // insert one user in the DB
 func insertUser(user models.User) uuid.UUID {
 
-    // create the postgres db connection
-    db, errDB := repositories.CreateConnection()
-    if errDB != nil {
-        log.Fatalf("Error creating database connection: %v", errDB)
-    }
-
-    // close the db connection
-    defer db.Close()
+    db := main.Pool
 
     // Create the insert sql query
     // Will return the id of the inserted user
@@ -180,11 +174,8 @@ func insertUser(user models.User) uuid.UUID {
 
 // get one user from the DB by its userid
 func getUser(userID uuid.UUID) (models.User, error) {
-    // create the postgres db connection
-    db, errDB := repositories.CreateConnection()
-    if errDB != nil {
-        log.Fatalf("Error creating database connection: %v", errDB)
-    }
+    
+    db := main.Pool
 
     // close the db connection
     defer db.Close()
@@ -218,11 +209,7 @@ func getUser(userID uuid.UUID) (models.User, error) {
 // update user in the DB
 func updateUser(userID uuid.UUID, user models.User) int64 {
 
-    // create the postgres db connection
-    db, errDB := repositories.CreateConnection()
-    if errDB != nil {
-        log.Fatalf("Error creating database connection: %v", errDB)
-    }
+    db := main.Pool
 
     // close the db connection
     defer db.Close()
@@ -248,11 +235,7 @@ func updateUser(userID uuid.UUID, user models.User) int64 {
 // delete user in the DB
 func deleteUser(userID uuid.UUID) int64 {
 
-    // create the postgres db connection
-    db, errDB := repositories.CreateConnection()
-    if errDB != nil {
-        log.Fatalf("Error creating database connection: %v", errDB)
-    }
+    db := main.Pool
 
     // close the db connection
     defer db.Close()

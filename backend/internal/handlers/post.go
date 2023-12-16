@@ -1,8 +1,9 @@
 package handlers
 
 import (
+    "backend/cmd/backend"
 	"backend/internal/models" // models package where User schema is defined
-	"backend/internal/repositories"
+	//"backend/internal/repositories"
 	"context"
 
 	"database/sql"
@@ -148,11 +149,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 // insert one user in the DB
 func insertPost(post models.Post) uuid.UUID {
 
-    // create the postgres db connection
-    db, errDB := repositories.CreateConnection()
-    if errDB != nil {
-        log.Fatalf("Error creating database connection: %v", errDB)
-    }
+    db := main.Pool
 
     // close the db connection
     defer db.Close()
@@ -179,11 +176,8 @@ func insertPost(post models.Post) uuid.UUID {
 
 // get one post from the DB by its postID
 func getPost(postID uuid.UUID) (models.Post, error) {
-    // create the postgres db connection
-    db, errDB := repositories.CreateConnection()
-    if errDB != nil {
-        log.Fatalf("Error creating database connection: %v", errDB)
-    }
+    
+    db := main.Pool
 
     // close the db connection
     defer db.Close()
@@ -217,11 +211,7 @@ func getPost(postID uuid.UUID) (models.Post, error) {
 // update post in the DB
 func updatePost(postID uuid.UUID, post models.Post) int64 {
 
-    // create the postgres db connection
-    db, errDB := repositories.CreateConnection()
-    if errDB != nil {
-        log.Fatalf("Error creating database connection: %v", errDB)
-    }
+    db := main.Pool
 
     // close the db connection
     defer db.Close()
@@ -247,11 +237,7 @@ func updatePost(postID uuid.UUID, post models.Post) int64 {
 // delete post in the DB
 func deletePost(postID uuid.UUID) int64 {
 
-    // create the postgres db connection
-    db, errDB := repositories.CreateConnection()
-    if errDB != nil {
-        log.Fatalf("Error creating database connection: %v", errDB)
-    }
+    db := main.Pool
 
     // close the db connection
     defer db.Close()
