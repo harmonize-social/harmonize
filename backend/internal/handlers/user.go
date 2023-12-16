@@ -4,6 +4,7 @@ import (
     "backend/internal/models"
     "backend/internal/repositories"
 
+    "context"
     "database/sql"
     "encoding/json" // package to encode and decode the json into struct and vice versa
     "fmt"
@@ -149,7 +150,10 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 func insertUser(user models.User) uuid.UUID {
 
     // create the postgres db connection
-    db := repositories.CreateConnection()
+    db, errDB := repositories.CreateConnection()
+    if errDB != nil {
+        log.Fatalf("Error creating database connection: %v", errDB)
+    }
 
     // close the db connection
     defer db.Close()
@@ -162,7 +166,7 @@ func insertUser(user models.User) uuid.UUID {
     userID := uuid.New()
 
     // execute the sql statement
-    err := db.QueryRow(sqlStatement, userID, user.Email, user.Username, user.Password).Scan(&userID)
+    err := db.QueryRow(context.Background(), sqlStatement, userID, user.Email, user.Username, user.Password).Scan(&userID)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
@@ -177,7 +181,10 @@ func insertUser(user models.User) uuid.UUID {
 // get one user from the DB by its userid
 func getUser(userID uuid.UUID) (models.User, error) {
     // create the postgres db connection
-    db := repositories.CreateConnection()
+    db, errDB := repositories.CreateConnection()
+    if errDB != nil {
+        log.Fatalf("Error creating database connection: %v", errDB)
+    }
 
     // close the db connection
     defer db.Close()
@@ -189,7 +196,7 @@ func getUser(userID uuid.UUID) (models.User, error) {
     sqlStatement := `SELECT * FROM users WHERE id=$1`
 
     // execute the sql statement
-    row := db.QueryRow(sqlStatement, userID)
+    row := db.QueryRow(context.Background(), sqlStatement, userID)
 
     // unmarshal the row object to user
     err := row.Scan(&user.ID, &user.Email, &user.Username, &user.Password)
@@ -212,7 +219,10 @@ func getUser(userID uuid.UUID) (models.User, error) {
 func updateUser(userID uuid.UUID, user models.User) int64 {
 
     // create the postgres db connection
-    db := repositories.CreateConnection()
+    db, errDB := repositories.CreateConnection()
+    if errDB != nil {
+        log.Fatalf("Error creating database connection: %v", errDB)
+    }
 
     // close the db connection
     defer db.Close()
@@ -221,18 +231,14 @@ func updateUser(userID uuid.UUID, user models.User) int64 {
     sqlStatement := `UPDATE users SET email=$2, username=$3, password_hash=$4 WHERE id=$1`
 
     // execute the sql statement
-    res, err := db.Exec(sqlStatement, userID, user.Email, user.Username, user.Password)
+    res, err := db.Exec(context.Background(), sqlStatement, userID, user.Email, user.Username, user.Password)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
     }
 
     // check how many rows affected
-    rowsAffected, err := res.RowsAffected()
-
-    if err != nil {
-        log.Fatalf("Error while checking the affected rows. %v", err)
-    }
+    rowsAffected := res.RowsAffected()
 
     fmt.Printf("Total rows/record affected %v", rowsAffected)
 
@@ -243,7 +249,10 @@ func updateUser(userID uuid.UUID, user models.User) int64 {
 func deleteUser(userID uuid.UUID) int64 {
 
     // create the postgres db connection
-    db := repositories.CreateConnection()
+    db, errDB := repositories.CreateConnection()
+    if errDB != nil {
+        log.Fatalf("Error creating database connection: %v", errDB)
+    }
 
     // close the db connection
     defer db.Close()
@@ -252,18 +261,14 @@ func deleteUser(userID uuid.UUID) int64 {
     sqlStatement := `DELETE FROM users WHERE id=$1`
 
     // execute the sql statement
-    res, err := db.Exec(sqlStatement, userID)
+    res, err := db.Exec(context.Background(), sqlStatement, userID)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
     }
 
     // check how many rows affected
-    rowsAffected, err := res.RowsAffected()
-
-    if err != nil {
-        log.Fatalf("Error while checking the affected rows. %v", err)
-    }
+    rowsAffected := res.RowsAffected()
 
     fmt.Printf("Total rows/record affected %v", rowsAffected)
 

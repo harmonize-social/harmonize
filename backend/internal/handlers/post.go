@@ -1,18 +1,19 @@
 package handlers
 
-
 import (
-    "backend/internal/models" // models package where User schema is defined
+	"backend/internal/models" // models package where User schema is defined
 	"backend/internal/repositories"
+	"context"
 
-    "database/sql"
-    "encoding/json" // package to encode and decode the json into struct and vice versa
-    "fmt"
-    "github.com/google/uuid"   // uuid
-    "github.com/gorilla/mux"   // used to get the params from the route
-    _ "github.com/lib/pq"      // postgres golang driver
-    "log"
-    "net/http" // used to access the request and response object of the api
+	"database/sql"
+	"encoding/json" // package to encode and decode the json into struct and vice versa
+	"fmt"
+	"log"
+	"net/http" // used to access the request and response object of the api
+
+	"github.com/google/uuid" // uuid
+	"github.com/gorilla/mux" // used to get the params from the route
+	_ "github.com/lib/pq"    // postgres golang driver
 )
 
 func CreatePost(w http.ResponseWriter, r *http.Request) {
@@ -148,7 +149,10 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 func insertPost(post models.Post) uuid.UUID {
 
     // create the postgres db connection
-    db := repositories.CreateConnection()
+    db, errDB := repositories.CreateConnection()
+    if errDB != nil {
+        log.Fatalf("Error creating database connection: %v", errDB)
+    }
 
     // close the db connection
     defer db.Close()
@@ -161,7 +165,7 @@ func insertPost(post models.Post) uuid.UUID {
     postID := uuid.New()
 
     // execute the sql statement
-    err := db.QueryRow(sqlStatement, postID, post.UserId, post.Caption, post.Type, post.TypeSpecificId).Scan(&postID)
+    err := db.QueryRow(context.Background(), sqlStatement, postID, post.UserId, post.Caption, post.Type, post.TypeSpecificId).Scan(&postID)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
@@ -176,7 +180,10 @@ func insertPost(post models.Post) uuid.UUID {
 // get one post from the DB by its postID
 func getPost(postID uuid.UUID) (models.Post, error) {
     // create the postgres db connection
-    db := repositories.CreateConnection()
+    db, errDB := repositories.CreateConnection()
+    if errDB != nil {
+        log.Fatalf("Error creating database connection: %v", errDB)
+    }
 
     // close the db connection
     defer db.Close()
@@ -188,7 +195,7 @@ func getPost(postID uuid.UUID) (models.Post, error) {
     sqlStatement := `SELECT * FROM posts WHERE id=$1`
 
     // execute the sql statement
-    row := db.QueryRow(sqlStatement, postID)
+    row := db.QueryRow(context.Background(), sqlStatement, postID)
 
     // unmarshal the row object to post
     err := row.Scan(&post.ID, &post.UserId, &post.Caption, &post.Type, &post.TypeSpecificId)
@@ -211,7 +218,10 @@ func getPost(postID uuid.UUID) (models.Post, error) {
 func updatePost(postID uuid.UUID, post models.Post) int64 {
 
     // create the postgres db connection
-    db := repositories.CreateConnection()
+    db, errDB := repositories.CreateConnection()
+    if errDB != nil {
+        log.Fatalf("Error creating database connection: %v", errDB)
+    }
 
     // close the db connection
     defer db.Close()
@@ -220,18 +230,14 @@ func updatePost(postID uuid.UUID, post models.Post) int64 {
     sqlStatement := `UPDATE posts SET user_id=$2, caption=$3, type=$4, type=$5 WHERE userid=$1`
 
     // execute the sql statement
-    res, err := db.Exec(sqlStatement, postID, post.UserId, post.Caption, post.Type, post.TypeSpecificId)
+    res, err := db.Exec(context.Background(), sqlStatement, postID, post.UserId, post.Caption, post.Type, post.TypeSpecificId)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
     }
 
     // check how many rows affected
-    rowsAffected, err := res.RowsAffected()
-
-    if err != nil {
-        log.Fatalf("Error while checking the affected rows. %v", err)
-    }
+    rowsAffected := res.RowsAffected() // how to see/respond if there is an eror with checking the rows?
 
     fmt.Printf("Total rows/record affected %v", rowsAffected)
 
@@ -242,7 +248,10 @@ func updatePost(postID uuid.UUID, post models.Post) int64 {
 func deletePost(postID uuid.UUID) int64 {
 
     // create the postgres db connection
-    db := repositories.CreateConnection()
+    db, errDB := repositories.CreateConnection()
+    if errDB != nil {
+        log.Fatalf("Error creating database connection: %v", errDB)
+    }
 
     // close the db connection
     defer db.Close()
@@ -251,18 +260,14 @@ func deletePost(postID uuid.UUID) int64 {
     sqlStatement := `DELETE FROM posts WHERE id=$1`
 
     // execute the sql statement
-    res, err := db.Exec(sqlStatement, postID)
+    res, err := db.Exec(context.Background(), sqlStatement, postID)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
     }
 
     // check how many rows affected
-    rowsAffected, err := res.RowsAffected()
-
-    if err != nil {
-        log.Fatalf("Error while checking the affected rows. %v", err)
-    }
+    rowsAffected := res.RowsAffected()
 
     fmt.Printf("Total rows/record affected %v", rowsAffected)
 

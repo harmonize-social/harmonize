@@ -1,18 +1,19 @@
 package handlers
 
-
 import (
-    "backend/internal/models" // models package where User schema is defined
+	"backend/internal/models" // models package where User schema is defined
 	"backend/internal/repositories"
+	"context"
 
-    "database/sql"
-    "encoding/json" // package to encode and decode the json into struct and vice versa
-    "fmt"
-    "github.com/google/uuid"   // uuid
-    "github.com/gorilla/mux"   // used to get the params from the route
-    _ "github.com/lib/pq"      // likegres golang driver
-    "log"
-    "net/http" // used to access the request and response object of the api
+	"database/sql"
+	"encoding/json" // package to encode and decode the json into struct and vice versa
+	"fmt"
+	"log"
+	"net/http" // used to access the request and response object of the api
+
+	"github.com/google/uuid" // uuid
+	"github.com/gorilla/mux" // used to get the params from the route
+	_ "github.com/lib/pq"    // likegres golang driver
 )
 
 func CreateLike(w http.ResponseWriter, r *http.Request) {
@@ -106,7 +107,10 @@ func DeleteLike(w http.ResponseWriter, r *http.Request) {
 func insertLike(like models.Like) uuid.UUID {
 
     // create the postgres db connection
-    db := repositories.CreateConnection()
+    db, errDB := repositories.CreateConnection()
+    if errDB != nil {
+        log.Fatalf("Error creating database connection: %v", errDB)
+    }
 
     // close the db connection
     defer db.Close()
@@ -119,7 +123,7 @@ func insertLike(like models.Like) uuid.UUID {
     likeID := uuid.New()
 
     // execute the sql statement
-    err := db.QueryRow(sqlStatement, likeID, like.PostId, like.UserId).Scan(&likeID)
+    err := db.QueryRow(context.Background(), sqlStatement, likeID, like.PostId, like.UserId).Scan(&likeID)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
@@ -134,7 +138,10 @@ func insertLike(like models.Like) uuid.UUID {
 // get one like from the DB by its likeID
 func getLike(likeID uuid.UUID) (models.Like, error) {
     // create the postgres db connection
-    db := repositories.CreateConnection()
+    db, errDB := repositories.CreateConnection()
+    if errDB != nil {
+        log.Fatalf("Error creating database connection: %v", errDB)
+    }
 
     // close the db connection
     defer db.Close()
@@ -146,7 +153,7 @@ func getLike(likeID uuid.UUID) (models.Like, error) {
     sqlStatement := `SELECT * FROM likes WHERE id=$1`
 
     // execute the sql statement
-    row := db.QueryRow(sqlStatement, likeID)
+    row := db.QueryRow(context.Background(), sqlStatement, likeID)
 
     // unmarshal the row object to like
     err := row.Scan(&like.ID, &like.PostId, &like.UserId)
@@ -169,7 +176,10 @@ func getLike(likeID uuid.UUID) (models.Like, error) {
 func deleteLike(likeID uuid.UUID) int64 {
 
     // create the postgres db connection
-    db := repositories.CreateConnection()
+    db, errDB := repositories.CreateConnection()
+    if errDB != nil {
+        log.Fatalf("Error creating database connection: %v", errDB)
+    }
 
     // close the db connection
     defer db.Close()
@@ -178,18 +188,14 @@ func deleteLike(likeID uuid.UUID) int64 {
     sqlStatement := `DELETE FROM likes WHERE id=$1`
 
     // execute the sql statement
-    res, err := db.Exec(sqlStatement, likeID)
+    res, err := db.Exec(context.Background(), sqlStatement, likeID)
 
     if err != nil {
         log.Fatalf("Unable to execute the query. %v", err)
     }
 
     // check how many rows affected
-    rowsAffected, err := res.RowsAffected()
-
-    if err != nil {
-        log.Fatalf("Error while checking the affected rows. %v", err)
-    }
+    rowsAffected := res.RowsAffected()
 
     fmt.Printf("Total rows/record affected %v", rowsAffected)
 
