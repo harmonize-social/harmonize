@@ -1,7 +1,10 @@
 package handlers
 
 import (
+    "backend/internal/models"
+    "backend/internal/repositories"
     "backend/internal/scanner"
+    "context"
     "encoding/json"
     "fmt"
     "io"
@@ -9,6 +12,7 @@ import (
     "os"
     "time"
 
+    "github.com/google/uuid"
     "github.com/markbates/goth/providers/deezer"
     deezer2 "github.com/stayradiated/deezer"
     "github.com/zmb3/spotify"
@@ -105,10 +109,27 @@ func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Couldn't get token", http.StatusNotFound)
         return
     }
-    // TODO: Save these
-    fmt.Fprintf(w, "AccessToken: %s\n", token.AccessToken)
-    fmt.Fprintf(w, "RefreshToken: %s", token.RefreshToken)
     client := auth.NewClient(token)
+    connection := &models.Connection{
+        ID:     uuid.New(),
+        UserID: uuid.MustParse("737c53d4-b25c-46db-b80f-3ca1ddaa76cf"),
+        AccessToken: token.AccessToken,
+        RefreshToken: token.RefreshToken,
+        Expiry: token.Expiry,
+    }
+    sqlStatement := `INSERT INTO connections (id, user_id, access_token, refresh_token, expiry) VALUES ($1, $2, $3, $4, $5) RETURNING id`
+    var connectionID uuid.UUID
+    err2 := repositories.Pool.QueryRow(context.Background(),
+        sqlStatement,
+        connection.ID,
+        connection.UserID,
+        connection.AccessToken,
+        connection.RefreshToken,
+        connection.Expiry.Format(time.RFC3339)).Scan(&connectionID)
+    if err2 != nil {
+        fmt.Fprintf(w, "connection: %s\n\r", connection.UserID)
+        fmt.Fprintf(w, "Unable to execute the query. %s", err2)
+    }
     go scanner.ScanSpotify(client)
 }
 
