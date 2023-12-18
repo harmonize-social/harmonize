@@ -79,4 +79,3 @@
         <Button buttonText="Get Started" link="../src/routes/auth/login/+page.svelte">Get Started!</Button>
     </div>
   </main>
-  
