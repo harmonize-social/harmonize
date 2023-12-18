@@ -60,8 +60,8 @@ CREATE TABLE IF NOT EXISTS follows(
 CREATE TABLE IF NOT EXISTS connections(
     id UUID PRIMARY KEY,
     user_id UUID REFERENCES users (id) NOT NULL,
-    access_token VARCHAR(64) NOT NULL,
-    refresh_token VARCHAR(64) NOT NULL,
+    access_token VARCHAR(1024) NOT NULL,
+    refresh_token VARCHAR(512) NOT NULL,
     expiry timestamptz NOT NULL
 );
 
