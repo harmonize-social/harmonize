@@ -80,8 +80,8 @@ CREATE TABLE IF NOT EXISTS images(
 
 
 CREATE TABLE IF NOT EXISTS platforms(
-    id UUID PRIMARY KEY,
-    name VARCHAR(32) NOT NULL,
+    id VARCHAR(64) PRIMARY KEY,
+    name VARCHAR(64) NOT NULL,
     icon_id UUID REFERENCES images (id) NOT NULL
 );
 
@@ -205,3 +205,41 @@ CREATE TABLE IF NOT EXISTS user_liked_songs(
     library_id UUID REFERENCES libraries (id) NOT NULL,
     song_id UUID REFERENCES platform_songs (id) NOT NULL
 );
+
+INSERT INTO images (id, path) VALUES ('7c5c5c3f-6319-4559-82ba-a52106dac824', 'static/placeholder.png');
+INSERT INTO platforms (id, name, icon_id) VALUES ('spotify', 'Spotify', '7c5c5c3f-6319-4559-82ba-a52106dac824');
+
+DROP FUNCTION IF EXISTS insert_new_playlist_and_or_follow(UUID, VARCHAR, VARCHAR);
+CREATE OR REPLACE FUNCTION insert_new_playlist_and_or_follow(new_library_id UUID, platform_specific_id_input VARCHAR(64), new_title VARCHAR(128)) RETURNS VARCHAR(64) AS $$
+DECLARE
+    playlists_playlist_id UUID;
+    platform_playlists_playlist_id UUID;
+BEGIN
+    -- Check if a playlist with the given platform_specific_id already exists
+    IF NOT EXISTS (
+        SELECT playlist_id FROM platform_playlists WHERE platform_specific_id = platform_specific_id_input RETURNING INTO platform_playlists_playlist_id
+    ) THEN
+        -- Insert into the 'playlists' table and get the newly generated 'id'
+        INSERT INTO playlists (id, title)
+        VALUES (uuid_generate_v4(), new_title)
+        RETURNING id INTO playlists_playlist_id;
+
+        -- Insert into the 'platform_playlists' table
+        INSERT INTO platform_playlists (id, platform_specific_id, playlist_id)
+        VALUES (uuid_generate_v4(), platform_specific_id_input, playlists_playlist_id)
+        RETURNING id INTO platform_playlists_playlist_id;
+
+        -- Insert into the 'platform_playlists' table
+        INSERT INTO user_followed_playlists (id, library_id, playlist_id)
+        VALUES (uuid_generate_v4(), new_library_id, platform_playlists_playlist_id);
+
+        RETURN platform_specific_id_input;
+    ELSE
+        -- Insert into the 'platform_playlists' table
+        INSERT INTO user_followed_playlists (id, library_id, playlist_id)
+        VALUES (uuid_generate_v4(), new_library_id, platform_playlists_playlist_id);
+
+        RETURN NULL;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
