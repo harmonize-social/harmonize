@@ -1,6 +1,5 @@
 <script lang="ts">
  export let caption = "Caption" ;
- export let description = "Post Description";
  export let music = "Music Title";
  export let platform = "Streaming Platform";
 export let comments = ['Comment 1', 'Comment 2', 'Comment 3'];
@@ -18,7 +17,6 @@ export let comments = ['Comment 1', 'Comment 2', 'Comment 3'];
 </style>
 <div class="post">
     <h3>{caption}</h3>
-    <p>{description}</p>
     <a href="/{platform}/{music}"><p>Go to the music in your platform!</p></a>
     <h4>Comments:</h4>
     {#each comments as comment }

@@ -12,8 +12,8 @@
       flex-direction: row;
       align-items: center;
       justify-content: center;
-        text-decoration: none;
-  }
+      text-decoration: none;
+      color: rebeccapurple;  }
   .navlink1 p{
       flex-direction: row;
       align-items: center;
