@@ -1,31 +1,46 @@
 package scanner
 
 import (
+    "backend/internal/repositories"
+    "context"
     "fmt"
+    "slices"
 
+    "github.com/google/uuid"
     "github.com/zmb3/spotify"
 )
 
-func ScanSpotify(client spotify.Client) {
+func ScanSpotify(client spotify.Client, connectionId uuid.UUID) {
+    fmt.Printf("Create library\n\r")
+    sqlStatement := `
+    INSERT INTO libraries (platform_id, id, connection_id) VALUES ('spotify', uuid_generate_v4(), $1) RETURNING id;
+    `
+    var libraryId uuid.UUID
+    err := repositories.Pool.QueryRow(context.Background(),
+        sqlStatement,
+        connectionId).Scan(&libraryId)
+    if err != nil {
+        fmt.Printf("error: %v", err)
+        return
+    }
     fmt.Printf("Fetching Playlists: ")
     fetchedPlaylists := FetchSpotifyUserPlaylists(&client)
-    missingPlaylists := CheckSpotifyPlaylists(&fetchedPlaylists)
-    fmt.Printf("%d playlists\n\rFetching Playlist Tracks: " , len(missingPlaylists))
-    missingPlaylistIds := uniquePlaylists(missingPlaylists)
-    missingPlaylistTracks := FetchSpotifyPlaylistTracks(&client, &missingPlaylistIds)
+    missingPlaylists := CheckSpotifyPlaylists(&fetchedPlaylists, libraryId)
+    fmt.Printf("%d playlists\n\rFetching Playlist Tracks: ", len(missingPlaylists))
+    missingPlaylistTracks := FetchSpotifyPlaylistTracks(&client, &missingPlaylists)
     missingPlaylistTracks = uniqueTracks(missingPlaylistTracks)
-    fmt.Printf("%d tracks\n\rFetching Albums: " , len(missingPlaylistTracks))
+    fmt.Printf("%d tracks\n\rFetching Albums: ", len(missingPlaylistTracks))
     fetchedAlbums := FetchSpotifyUserAlbums(&client)
     missingAlbums := CheckSpotifyAlbums(&fetchedAlbums)
-    fmt.Printf("%d albums\n\rFetching Album Tracks: " , len(missingAlbums))
+    fmt.Printf("%d albums\n\rFetching Album Tracks: ", len(missingAlbums))
     missingAlbumTracks := FetchSpotifyAlbumTracks(&client, &missingAlbums)
-    fmt.Printf("%d tracks\n\rFetching Tracks: " , len(missingAlbumTracks))
+    fmt.Printf("%d tracks\n\rFetching Tracks: ", len(missingAlbumTracks))
     fetchedTracks := FetchSpotifyUserTracks(&client)
     fetchedTracks = append(fetchedTracks, missingPlaylistTracks...)
     fetchedTracks = append(fetchedTracks, missingAlbumTracks...)
     missingTracks := CheckSpotifyTracks(&fetchedTracks)
     SaveTracks(&missingTracks)
-    fmt.Printf("%d tracks\n\rFetching Artists: " , len(missingTracks))
+    fmt.Printf("%d tracks\n\rFetching Artists: ", len(missingTracks))
     fetchedArtists := FetchSpotifyUserArtists(&client)
     fmt.Printf("%d artists\n\r", len(fetchedArtists))
     SaveSpotifyArtists(&fetchedArtists)
@@ -41,20 +56,6 @@ func uniqueTracks(slice []spotify.FullTrack) []spotify.FullTrack {
         if !encountered[id] {
             encountered[id] = true
             unique = append(unique, item)
-        }
-    }
-    return unique
-}
-
-func uniquePlaylists(slice []spotify.SimplePlaylist) []string {
-    encountered := map[string]bool{}
-    unique := []string{}
-
-    for _, item := range slice {
-        id := item.ID.String()
-        if !encountered[id] {
-            encountered[id] = true
-            unique = append(unique, id)
         }
     }
     return unique
@@ -139,21 +140,45 @@ func FetchSpotifyUserArtists(client *spotify.Client) []spotify.FullArtist {
     return artists
 }
 
-func CheckSpotifyPlaylists(playlists *[]spotify.SimplePlaylist) []spotify.SimplePlaylist {
-    return *playlists
+func CheckSpotifyPlaylists(playlists *[]spotify.SimplePlaylist, libraryId uuid.UUID) []spotify.SimplePlaylist {
+    var ids []string
+    for _, playlist := range(*playlists) {
+        var id string
+        sqlStatement := `
+            SELECT insert_new_playlist(CAST ($1 AS UUID), $2, $3);
+        `
+        err := repositories.Pool.QueryRow(context.Background(),
+            sqlStatement,
+            libraryId,
+            playlist.ID.String(),
+            playlist.Name,
+        ).Scan(&id)
+        if err != nil {
+            fmt.Printf("error: %v", err)
+        }
+        ids = append(ids, id)
+    }
+    var missing []spotify.SimplePlaylist
+    for _, playlist := range(*playlists) {
+        if slices.Contains(ids, playlist.ID.String()) {
+            missing = append(missing, playlist)
+        }
+    }
+    return missing
 }
 
-func FetchSpotifyPlaylistTracks(client *spotify.Client, playlists *[]string) []spotify.FullTrack {
+func FetchSpotifyPlaylistTracks(client *spotify.Client, playlists *[]spotify.SimplePlaylist) []spotify.FullTrack {
     var tracks []spotify.FullTrack
-    for i, id := range *playlists {
+    for i, playlist := range *playlists {
         fmt.Printf("Playlist: %d/%d\n\r", i, len(*playlists))
-        playlistTracks, err := client.GetPlaylistTracks(spotify.ID(id))
+        playlistTracks, err := client.GetPlaylistTracks(playlist.ID)
         if err != nil {
             fmt.Printf("%v", err)
         }
         for _, track := range playlistTracks.Tracks {
             tracks = append(tracks, track.Track)
         }
+        break;
     }
     return tracks
 }

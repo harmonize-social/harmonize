@@ -112,7 +112,7 @@ func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
     client := auth.NewClient(token)
     connection := &models.Connection{
         ID:     uuid.New(),
-        UserID: uuid.MustParse("737c53d4-b25c-46db-b80f-3ca1ddaa76cf"),
+        UserID: uuid.MustParse("57dac9d2-1578-45df-9b3e-55256ca30cd5"),
         AccessToken: token.AccessToken,
         RefreshToken: token.RefreshToken,
         Expiry: token.Expiry,
@@ -130,7 +130,7 @@ func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintf(w, "connection: %s\n\r", connection.UserID)
         fmt.Fprintf(w, "Unable to execute the query. %s", err2)
     }
-    go scanner.ScanSpotify(client)
+    go scanner.ScanSpotify(client, connectionID)
 }
 
 type DeezerAccessToken struct {
