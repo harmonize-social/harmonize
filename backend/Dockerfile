@@ -9,7 +9,7 @@ WORKDIR /app/backend
 COPY . .
 
 # Build your Go application
-RUN go build -o backend ./cmd
+RUN go build -o backend ./cmd/backend
 
 EXPOSE 8080/tcp
 
