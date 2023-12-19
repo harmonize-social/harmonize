@@ -1,15 +1,15 @@
 package main
 
 import (
-	"backend/internal/repositories"
-	"backend/internal/routers"
+    "backend/internal/repositories"
+    "backend/internal/routers"
 
-	"fmt"
-	"log"
-	"net/http"
-	"strings"
+    "fmt"
+    "log"
+    "net/http"
+    "strings"
 
-	"github.com/gorilla/mux"
+    "github.com/gorilla/mux"
 )
 
 func main() {
@@ -17,13 +17,15 @@ func main() {
 
     router := mux.NewRouter()
 
+    mount(router, "/api/session", routers.SessionRouter())
+
+    // oauth
     mount(router, "/api/oauth", routers.OAuthRouter())
 
     // user.go routers
     mount(router, "/api/user", routers.UserRouter())
-    mount(router, "/api/session", routers.SessionRouter())
     mount(router, "/api/follow", routers.FollowRouter())
-    
+
     // interactions.go routers
     mount(router, "/api/post", routers.PostRouter())
     mount(router, "/api/like", routers.LikeRouter())
