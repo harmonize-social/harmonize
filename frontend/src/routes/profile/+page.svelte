@@ -3,13 +3,13 @@
     import NavBar from "../../components/NavBar.svelte";
     import Button from "../../components/Button.svelte";
 	import { get } from "../../fetch";
-    import type Post from "../../models/post";
+    import type PostModel from "../../models/post";
     import Post from "../../components/Post.svelte";
 	import { onMount } from "svelte";
-    let posts : Post[] = [];
+    let posts : PostModel[] = [];
     async function getData(){
         try{
-            const response : Post[] = await get('/me');
+            const response : PostModel[] = await get('/me');
             posts = response;
         }catch(e){
             throw new Error('Internal server error');
@@ -99,9 +99,9 @@
     <div class="feed-container">
         <Panel title = "Your feed">
             <div class="feed">
-                {#each posts as Post, i}
+                {#each posts as PostModel, i}
                 <div class="post" id={"post" + (i+1)}>
-                <Post caption="Caption Post {i+1}" content={Post} type={Post[type]}
+                <Post caption="Caption Post {i+1}" content={PostModel}
                     comments={['Comment 1', 'Comment 2', 'Comment 3']}></Post>
             </div>
                 {/each}

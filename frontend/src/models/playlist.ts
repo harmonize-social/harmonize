@@ -6,7 +6,7 @@ export default class PlaylistModel{
     songs: SongModel[] = []
     url: string = 'url'
 
-    public PlaylistModel(id: string, name: string, songs: SongModel[], url: string){
+   constructor(id: string, name: string, songs: SongModel[], url: string){
         this.id = id
         this.name = name
         this.songs = songs
