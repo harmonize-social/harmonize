@@ -1,4 +1,4 @@
-export default interface Artist{
+export default interface ArtistModel{
     id: string
     name: string
     url: string
