@@ -1,13 +1,22 @@
 <script lang="ts">
     import Panel from "../../components/Panel.svelte";
     import NavBar from "../../components/NavBar.svelte";
-    import Post from "../../components/Post.svelte";
     import Button from "../../components/Button.svelte";
 	import { get } from "../../fetch";
-    let posts = [Post, Post, Post];
-    const handleData = async () => {
-        posts = await get("/api/posts");
+    import type Post from "../../models/post";
+    import Post from "../../components/Post.svelte";
+	import { onMount } from "svelte";
+    let posts : Post[] = [];
+    async function getData(){
+        try{
+            const response : Post[] = await get('/me');
+            posts = response;
+        }catch(e){
+            throw new Error('Internal server error');
+        }
     }
+
+    onMount(getData);
 </script>
 <style>
     .profile-container{
@@ -92,8 +101,8 @@
             <div class="feed">
                 {#each posts as Post, i}
                 <div class="post" id={"post" + (i+1)}>
-                <Post caption="Caption Post {i+1}" music="Music Title"
-                platform="Streaming Platform"></Post>
+                <Post caption="Caption Post {i+1}" content={Post} type={Post[type]}
+                    comments={['Comment 1', 'Comment 2', 'Comment 3']}></Post>
             </div>
                 {/each}
             </div>
