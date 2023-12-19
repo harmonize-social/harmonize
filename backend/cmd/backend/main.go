@@ -24,6 +24,12 @@ func main() {
     log.Fatal(http.ListenAndServe(":8080", router))
 }
 
+func Middleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        next.ServeHTTP(w, r)
+    })
+}
+
 func unautherRoutes() *mux.Router {
     router := mux.NewRouter()
     mount(router, "/session", routers.SessionRouter())
@@ -47,6 +53,7 @@ func authedRoutes() *mux.Router {
     mount(router, "/like", routers.LikeRouter())
     mount(router, "/comment", routers.CommentRouter())
     mount(router, "/savedpost", routers.SavedPostRouter())
+    router.Use(Middleware)
     return router
 }
 
