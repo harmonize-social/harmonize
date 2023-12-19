@@ -78,8 +78,8 @@
     <div class="text-input">
         <TextInput placeholder="Password" type="password" bind:value={password} />
     </div>
-    <div class="buttonlogin">
-        <Button buttonText="Login" on:click={handleLogin} />
+    <div class="buttonlogin" on:click={handleLogin} >
+        <Button buttonText="Login" />
     </div>
     <a class="forgot-password" href="#">Forgot Password?</a>
 </Panel>
