@@ -15,3 +15,22 @@ func UserRouter() *mux.Router {
     router.HandleFunc("/{id}", handlers.DeleteUser).Methods("DELETE")
     return router
 }
+
+func SessionRouter() *mux.Router {
+    router := mux.NewRouter()
+
+    router.HandleFunc("/", handlers.CreateSession).Methods("POST")
+    router.HandleFunc("/{id}", handlers.GetSession).Methods("GET")
+    router.HandleFunc("/{id}", handlers.UpdateSession).Methods("PUT")
+    router.HandleFunc("/{id}", handlers.DeleteSession).Methods("DELETE")
+    return router
+}
+
+func FollowRouter() *mux.Router {
+    router := mux.NewRouter()
+
+    router.HandleFunc("/", handlers.CreateFollow).Methods("POST")
+    router.HandleFunc("/{id}", handlers.GetFollow).Methods("GET")
+    router.HandleFunc("/{id}", handlers.DeleteFollow).Methods("DELETE")
+    return router
+}

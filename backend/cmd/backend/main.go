@@ -17,12 +17,18 @@ func main() {
 
     router := mux.NewRouter()
 
-    // User routes
-    //
-    mount(router, "/api/user", routers.UserRouter())
     mount(router, "/api/oauth", routers.OAuthRouter())
+
+    // user.go routers
+    mount(router, "/api/user", routers.UserRouter())
+    mount(router, "/api/session", routers.SessionRouter())
+    mount(router, "/api/follow", routers.FollowRouter())
+    
+    // interactions.go routers
     mount(router, "/api/post", routers.PostRouter())
     mount(router, "/api/like", routers.LikeRouter())
+    mount(router, "/api/comment", routers.CommentRouter())
+    mount(router, "/api/savedpost", routers.SavedPostRouter())
 
     fmt.Println("Starting server on port 8080")
 

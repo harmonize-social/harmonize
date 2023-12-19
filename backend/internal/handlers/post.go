@@ -145,7 +145,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
 }
 
 // ------------------------- handler functions ----------------
-// insert one user in the DB
+// insert one post in the DB
 func insertPost(post models.Post) uuid.UUID {
 
     // create the insert sql query
@@ -201,7 +201,7 @@ func getPost(postID uuid.UUID) (models.Post, error) {
 func updatePost(postID uuid.UUID, post models.Post) int64 {
 
     // create the update sql query
-    sqlStatement := `UPDATE posts SET user_id=$2, caption=$3, type=$4, type=$5 WHERE userid=$1`
+    sqlStatement := `UPDATE posts SET user_id=$2, caption=$3, type=$4, type=$5 WHERE id=$1`
 
     // execute the sql statement
     res, err := repositories.Pool.Exec(context.Background(), sqlStatement, postID, post.UserId, post.Caption, post.Type, post.TypeSpecificId)
