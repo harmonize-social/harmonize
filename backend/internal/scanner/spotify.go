@@ -23,28 +23,46 @@ func ScanSpotify(client spotify.Client, connectionId uuid.UUID) {
         fmt.Printf("error: %v", err)
         return
     }
-    fmt.Printf("Fetching Playlists: ")
-    fetchedPlaylists := FetchSpotifyUserPlaylists(&client)
-    missingPlaylists := CheckSpotifyPlaylists(&fetchedPlaylists, libraryId)
-    fmt.Printf("%d playlists\n\rFetching Playlist Tracks: ", len(missingPlaylists))
-    missingPlaylistTracks := FetchSpotifyPlaylistTracks(&client, &missingPlaylists)
-    missingPlaylistTracks = uniqueTracks(missingPlaylistTracks)
-    fmt.Printf("%d tracks\n\rFetching Albums: ", len(missingPlaylistTracks))
-    fetchedAlbums := FetchSpotifyUserAlbums(&client)
-    missingAlbums := CheckSpotifyAlbums(&fetchedAlbums)
-    fmt.Printf("%d albums\n\rFetching Album Tracks: ", len(missingAlbums))
-    missingAlbumTracks := FetchSpotifyAlbumTracks(&client, &missingAlbums)
-    fmt.Printf("%d tracks\n\rFetching Tracks: ", len(missingAlbumTracks))
-    fetchedTracks := FetchSpotifyUserTracks(&client)
-    fetchedTracks = append(fetchedTracks, missingPlaylistTracks...)
-    fetchedTracks = append(fetchedTracks, missingAlbumTracks...)
-    missingTracks := CheckSpotifyTracks(&fetchedTracks)
-    SaveTracks(&missingTracks)
-    fmt.Printf("%d tracks\n\rFetching Artists: ", len(missingTracks))
-    fetchedArtists := FetchSpotifyUserArtists(&client)
-    fmt.Printf("%d artists\n\r", len(fetchedArtists))
-    SaveSpotifyArtists(&fetchedArtists)
-    fmt.Printf("Done")
+    // fmt.Printf("Fetching Playlists: ")
+    // fetchedPlaylists := FetchSpotifyUserPlaylists(&client)
+    // missingPlaylists := CheckSpotifyPlaylists(&fetchedPlaylists, libraryId)
+    // fmt.Printf("%d playlists\n\rFetching Playlist Tracks: ", len(missingPlaylists))
+    // missingPlaylistTracks := FetchSpotifyPlaylistTracks(&client, &missingPlaylists)
+    // missingPlaylistTracks = uniqueTracks(missingPlaylistTracks)
+    // fmt.Printf("%d tracks\n\rFetching Albums: ", len(missingPlaylistTracks))
+    // fetchedAlbums := FetchSpotifyUserAlbums(&client)
+    // missingAlbums := CheckSpotifyAlbums(&fetchedAlbums)
+    // fmt.Printf("%d albums\n\rFetching Album Tracks: ", len(missingAlbums))
+    // missingAlbumTracks := FetchSpotifyAlbumTracks(&client, &missingAlbums)
+    // fmt.Printf("%d tracks\n\rFetching Tracks: ", len(missingAlbumTracks))
+    // fetchedTracks := FetchSpotifyUserTracks(&client)
+    // fetchedTracks = append(fetchedTracks, missingPlaylistTracks...)
+    // fetchedTracks = append(fetchedTracks, missingAlbumTracks...)
+    // missingTracks := CheckSpotifyTracks(&fetchedTracks)
+    // SaveTracks(&missingTracks)
+    // fmt.Printf("%d tracks\n\rFetching Artists: ", len(missingTracks))
+    // fetchedArtists := FetchSpotifyUserArtists(&client)
+    // fmt.Printf("%d artists\n\r", len(fetchedArtists))
+    // SaveSpotifyArtists(&fetchedArtists)
+    // fmt.Printf("Done")
+    // TODO: Fetch Albums
+    // TODO: Fetch Artists
+    // TODO: Fetch Playlists
+    // TODO: Fetch Songs
+    // TODO: Fetch Playlist Songs
+    // TODO: Add Playlist Songs and Songs Uniquely
+    // TODO: Fetch Song Artists and Albums
+    // TODO: Add Song Albums and Albums
+    // TODO: Add Song Artists and Artists
+    // TODO: Fetch Album Songs
+    // TODO: Fetch Album Artists
+    // TODO: Add Album Songs and Songs Uniquely
+    // TODO: Add Combined Artists and Album Artists
+    // TODO: Save Artists
+    // TODO: Save Albums
+    // TODO: Save Songs
+    // TODO: Save Playlists
+    // TODO: Save Songs Playlist Associations
 }
 
 func uniqueTracks(slice []spotify.FullTrack) []spotify.FullTrack {
