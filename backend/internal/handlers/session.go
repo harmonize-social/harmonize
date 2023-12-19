@@ -1,46 +1,100 @@
 package handlers
 
 import (
-	"backend/internal/models" // models package where User schema is defined
-	"backend/internal/repositories"
-	"context"
+    "backend/internal/models" // models package where User schema is defined
+    "backend/internal/repositories"
+    "context"
+    "time"
 
-	"database/sql"
-	"encoding/json" // package to encode and decode the json into struct and vice versa
-	"fmt"
-	"log"
-	"net/http" // used to access the request and response object of the api
+    "database/sql"
+    "encoding/json" // package to encode and decode the json into struct and vice versa
+    "fmt"
+    "log"
+    "net/http" // used to access the request and response object of the api
 
-	"github.com/google/uuid" // uuid
-	"github.com/gorilla/mux" // used to get the params from the route
-	_ "github.com/lib/pq"    // postgres golang driver
+    "github.com/alexedwards/argon2id"
+    "github.com/google/uuid" // uuid
+    "github.com/gorilla/mux" // used to get the params from the route
+    "github.com/jackc/pgx/v4"
 )
+
+type LoginRequest struct {
+    Username string `json:"username"`
+    Password string `json:"password"`
+}
 
 func CreateSession(w http.ResponseWriter, r *http.Request) {
     // Set headers
     setCommonHeaders(w)
     setAdditionalHeaders(w, "POST")
 
-    // create an empty session of type models.Session
-    var session models.Session
-
-    // decode the json request to session
-    err := json.NewDecoder(r.Body).Decode(&session)
+    var loginRequest LoginRequest
+    err := json.NewDecoder(r.Body).Decode(&loginRequest)
 
     if err != nil {
-        log.Fatalf("Unable to decode the request body.  %v", err)
+        fmt.Fprintf(w, "Error: %s", err)
+        return
     }
 
-    // call insertSession and pass the session
-    insertID := insertSession(session)
-
-    // format a response object
-    res := response{
-        ID:      insertID.String(),
-        Message: "Session created successfully",
+    if err != nil {
+        fmt.Fprintf(w, "Hash error: %s", err)
+        return
     }
 
-    // send the response
+    // get user from db with password, email and/or username
+    sqlStatement := `SELECT * FROM users WHERE username=$1 OR email=$1`
+    var user models.User
+    err = repositories.Pool.QueryRow(context.Background(), sqlStatement, loginRequest.Username).Scan(&user)
+
+    if err == pgx.ErrNoRows {
+        fmt.Fprintf(w, "Username or Password wrong: %s", err)
+        return
+    }
+
+    valid, err := argon2id.ComparePasswordAndHash(loginRequest.Password, user.Password)
+
+    if err != nil {
+        fmt.Fprintf(w, "Hash error: %s", err)
+        return
+    }
+
+    if !valid {
+        fmt.Fprintf(w, "Username or Password wrong: %s", err)
+        return
+    }
+
+    if err != nil {
+        fmt.Fprintf(w, "Error DB: %s", err)
+        return
+    }
+
+    if user.ID == uuid.Nil {
+        fmt.Fprintf(w, "Username or Password wrong: %s", err)
+        return
+    }
+
+    // insert session in the DB and return the newly inserted session
+    sqlStatement = `INSERT INTO sessions (id, user_id, expiry) VALUES ($1, $2, $3) RETURNING id`
+
+    // generate a new UUID for the session
+    sessionID := uuid.New()
+
+    err = repositories.Pool.QueryRow(context.Background(), sqlStatement, sessionID, user.ID, time.Now().AddDate(0, 0, 7)).Scan(&sessionID)
+
+    if err != nil {
+        fmt.Fprintf(w, "Error DB: %s", err)
+        return
+    }
+
+    frontendSession := models.FrontendSession{
+        ID:      sessionID,
+        Expiry:  time.Now().AddDate(0, 0, 7),
+    }
+
+    res := models.ApiResponse{
+        Value: frontendSession,
+    }
+
     json.NewEncoder(w).Encode(res)
 }
 
