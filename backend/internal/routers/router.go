@@ -11,8 +11,8 @@ import (
 
 func FullRouter() *mux.Router {
     router := mux.NewRouter()
+    mount(router, "/api/v1/session", SessionRouter())
     mount(router, "/api/v1", authedRoutes())
-    mount(router, "/api/v1", unautherRoutes())
     return router
 }
 
@@ -35,12 +35,6 @@ func Middleware(next http.Handler) http.Handler {
         r.Header.Add("id", claims["id"].(string))
         next.ServeHTTP(w, r)
     })
-}
-
-func unautherRoutes() *mux.Router {
-    router := mux.NewRouter()
-    mount(router, "/session", SessionRouter())
-    return router
 }
 
 func authedRoutes() *mux.Router {
