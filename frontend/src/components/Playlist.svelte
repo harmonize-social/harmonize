@@ -1,6 +1,7 @@
 <!-- Playlist.svelte -->
-<script>
+<script lang="ts">
     import Song from '../components/Song.svelte';
+	import type SongModel from '../models/song';
 
     export let playlistTitle = "Liked Songs"; 
     export let playlistImage = "path_to_playlist_image.jpg";
@@ -8,7 +9,7 @@
     /**
 	 * @type {string | any[]}
 	 */
-     export let songs1 = [];
+     export let songs: SongModel[] = [];
 
     let playlists = [
         {
