@@ -2,6 +2,12 @@
 //https://github.com/EHB-TI/programming-project-groep-3_brussel-student-guide/blob/main/frontend/src/fetch.ts
 
 export async function http<T>(path: string, config: RequestInit): Promise<T> {
+    // Get token from local storage
+    const token = localStorage.getItem('token');
+    config.headers = {
+        ...config.headers,
+        Authorization: `Bearer ${token}`,
+    }
     const request = new Request(path, config);
     const response = await fetch(request);
 
