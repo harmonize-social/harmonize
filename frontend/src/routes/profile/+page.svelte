@@ -3,7 +3,11 @@
     import NavBar from "../../components/NavBar.svelte";
     import Post from "../../components/Post.svelte";
     import Button from "../../components/Button.svelte";
+	import { get } from "../../fetch";
     let posts = [Post, Post, Post];
+    const handleData = async () => {
+        posts = await get("/api/posts");
+    }
 </script>
 <style>
     .profile-container{
