@@ -96,3 +96,53 @@ export async function post<T, U>(path: string, body: T, config?: RequestInit): P
     const init = { method: 'post', body: JSON.stringify(body), ...config };
     return await http<U>(path, init);
 }
+
+export async function deleteAccount(url: string): Promise<void> {
+    const token = localStorage.getItem('token');
+    const request = new Request(url, {
+        method: 'DELETE',
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    try {
+        const response = await fetch(request);
+
+        if (!response.ok) {
+            const json = await response.json();
+            throw new Error(json.error);
+        }
+
+        console.log('Account succesvol verwijderd');
+
+    } catch (error) {
+        console.error('Fout bij het verwijderen van het account:', error);
+        throw new Error('Fout bij het verwijderen van het account');
+    }
+}
+
+export async function logout(url: string): Promise<void> {
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+        localStorage.removeItem('token');
+    }
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST', 
+        });
+
+        if (!response.ok) {
+            const json = await response.json();
+            throw new Error(json.error);
+        }
+
+        console.log('Uitloggen succesvol');
+
+    } catch (error) {
+        console.error('Fout bij uitloggen:', error);
+        throw new Error('Fout bij uitloggen');
+    }
+}

@@ -2,6 +2,9 @@
     import Panel from "../../../components/Panel.svelte";
     import NavBar from "../../../components/NavBar.svelte";
     import Button from "../../../components/Button.svelte";
+
+   
+    
 </script>
 <style>
 .buttons{
@@ -41,7 +44,7 @@
             <Button buttonText="Help" link="/profile/settings/help"></Button>
         </div>
         <div class="delete">
-            <Button buttonText="Delete Account" link="/auth/delete"></Button>
+            <Button buttonText="Delete Account" link="/profile/settings/help"></Button>
         </div>
         <div class="logout">
             <Button buttonText="Logout" link="/auth/logout"></Button>
