@@ -99,7 +99,6 @@
 			</div>
 		</Panel>
 	</div>
-	<!-- TODO: Followers and Following Dropdowns -->
 </div>
 
 <style>
