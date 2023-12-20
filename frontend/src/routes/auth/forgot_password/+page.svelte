@@ -16,8 +16,8 @@
         <div class="text-input">
             <TextInput placeholder="Email" type="email" bind:value={email}/>
         </div>
-        <div class="submitButton" on:click={sendEmail}>
-            <Button buttonText="Send password-reset email"/>
+        <div class="submitButton" >
+            <Button buttonText="Send password-reset email" on:click={sendEmail}/>
         </div>
     </Panel>
 </div>
