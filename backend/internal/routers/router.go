@@ -48,6 +48,7 @@ func authedRoutes() *mux.Router {
 
     // oauth
     mount(router, "/oauth", OAuthRouter())
+    mount(router, "/me", MeRouter())
 
     mount(router, "/follow", FollowRouter())
 

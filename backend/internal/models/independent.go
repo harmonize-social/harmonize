@@ -25,6 +25,7 @@ type Playlist struct {
 
 type Song struct {
     ID uuid.UUID `json:"id"`
+    Artists []Artist `json:"artists"`
     Title string `json:"title"`
     MediaURL string `json:"mediaUrl"`
 }
