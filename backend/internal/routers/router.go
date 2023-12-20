@@ -3,6 +3,7 @@ package routers
 import (
     "backend/internal/models"
     "backend/internal/repositories"
+    "fmt"
     "net/http"
     "strings"
 
@@ -12,7 +13,7 @@ import (
 
 func FullRouter() *mux.Router {
     router := mux.NewRouter()
-    mount(router, "/api/v1/session", SessionRouter())
+    mount(router, "/api/v1/users", UserRouter())
     mount(router, "/api/v1", authedRoutes())
     return router
 }
@@ -22,18 +23,22 @@ func Middleware(next http.Handler) http.Handler {
         splitAuth := strings.Split(r.Header.Get("Authorization"), " ")
         if len(splitAuth) != 2 {
             models.Error(w, http.StatusUnauthorized, "Invalid auth header")
+            // models.Error(w, http.StatusUnauthorized, err.Error())
             return
         }
         auth := splitAuth[1]
-        var claims jwt.MapClaims
-        _, err := jwt.ParseWithClaims(auth, claims, func(token *jwt.Token) (interface{}, error) {
+        token, err := jwt.Parse(auth, func(token *jwt.Token) (interface{}, error) {
             return repositories.Secret, nil
         })
         if err != nil {
-            models.Error(w, http.StatusUnauthorized, "Invalid auth header")
+            models.Error(w, http.StatusUnauthorized, fmt.Sprint(token.Valid)+":"+err.Error())
             return
         }
-        r.Header.Add("id", claims["id"].(string))
+        if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+            r.Header.Add("id", fmt.Sprint(claims["id"]))
+        } else {
+            models.Error(w, http.StatusUnauthorized, "Invalid token")
+        }
         next.ServeHTTP(w, r)
     })
 }
@@ -44,8 +49,6 @@ func authedRoutes() *mux.Router {
     // oauth
     mount(router, "/oauth", OAuthRouter())
 
-    // user.go routers
-    mount(router, "/user", UserRouter())
     mount(router, "/follow", FollowRouter())
 
     // interactions.go routers
