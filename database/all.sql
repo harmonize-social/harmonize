@@ -94,26 +94,25 @@ CREATE TABLE IF NOT EXISTS artists(
 
 CREATE TABLE IF NOT EXISTS albums(
     id UUID PRIMARY KEY,
-    name VARCHAR(128) NOT NULL
+    name VARCHAR(1024) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS artists_album(
     id UUID PRIMARY KEY,
     artist_id UUID REFERENCES artists (id) NOT NULL,
     album_id UUID REFERENCES albums (id) NOT NULL
-    title VARCHAR(1024) NOT NULL
 );
 
 
 CREATE TABLE IF NOT EXISTS songs(
     id UUID PRIMARY KEY,
-    name VARCHAR(128) NOT NULL,
+    name VARCHAR(1024) NOT NULL,
     album_id UUID REFERENCES albums (id) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS playlists(
     id UUID PRIMARY KEY,
-    name VARCHAR(128) NOT NULL
+    name VARCHAR(1024) NOT NULL
 );
 
 
@@ -214,7 +213,8 @@ CREATE TABLE IF NOT EXISTS user_liked_songs(
 
 
 DROP FUNCTION IF EXISTS insert_new_artist;
-CREATE OR REPLACE FUNCTION insert_new_artist(new_library_id UUID, platform_specific_id_input VARCHAR(1024) AS $$
+CREATE OR REPLACE FUNCTION insert_new_artist(new_library_id UUID, platform_specific_id_input VARCHAR(1024), new_name VARCHAR(1024))
+RETURNS UUID AS $$
 DECLARE
     artists_artist_id UUID;
     platform_artists_artist_id UUID;
@@ -244,7 +244,9 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION insert_new_album(new_library_id UUID, artist_id UUID, platform_specific_album_id VARCHAR(1024) AS $$
+DROP FUNCTION IF EXISTS insert_new_album;
+CREATE OR REPLACE FUNCTION insert_new_album(new_library_id UUID, platform_specific_album_id VARCHAR(1024), new_name VARCHAR(1024))
+RETURNS UUID AS $$
 DECLARE
     albums_album_id UUID;
     platform_albums_album_id UUID;
@@ -271,7 +273,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP FUNCTION IF EXISTS insert_new_playlist;
-CREATE OR REPLACE FUNCTION insert_new_playlist(new_library_id UUID, platform_specific_id_input VARCHAR(1024) AS $$
+CREATE OR REPLACE FUNCTION insert_new_playlist(new_library_id UUID, platform_specific_id_input VARCHAR(1024), new_name VARCHAR(1024))
+RETURNS UUID AS $$
 DECLARE
     playlists_playlist_id UUID;
     platform_playlists_playlist_id UUID;
@@ -298,7 +301,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP FUNCTION IF EXISTS insert_new_song;
-CREATE OR REPLACE FUNCTION insert_new_song(new_library_id UUID, album_id UUID, platform_specific_song_id VARCHAR(1024) AS $$
+CREATE OR REPLACE FUNCTION insert_new_song(new_library_id UUID, album_id UUID, platform_specific_song_id VARCHAR(1024), new_name VARCHAR(1024))
+RETURNS UUID AS $$
 DECLARE
     songs_song_id UUID;
     platform_songs_song_id UUID;
