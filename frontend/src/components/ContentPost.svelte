@@ -18,3 +18,4 @@
 </script>
 
 <svelte:component this={component} {content} />
+<!-- https://www.twilio.com/blog/dynamically-render-svelte-components -->
