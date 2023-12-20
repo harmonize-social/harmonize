@@ -27,7 +27,6 @@
             errorMessage = error as string || "Login failed. Please try again.";
         }
     }
-    console.log(process.env.API_URL)
 </script>
 
 

@@ -9,6 +9,7 @@
     export let caption: PostModel['caption'];
     let posts: (SongModel & AlbumModel & PlaylistModel)[] = [];
 	let comments: CommentModel[] = [];
+	export let likes: number
 </script>
 
 <div class="post">
@@ -22,6 +23,7 @@
 	{:else}
 		<p>No comments</p>
 	{/each}
+	<h4>Likes: {likes}</h4>
 </div>
 
 <style>
