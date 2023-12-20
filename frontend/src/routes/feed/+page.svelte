@@ -5,6 +5,8 @@
     import Panel from '../../components/Panel.svelte';
     import NavBar from '../../components/NavBar.svelte';
     import { get } from '../../fetch';
+    import { browser } from '$app/environment';
+    import Button from '../../components/Button.svelte';
     
     let posts: PostModel[] = [];
     let loading: boolean = false;
@@ -36,7 +38,9 @@
         loadMorePosts();
       }
     }
-    
+    function navigateToNewPost() {
+        window.location.href = '/newpost';
+  }
     async function loadMorePosts() {
       if (loading) return;
       const morePosts = await fetchPosts();
@@ -54,6 +58,9 @@
         <p>Loading more posts...</p>
       {/if}
     </div>
+    <div  class="new-post-button" on:click={navigateToNewPost}>
+        <Button buttonText="New Post" on:click={navigateToNewPost}></Button>
+    </div>
   </Panel>
   <style>
     .feed-container {
@@ -61,5 +68,24 @@
       overflow-y: auto;
       padding: 1rem;
     }
+    .new-post-button {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    
+    color: white;
+    border: none;
+    font-size: 2rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    z-index: 1000; /* Ensure it's above other elements */
+  }
   </style>
   
