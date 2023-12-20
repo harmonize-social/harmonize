@@ -1,10 +1,10 @@
 import { redirect, type Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const value = event.cookies.get('session');
-	if (!value) {
-		throw redirect(302, '/login');
-	}
+	//const value = event.cookies.get('session');
+	//if (!value) {
+	//	throw redirect(302, '/login');
+	//}
 	const response = await resolve(event);
 	return response;
 };
