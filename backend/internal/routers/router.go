@@ -47,8 +47,8 @@ func Middleware(next http.Handler) http.Handler {
 func authedRoutes() *mux.Router {
     router := mux.NewRouter()
 
-    // oauth
-    // mount(router, "/oauth", OAuthRouter())
+    mount(router, "/oauth", OAuthRouter())
+    mount(router, "/me", MeRouter())
 
     mount(router, "/follow", FollowRouter())
 
