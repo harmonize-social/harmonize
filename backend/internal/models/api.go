@@ -17,6 +17,9 @@ func Result(w http.ResponseWriter, result interface{}) {
     }
 
     err := json.NewEncoder(w).Encode(res)
+    if err == nil {
+        return
+    }
     Error(w, http.StatusInternalServerError, fmt.Errorf("Error encoding JSON: %v", err).Error())
 }
 
