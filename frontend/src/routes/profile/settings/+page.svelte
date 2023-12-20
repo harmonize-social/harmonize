@@ -2,8 +2,7 @@
     import Panel from "../../../components/Panel.svelte";
     import NavBar from "../../../components/NavBar.svelte";
     import Button from "../../../components/Button.svelte";
-
-   
+    import { goto } from '$app/navigation';
     import { deleteAccount, logout } from "../../../fetch"; 
 
     async function handleDeleteAccount() {
@@ -12,7 +11,7 @@
         if (confirmation) {
             try {
                 await deleteAccount('/auth/delete');
-                window.location.href = '/auth/login'; 
+                goto('/auth/login');       
             } catch (error) {
                 console.error('Fout bij het verwijderen van het account:', error);
             }
@@ -25,21 +24,19 @@
         if (confirmation) {
             try {
                 await logout('/auth/logout');
-                window.location.href = '/auth/login'; 
+                goto('/auth/login');
             } catch (error) {
                 console.error('Fout bij uitloggen:', error);
             }
         }
     }
 
-    import { goto } from '$app/navigation';
-
     const goToAccountSettings = () => {
         goto('/profile/edit'); 
     }
-
-    
+   
 </script>
+
 <style>
 .buttons{
     display: flex;

@@ -12,6 +12,27 @@
     async function handleSubmit(event) {
         event.preventDefault();
 
+        // Validatie voor het nieuwe wachtwoord
+        const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{5,}$/;
+        if (!passwordPattern.test(newPassword)) {
+            console.error('Het wachtwoord moet minimaal 5 tekens lang zijn en minimaal één hoofdletter, één kleine letter en één cijfer bevatten.');
+            return;
+        }
+
+        // Validatie voor de nieuwe gebruikersnaam
+        const usernamePattern = /^[a-zA-Z0-9]{6,}$/;
+        if (!usernamePattern.test(newUsername)) {
+            console.error('De gebruikersnaam moet minimaal 6 tekens lang zijn en alleen letters en cijfers bevatten.');
+            return;
+        }
+
+        // Validatie voor de nieuwe e-mail
+        const emailPattern = /\S+@\S+\.\S+/;
+        if (!emailPattern.test(newEmail)) {
+            console.error('Voer een geldig e-mailadres in.');
+            return;
+        }
+
         try {
             const updatedInfo = {
                 username: newUsername,
@@ -33,7 +54,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 3rem; /* Ruimte tussen elementen */
+        gap: 3rem; 
     }
 
     button {
@@ -56,8 +77,13 @@
         <div>
             <h2>Change user details</h2>
 
-            <TextInput bind:value={newUsername} placeholder="Nieuwe gebruikersnaam" />
+            <!-- Username input -->
+            <TextInput bind:value={newUsername} placeholder="Nieuwe gebruikersnaam" type="gebruikersnaam"/>
+
+            <!-- Email input -->
             <TextInput bind:value={newEmail} placeholder="Nieuw e-mailadres" type="email" />
+
+            <!-- Password input -->
             <TextInput bind:value={newPassword} placeholder="Nieuw wachtwoord" type="password" />
 
             <button type="submit">Update</button>

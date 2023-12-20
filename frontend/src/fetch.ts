@@ -115,6 +115,8 @@ export async function deleteAccount(url: string): Promise<void> {
         }
 
         console.log('Account succesvol verwijderd');
+        localStorage.removeItem('token');
+
 
     } catch (error) {
         console.error('Fout bij het verwijderen van het account:', error);
@@ -147,15 +149,32 @@ export async function logout(url: string): Promise<void> {
     }
 }
 
-export async function updateUserInfo(url: string, updatedInfo: any): Promise<any> {
+export async function updateUserInfo(url: string, updatedInfo: { username: string, email: string, password: string }) {
+    const { username, email, password } = updatedInfo;
+
+    const usernamePattern = /^[a-zA-Z0-9]{6,}$/;
+    if (!usernamePattern.test(username)) {
+        throw new Error('De gebruikersnaam moet minimaal 6 tekens lang zijn en alleen letters en cijfers bevatten.');
+    }
+
+    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{5,}$/;
+    if (!passwordPattern.test(password)) {
+        throw new Error('Het wachtwoord moet minimaal 5 tekens lang zijn en minimaal één hoofdletter, één kleine letter en één cijfer bevatten.');
+    }
+
+    const emailPattern = /\S+@\S+\.\S+/;
+    if (!emailPattern.test(email)) {
+        throw new Error('Voer een geldig e-mailadres in.');
+    }
+
     const token = localStorage.getItem('token');
     const request = new Request(url, {
-        method: 'PUT', // Pas de HTTP-methode aan als dat nodig is
+        method: 'PUT',
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updatedInfo),
+        body: JSON.stringify({ username, email, password }),
     });
 
     try {
@@ -173,6 +192,3 @@ export async function updateUserInfo(url: string, updatedInfo: any): Promise<any
         throw new Error('Fout bij het bijwerken van de gebruikersinformatie');
     }
 }
-
-
-
