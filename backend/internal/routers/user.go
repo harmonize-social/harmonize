@@ -20,9 +20,6 @@ func SessionRouter() *mux.Router {
     router := mux.NewRouter()
 
     router.HandleFunc("/", handlers.CreateSession).Methods("POST")
-    router.HandleFunc("/{id}", handlers.GetSession).Methods("GET")
-    router.HandleFunc("/{id}", handlers.UpdateSession).Methods("PUT")
-    router.HandleFunc("/{id}", handlers.DeleteSession).Methods("DELETE")
     return router
 }
 
