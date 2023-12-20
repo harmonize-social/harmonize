@@ -122,27 +122,3 @@ export async function deleteAccount(url: string): Promise<void> {
     }
 }
 
-export async function logout(url: string): Promise<void> {
-    const token = localStorage.getItem('token');
-    
-    if (token) {
-        localStorage.removeItem('token');
-    }
-
-    try {
-        const response = await fetch(url, {
-            method: 'POST', 
-        });
-
-        if (!response.ok) {
-            const json = await response.json();
-            throw new Error(json.error);
-        }
-
-        console.log('Uitloggen succesvol');
-
-    } catch (error) {
-        console.error('Fout bij uitloggen:', error);
-        throw new Error('Fout bij uitloggen');
-    }
-}

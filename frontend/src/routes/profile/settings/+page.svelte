@@ -4,7 +4,20 @@
     import Button from "../../../components/Button.svelte";
 
    
-    
+    import { deleteAccount } from "../../../fetch"; 
+
+    async function handleDeleteAccount() {
+        const confirmation = confirm('Weet je zeker dat je je account wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.');
+
+        if (confirmation) {
+            try {
+                await deleteAccount('/auth/delete');
+                window.location.href = '/auth/login'; 
+            } catch (error) {
+                console.error('Fout bij het verwijderen van het account:', error);
+            }
+        }
+    }
 </script>
 <style>
 .buttons{
@@ -44,7 +57,7 @@
             <Button buttonText="Help" link="/profile/settings/help"></Button>
         </div>
         <div class="delete">
-            <Button buttonText="Delete Account" link="/profile/settings/help"></Button>
+            <Button buttonText="Delete Account" on:click={handleDeleteAccount}></Button>
         </div>
         <div class="logout">
             <Button buttonText="Logout" link="/auth/logout"></Button>
