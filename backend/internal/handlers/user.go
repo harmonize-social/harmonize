@@ -1,23 +1,78 @@
 package handlers
 
 import (
-    "backend/internal/models"
+    "backend/internal/models" // models package where User schema is defined
     "backend/internal/repositories"
-
     "context"
-    "database/sql"
+    "time"
+
     "encoding/json" // package to encode and decode the json into struct and vice versa
-    "fmt"
-    "github.com/google/uuid"   // uuid
-    "github.com/gorilla/mux"   // used to get the params from the route
-    _ "github.com/lib/pq"      // postgres golang driver
-    "log"
-    "net/http" // used to access the request and response object of the api
+    "net/http"      // used to access the request and response object of the api
+
+    "github.com/alexedwards/argon2id"
+    "github.com/golang-jwt/jwt"
+    "github.com/google/uuid" // uuid
+    "github.com/jackc/pgx/v4"
 )
 
-// used https://codesource.io/build-a-crud-application-in-golang-with-postgresql/
+type TokenResponse struct {
+    Token string `json:"token"`
+}
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
+type LoginRequest struct {
+    Username string `json:"username"`
+    Password string `json:"password"`
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+    // Set headers
+    setCommonHeaders(w)
+    setAdditionalHeaders(w, "POST")
+
+    var loginRequest LoginRequest
+    err := json.NewDecoder(r.Body).Decode(&loginRequest)
+
+    if err != nil {
+        models.Error(w, http.StatusBadRequest, "Invalid request payload")
+        return
+    }
+
+    // get user from db with password, email and/or username
+    sqlStatement := `SELECT * FROM users WHERE username=$1 OR email=$1`
+    var user models.User
+    err = repositories.Pool.QueryRow(context.Background(), sqlStatement, loginRequest.Username).Scan(&user.ID, &user.Email, &user.Username, &user.Password)
+
+    if err == pgx.ErrNoRows {
+        models.Error(w, http.StatusUnauthorized, "Username/Email or Password wrong")
+        return
+    }
+
+    valid, err := argon2id.ComparePasswordAndHash(loginRequest.Password, user.Password)
+
+    if err != nil {
+        models.Error(w, http.StatusInternalServerError, "Error comparing password")
+        return
+    }
+
+    if !valid {
+        models.Error(w, http.StatusUnauthorized, "Username/Email or Password wrong")
+        return
+    }
+
+    sessionID, err := insertSession(user.ID)
+
+    if err != nil {
+        models.Error(w, http.StatusInternalServerError, "Error creating session")
+    }
+
+    t, err := generateJWT(sessionID)
+
+    models.Result(w, &TokenResponse{
+        Token: t,
+    })
+}
+
+func Register(w http.ResponseWriter, r *http.Request) {
     // Set headers
     setCommonHeaders(w)
     setAdditionalHeaders(w, "POST")
@@ -29,213 +84,64 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
     err := json.NewDecoder(r.Body).Decode(&user)
 
     if err != nil {
-        log.Fatalf("Unable to decode the request body.  %v", err)
+        models.Error(w, http.StatusBadRequest, "Invalid request payload")
     }
 
-    // call insert user function and pass the user
-    insertID := insertUser(user)
-
-    // format a response object
-    res := response{
-        ID:      insertID.String(),
-        Message: "User created successfully",
-    }
-
-    // send the response
-    json.NewEncoder(w).Encode(res)
-}
-
-// Will return a single user by its id
-func GetUser(w http.ResponseWriter, r *http.Request) {
-
-    setCommonHeaders(w)
-
-    // get the userid from the request params
-    params := mux.Vars(r)
-
-    // convert the id type from string to uuid.UUID
-    userID, err := uuid.Parse(params["id"])
-
+    user.Password, err = argon2id.CreateHash(user.Password, argon2id.DefaultParams)
     if err != nil {
-        log.Fatalf("Unable to parse the UUID. %v", err)
+        models.Error(w, http.StatusInternalServerError, "Error creating account")
     }
 
-    // call the getUser function with user id to retrieve a single user
-    user, err := getUser(userID)
-
-    if err != nil {
-        log.Fatalf("Unable to get user. %v", err)
-    }
-
-    // send the response
-    json.NewEncoder(w).Encode(user)
-}
-
-// Update user's detail in the postgres db
-func UpdateUser(w http.ResponseWriter, r *http.Request) {
-
-    setCommonHeaders(w)
-    setAdditionalHeaders(w, "PUT")
-
-    // get the userid from the request params, key is "id"
-    params := mux.Vars(r)
-
-    // convert the id type from string to uuid.UUID
-    userID, err := uuid.Parse(params["id"])
-
-    if err != nil {
-        log.Fatalf("Unable to convert the string into int.  %v", err)
-    }
-
-    // create an empty user of type models.User
-    var user models.User
-
-    // decode the json request to user
-    err = json.NewDecoder(r.Body).Decode(&user)
-
-    if err != nil {
-        log.Fatalf("Unable to decode the request body.  %v", err)
-    }
-
-    // call update user to update the user
-    updatedRows := updateUser(userID, user)
-
-    // format the message string
-    msg := fmt.Sprintf("User updated successfully. Total rows/record affected %v", updatedRows)
-
-    // format the response message
-    res := response{
-        ID:      userID.String(),
-        Message: msg,
-    }
-
-    // send the response
-    json.NewEncoder(w).Encode(res)
-}
-
-// Delete user's detail in the postgres db
-func DeleteUser(w http.ResponseWriter, r *http.Request) {
-
-    setCommonHeaders(w)
-    setAdditionalHeaders(w, "DELETE")
-
-    // get the userid from the request params, key is "id"
-    params := mux.Vars(r)
-
-    // convert the id in string to uuid.UUID
-    userID, err := uuid.Parse(params["id"])
-
-    if err != nil {
-        log.Fatalf("Unable to parse the UUID.  %v", err)
-    }
-
-    // call deleteUser, convert the int
-    deletedRows := deleteUser(userID)
-
-    // format the message string
-    msg := fmt.Sprintf("User updated successfully. Total rows/record affected %v", deletedRows)
-
-    // format the reponse message
-    res := response{
-        ID:      userID.String(),
-        Message: msg,
-    }
-
-    // send the response
-    json.NewEncoder(w).Encode(res)
-}
-
-// ------------------------- handler functions ----------------
-// insert one user in the DB
-func insertUser(user models.User) uuid.UUID {
-
-    // Create the insert sql query
-    // Will return the id of the inserted user
     sqlStatement := `INSERT INTO users (id, email, username, password_hash) VALUES ($1, $2, $3, $4) RETURNING id`
+    userId := uuid.New()
 
-    // generate a new UUID for the user
-    userID := uuid.New()
-
-    // execute the sql statement
-    err := repositories.Pool.QueryRow(context.Background(), sqlStatement, userID, user.Email, user.Username, user.Password).Scan(&userID)
+    err = repositories.Pool.QueryRow(context.Background(), sqlStatement, userId, user.Email, user.Username, user.Password).Scan(&userId)
 
     if err != nil {
-        log.Fatalf("Unable to execute the query. %v", err)
+        models.Error(w, http.StatusInternalServerError, "Username or Email already exists")
+        return
     }
 
-    fmt.Printf("Inserted a single record %v", userID)
+    sessionID, err := insertSession(userId)
 
-    // return the inserted id
-    return userID
+    t, err := generateJWT(sessionID)
+
+    if err != nil {
+        models.Error(w, http.StatusInternalServerError, "Error creating session")
+    }
+
+    models.Result(w, &TokenResponse{
+        Token: t,
+    })
 }
 
-// get one user from the DB by its userid
-func getUser(userID uuid.UUID) (models.User, error) {
+func insertSession(userId uuid.UUID) (uuid.UUID, error) {
 
-    // create a user of models.User type
+    sqlStatement := `INSERT INTO sessions (id, user_id, expiry) VALUES ($1, $2, $3) RETURNING id`
+    sessionID := uuid.New()
+    err := repositories.Pool.QueryRow(context.Background(), sqlStatement, sessionID, userId, time.Now().AddDate(0, 0, 7)).Scan(&sessionID)
+
+    return sessionID, err
+}
+
+func getUserFromSession(sessionID uuid.UUID) (models.User, error) {
     var user models.User
 
-    // create the select sql query
-    sqlStatement := `SELECT * FROM users WHERE id=$1`
-
-    // execute the sql statement
-    row := repositories.Pool.QueryRow(context.Background(), sqlStatement, userID)
-
-    // unmarshal the row object to user
+    sqlStatement := `SELECT users.id, users.email, users.username, users.password_hash FROM sessions LEFT JOIN users ON users.id = sessions.user_id WHERE sessions.id = $1;`
+    row := repositories.Pool.QueryRow(context.Background(), sqlStatement, sessionID)
     err := row.Scan(&user.ID, &user.Email, &user.Username, &user.Password)
 
-    switch err {
-    case sql.ErrNoRows:
-        fmt.Println("No rows were returned!")
-        return user, nil
-    case nil:
-        return user, nil
-    default:
-        log.Fatalf("Unable to scan the row. %v", err)
-    }
-
-    // return empty user on error
     return user, err
 }
 
-// update user in the DB
-func updateUser(userID uuid.UUID, user models.User) int64 {
+func generateJWT(sessionID uuid.UUID) (string, error) {
+    t := jwt.NewWithClaims(jwt.SigningMethodHS256,
+        jwt.MapClaims{
+            "id":     sessionID.String(),
+            "expiry": time.Now().AddDate(0, 0, 7).String(),
+        },
+    )
+    token, err := t.SignedString(repositories.Secret)
 
-    // create the update sql query
-    sqlStatement := `UPDATE users SET email=$2, username=$3, password_hash=$4 WHERE id=$1`
-
-    // execute the sql statement
-    res, err := repositories.Pool.Exec(context.Background(), sqlStatement, userID, user.Email, user.Username, user.Password)
-
-    if err != nil {
-        log.Fatalf("Unable to execute the query. %v", err)
-    }
-
-    // check how many rows affected
-    rowsAffected := res.RowsAffected()
-
-    fmt.Printf("Total rows/record affected %v", rowsAffected)
-
-    return rowsAffected
-}
-
-// delete user in the DB
-func deleteUser(userID uuid.UUID) int64 {
-
-    // create the delete sql query
-    sqlStatement := `DELETE FROM users WHERE id=$1`
-
-    // execute the sql statement
-    res, err := repositories.Pool.Exec(context.Background(), sqlStatement, userID)
-
-    if err != nil {
-        log.Fatalf("Unable to execute the query. %v", err)
-    }
-
-    // check how many rows affected
-    rowsAffected := res.RowsAffected()
-
-    fmt.Printf("Total rows/record affected %v", rowsAffected)
-
-    return rowsAffected
+    return token, err
 }
