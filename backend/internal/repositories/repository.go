@@ -3,23 +3,15 @@ package repositories
 import (
     "context"
     "fmt"
-    "log"
     "os"
 
     "github.com/jackc/pgx/v4/pgxpool"
-    "github.com/joho/godotenv"
 )
 
 var Pool *pgxpool.Pool
 
 // CreateConnection creates a connection pool with the database
 func CreateConnection() error {
-    // Load .env file
-    err := godotenv.Load(".env")
-    if err != nil {
-        log.Fatalf("Error loading .env file")
-    }
-
     // Create a new connection pool
     config, err := pgxpool.ParseConfig(os.Getenv("POSTGRES_URL"))
     if err != nil {

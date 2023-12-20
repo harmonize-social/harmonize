@@ -101,10 +101,13 @@ func GetSpotifyAuthenticator(csrf string) spotify.Authenticator {
 }
 
 func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
-    // TODO: Get CSRF Token
-    csrf := "abc123"
-    auth := GetSpotifyAuthenticator(csrf)
-    token, err := auth.Token(csrf, r)
+    idString := r.Header["id"][0]
+    id, err := getUserFromSession(uuid.MustParse(idString))
+    if err != nil {
+        models.Error(w, http.StatusUnauthorized, "Invalid token")
+    }
+    auth := GetSpotifyAuthenticator(idString)
+    token, err := auth.Token(idString, r)
     if err != nil {
         http.Error(w, "Couldn't get token", http.StatusNotFound)
         return
@@ -112,7 +115,7 @@ func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
     client := auth.NewClient(token)
     connection := &models.Connection{
         ID:     uuid.New(),
-        UserID: uuid.MustParse("57dac9d2-1578-45df-9b3e-55256ca30cd5"),
+        UserID: id.ID,
         AccessToken: token.AccessToken,
         RefreshToken: token.RefreshToken,
         Expiry: token.Expiry,
