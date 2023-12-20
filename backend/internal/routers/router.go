@@ -14,6 +14,7 @@ import (
 func FullRouter() *mux.Router {
     router := mux.NewRouter()
     mount(router, "/api/v1/users", UserRouter())
+    mount(router, "/api/v1/oauth", OAuthRouter())
     mount(router, "/api/v1", authedRoutes())
     return router
 }
@@ -47,7 +48,7 @@ func authedRoutes() *mux.Router {
     router := mux.NewRouter()
 
     // oauth
-    mount(router, "/oauth", OAuthRouter())
+    // mount(router, "/oauth", OAuthRouter())
 
     mount(router, "/follow", FollowRouter())
 

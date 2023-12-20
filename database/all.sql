@@ -30,9 +30,9 @@ DROP TABLE IF EXISTS users;
 
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY,
-    email VARCHAR(64) unique NOT NULL,
-    username VARCHAR(64) unique NOT NULL,
-    password_hash VARCHAR(256) NOT NULL
+    email VARCHAR(1024) unique NOT NULL,
+    username VARCHAR(1024) unique NOT NULL,
+    password_hash VARCHAR(1024) NOT NULL
 );
 
 
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS sessions (
 
 CREATE TABLE IF NOT EXISTS subscriptions (
     user_id UUID PRIMARY KEY REFERENCES users (id) NOT NULL,
-    stripe_subscription VARCHAR(128) NOT NULL
+    stripe_subscription VARCHAR(1024) NOT NULL
 );
 
 
@@ -61,53 +61,53 @@ CREATE TABLE IF NOT EXISTS connections(
     id UUID PRIMARY KEY,
     user_id UUID REFERENCES users (id) NOT NULL,
     access_token VARCHAR(1024) NOT NULL,
-    refresh_token VARCHAR(512) NOT NULL,
+    refresh_token VARCHAR(1024) NOT NULL,
     expiry timestamptz NOT NULL
 );
 
 
 CREATE TABLE IF NOT EXISTS libraries(
     id UUID PRIMARY KEY,
-    platform_id VARCHAR(64) NOT NULL,
+    platform_id VARCHAR(1024) NOT NULL,
     connection_id UUID REFERENCES connections (id) NOT NULL
 );
 
 
 CREATE TABLE IF NOT EXISTS images(
     id UUID PRIMARY KEY,
-    path VARCHAR(64) NOT NULL
+    path VARCHAR(1024) NOT NULL
 );
 
 
 CREATE TABLE IF NOT EXISTS platforms(
-    id VARCHAR(64) PRIMARY KEY,
-    name VARCHAR(64) NOT NULL,
+    id VARCHAR(1024) PRIMARY KEY,
+    name VARCHAR(1024) NOT NULL,
     icon_id UUID REFERENCES images (id) NOT NULL
 );
 
 
 CREATE TABLE IF NOT EXISTS artists(
     id UUID PRIMARY KEY,
-    name VARCHAR(128) NOT NULL
+    name VARCHAR(1024) NOT NULL
 );
 
 
 CREATE TABLE IF NOT EXISTS albums(
     id UUID PRIMARY KEY,
-    author UUID NOT NULL REFERENCES artists (id),
-    title VARCHAR(128) NOT NULL
+    artist_id UUID NOT NULL REFERENCES artists (id),
+    title VARCHAR(1024) NOT NULL
 );
 
 
 CREATE TABLE IF NOT EXISTS playlists(
     id UUID PRIMARY KEY,
-    title VARCHAR(128) NOT NULL
+    title VARCHAR(1024) NOT NULL
 );
 
 
 CREATE TABLE IF NOT EXISTS songs(
     id UUID PRIMARY KEY,
-    title VARCHAR(128) NOT NULL,
+    title VARCHAR(1024) NOT NULL,
     album_id UUID REFERENCES albums (id) NOT NULL
 );
 
@@ -121,28 +121,28 @@ CREATE TABLE IF NOT EXISTS playlist_songs(
 
 CREATE TABLE IF NOT EXISTS platform_artists(
     id UUID PRIMARY KEY,
-    platform_specific_id VARCHAR(64) NOT NULL,
+    platform_specific_id VARCHAR(1024) NOT NULL,
     artist_id UUID REFERENCES artists (id) NOT NULL
 );
 
 
 CREATE TABLE IF NOT EXISTS platform_albums(
     id UUID PRIMARY KEY,
-    platform_specific_id VARCHAR(64) NOT NULL,
+    platform_specific_id VARCHAR(1024) NOT NULL,
     album_id UUID REFERENCES albums (id) NOT NULL
 );
 
 
 CREATE TABLE IF NOT EXISTS platform_songs(
     id UUID PRIMARY KEY,
-    platform_specific_id VARCHAR(64) NOT NULL,
+    platform_specific_id VARCHAR(1024) NOT NULL,
     song_id UUID REFERENCES songs (id) NOT NULL
 );
 
 
 CREATE TABLE IF NOT EXISTS platform_playlists(
     id UUID PRIMARY KEY,
-    platform_specific_id VARCHAR(64) NOT NULL,
+    platform_specific_id VARCHAR(1024) NOT NULL,
     playlist_id UUID REFERENCES playlists (id) NOT NULL
 );
 
@@ -150,8 +150,8 @@ CREATE TABLE IF NOT EXISTS platform_playlists(
 CREATE TABLE IF NOT EXISTS posts(
     id UUID PRIMARY KEY,
     user_id UUID REFERENCES users (id) NOT NULL,
-    caption VARCHAR(256) NOT NULL,
-    type VARCHAR(16) NOT NULL,
+    caption VARCHAR(1024) NOT NULL,
+    type VARCHAR(1024) NOT NULL,
     type_specific_id UUID
 );
 
@@ -168,7 +168,7 @@ CREATE TABLE IF NOT EXISTS comment(
     post_id UUID REFERENCES posts (id) NOT NULL,
     user_id UUID REFERENCES users (id) NOT NULL,
     reply_to_id UUID REFERENCES comment (id) NOT NULL,
-    message VARCHAR(256) NOT NULL
+    message VARCHAR(1024) NOT NULL
 );
 
 
@@ -210,7 +210,7 @@ INSERT INTO images (id, path) VALUES ('7c5c5c3f-6319-4559-82ba-a52106dac824', 's
 INSERT INTO platforms (id, name, icon_id) VALUES ('spotify', 'Spotify', '7c5c5c3f-6319-4559-82ba-a52106dac824');
 INSERT INTO users VALUES ('6dc10487-60c6-41f8-a2fd-7a450bc3db2a', 'email', 'username', '$argon2id$v=19$m=65536,t=1,p=24$q1OaktL8qTaXZ2M3gi+Z8Q$HYUty9gm/BH1CQc+tQ2+Yc6nUWpsAKXTIxrdRdbcC7A');
 
-CREATE OR REPLACE FUNCTION insert_new_artist(new_library_id UUID, platform_specific_id_input VARCHAR(64), new_name VARCHAR(128)) RETURNS VARCHAR(64) AS $$
+CREATE OR REPLACE FUNCTION insert_new_artist(new_library_id UUID, platform_specific_id_input VARCHAR(1024) AS $$
 DECLARE
     artists_artist_id UUID;
     platform_artists_artist_id UUID;
@@ -231,12 +231,15 @@ BEGIN
 
         RETURN artists_artist_id;
     ELSE
-        RETURN NULL;
+        SELECT artists.id FROM platform_artists
+        JOIN artists ON platform_artists.artist_id = artists.id
+        WHERE platform_specific_id = platform_specific_id_input INTO artists_artist_id;
+        RETURN artists_artist_id;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION insert_new_album(new_library_id UUID, artist_id UUID, platform_specific_album_id VARCHAR(64), new_title VARCHAR(128)) RETURNS VARCHAR(64) AS $$
+CREATE OR REPLACE FUNCTION insert_new_album(new_library_id UUID, artist_id UUID, platform_specific_album_id VARCHAR(1024) AS $$
 DECLARE
     albums_album_id UUID;
     platform_albums_album_id UUID;
@@ -244,7 +247,7 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM platform_albums WHERE platform_specific_id = platform_specific_album_id
     ) THEN
-        INSERT INTO albums (id, title, author_id)
+        INSERT INTO albums (id, title, artist_id)
         VALUES (uuid_generate_v4(), new_title, artist_id)
         RETURNING id INTO albums_album_id;
 
@@ -254,12 +257,15 @@ BEGIN
 
         RETURN albums_album_id;
     ELSE
-        RETURN NULL;
+        SELECT albums.id FROM platform_albums
+        JOIN albums ON platform_albums.album_id = albums.id
+        WHERE platform_specific_id = platform_specific_album_id INTO albums_album_id;
+        RETURN albums_album_id;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION insert_new_playlist(new_library_id UUID, platform_specific_id_input VARCHAR(64), new_title VARCHAR(128)) RETURNS VARCHAR(64) AS $$
+CREATE OR REPLACE FUNCTION insert_new_playlist(new_library_id UUID, platform_specific_id_input VARCHAR(1024) AS $$
 DECLARE
     playlists_playlist_id UUID;
     platform_playlists_playlist_id UUID;
@@ -277,16 +283,15 @@ BEGIN
 
         RETURN playlists_playlist_id;
     ELSE
-            SELECT playlist_id FROM platform_playlists WHERE platform_specific_id = platform_specific_id_input INTO platform_playlists_playlist_id;
-        INSERT INTO user_followed_playlists (id, library_id, playlist_id)
-        VALUES (uuid_generate_v4(), new_library_id, platform_playlists_playlist_id);
-
-        RETURN NULL;
+        SELECT playlists.id FROM platform_playlists
+        JOIN playlists ON platform_playlists.playlist_id = playlists.id
+        WHERE platform_specific_id = platform_specific_id_input INTO playlists_playlist_id;
+        RETURN playlists_playlist_id;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION insert_new_song(new_library_id UUID, album_id UUID, platform_specific_song_id VARCHAR(64), new_title VARCHAR(128)) RETURNS VARCHAR(64) AS $$
+CREATE OR REPLACE FUNCTION insert_new_song(new_library_id UUID, album_id UUID, platform_specific_song_id VARCHAR(1024) AS $$
 DECLARE
     songs_song_id UUID;
     platform_songs_song_id UUID;
@@ -298,13 +303,16 @@ BEGIN
         VALUES (uuid_generate_v4(), new_title, album_id)
         RETURNING id INTO songs_song_id;
 
-        INSERT INTO platform_songs (id, platform_specific_id, album_id)
+        INSERT INTO platform_songs (id, platform_specific_id, song_id)
         VALUES (uuid_generate_v4(), platform_specific_song_id, songs_song_id)
         RETURNING id INTO platform_songs_song_id;
 
         RETURN songs_song_id;
     ELSE
-        RETURN NULL;
+        SELECT songs.id FROM platform_songs
+        JOIN songs ON platform_songs.song_id = songs.id
+        WHERE platform_specific_id = platform_specific_song_id INTO songs_song_id;
+        RETURN songs_song_id;
     END IF;
 END;
 $$ LANGUAGE plpgsql;

@@ -19,8 +19,9 @@ import (
 )
 
 const (
-    SPOTIFY_REDIRECT = "http://127.0.0.1:8080/api/oauth/callback/spotify"
-    DEEZER_REDIRECT  = "http://127.0.0.1:8080/api/oauth/callback/deezer"
+    SPOTIFY_REDIRECT = "http://127.0.0.1:8080/api/v1/oauth/callback/spotify"
+    DEEZER_REDIRECT  = "http://127.0.0.1:8080/api/v1/oauth/callback/deezer"
+    TEST_SESSION = "df8d8816-3280-41aa-9e27-ec60ba297c9e"
 )
 
 type Url struct {
@@ -61,10 +62,10 @@ func DeezerURL(w http.ResponseWriter, r *http.Request) {
 
 func SpotifyURL(w http.ResponseWriter, r *http.Request) {
     // TODO: Get CSRF Token
-    csrf := "abc123"
-    auth := GetSpotifyAuthenticator(csrf)
+    user, err := getUserFromSession(uuid.MustParse(TEST_SESSION))
+    auth := GetSpotifyAuthenticator(user.ID.String())
     url := &Url{
-        Url: auth.AuthURL(csrf),
+        Url: auth.AuthURL(user.ID.String()),
     }
     json, err := json.Marshal(url)
     if err != nil {
@@ -101,21 +102,23 @@ func GetSpotifyAuthenticator(csrf string) spotify.Authenticator {
 }
 
 func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
-    idString := r.Header["id"][0]
-    id, err := getUserFromSession(uuid.MustParse(idString))
+    // idString := r.Header["id"][0]
+    // id, err := getUserFromSession(uuid.MustParse(idString))
+    user, err := getUserFromSession(uuid.MustParse(TEST_SESSION))
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Invalid token")
     }
-    auth := GetSpotifyAuthenticator(idString)
-    token, err := auth.Token(idString, r)
+    auth := GetSpotifyAuthenticator(user.ID.String())
+    token, err := auth.Token(user.ID.String(), r)
     if err != nil {
         http.Error(w, "Couldn't get token", http.StatusNotFound)
+        fmt.Println(err)
         return
     }
     client := auth.NewClient(token)
     connection := &models.Connection{
         ID:     uuid.New(),
-        UserID: id.ID,
+        UserID: user.ID,
         AccessToken: token.AccessToken,
         RefreshToken: token.RefreshToken,
         Expiry: token.Expiry,
@@ -133,7 +136,7 @@ func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintf(w, "connection: %s\n\r", connection.UserID)
         fmt.Fprintf(w, "Unable to execute the query. %s", err2)
     }
-    go scanner.ScanSpotify(client, connectionID)
+    go scanner.Spotify(client, connectionID)
 }
 
 type DeezerAccessToken struct {
