@@ -4,7 +4,7 @@
     import Button from "../../../components/Button.svelte";
 
    
-    import { deleteAccount } from "../../../fetch"; 
+    import { deleteAccount, logout } from "../../../fetch"; 
 
     async function handleDeleteAccount() {
         const confirmation = confirm('Weet je zeker dat je je account wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.');
@@ -15,6 +15,19 @@
                 window.location.href = '/auth/login'; 
             } catch (error) {
                 console.error('Fout bij het verwijderen van het account:', error);
+            }
+        }
+    }
+
+    async function handleLogout() {
+        const confirmation = confirm('Weet je zeker dat je wilt uitloggen?');
+
+        if (confirmation) {
+            try {
+                await logout('/auth/logout');
+                window.location.href = '/auth/login'; 
+            } catch (error) {
+                console.error('Fout bij uitloggen:', error);
             }
         }
     }
@@ -60,14 +73,14 @@
             <Button buttonText="Delete Account" on:click={handleDeleteAccount}></Button>
         </div>
         <div class="logout">
-            <Button buttonText="Logout" link="/auth/logout"></Button>
+            <Button buttonText="Logout" on:click={handleLogout}></Button>
         </div>
     </div>
-<div class="connection"> 
-    <Panel title="Your connected platforms">
-        <div class="connection_button">
-            <Button buttonText="Connect to another platform" link="/profile/connection"></Button>
-        </div>
-    </Panel>
-</div>
+    <div class="connection"> 
+        <Panel title="Your connected platforms">
+            <div class="connection_button">
+                <Button buttonText="Connect to another platform" link="/profile/connection"></Button>
+            </div>
+        </Panel>
+    </div>
 </Panel>
