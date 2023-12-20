@@ -1,12 +1,14 @@
 <script lang="ts">
-	import { post } from '../fetch';
-import type AlbumModel from '../models/album';
+	import type AlbumModel from '../models/album';
+	import type CommentModel from '../models/comment';
 	import type PlaylistModel from '../models/playlist';
+	import type PostModel from '../models/post';
     import type SongModel from '../models/song';
+	import Comment from './Comment.svelte';
     import ContentPost from './ContentPost.svelte';
-    export let caption: string = 'Caption';
+    export let caption: PostModel['caption'];
     let posts: (SongModel & AlbumModel & PlaylistModel)[] = [];
-	export let comments = ['Comment 1', 'Comment 2', 'Comment 3'];
+	let comments: CommentModel[] = [];
 </script>
 
 <div class="post">
@@ -16,7 +18,7 @@ import type AlbumModel from '../models/album';
     {/each}
 	<h4>Comments:</h4>
 	{#each comments as comment}
-		<p>{comment}</p>
+		<Comment content={comment} />
 	{:else}
 		<p>No comments</p>
 	{/each}

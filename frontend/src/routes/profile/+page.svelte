@@ -99,10 +99,9 @@
     <div class="feed-container">
         <Panel title = "Your feed">
             <div class="feed">
-                {#each posts as PostModel, i}
+                {#each posts as post, i}
                 <div class="post" id={"post" + (i+1)}>
-                <Post caption="Caption Post {i+1}" content={PostModel}
-                    comments={['Comment 1', 'Comment 2', 'Comment 3']}></Post>
+                <Post caption={post.caption}></Post>
             </div>
                 {/each}
             </div>
