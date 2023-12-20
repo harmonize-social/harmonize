@@ -147,4 +147,32 @@ export async function logout(url: string): Promise<void> {
     }
 }
 
+export async function updateUserInfo(url: string, updatedInfo: any): Promise<any> {
+    const token = localStorage.getItem('token');
+    const request = new Request(url, {
+        method: 'PUT', // Pas de HTTP-methode aan als dat nodig is
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedInfo),
+    });
+
+    try {
+        const response = await fetch(request);
+
+        if (!response.ok) {
+            const json = await response.json();
+            throw new Error(json.error);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Fout bij het bijwerken van de gebruikersinformatie:', error);
+        throw new Error('Fout bij het bijwerken van de gebruikersinformatie');
+    }
+}
+
+
 

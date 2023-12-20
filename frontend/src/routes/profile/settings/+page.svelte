@@ -31,6 +31,14 @@
             }
         }
     }
+
+    import { goto } from '$app/navigation';
+
+    const goToAccountSettings = () => {
+        goto('/profile/edit'); 
+    }
+
+    
 </script>
 <style>
 .buttons{
@@ -41,7 +49,7 @@
     align-items: start;
     align-self: start;
 }
-.notifications, .privacy, .help, .delete, .logout{
+.notifications, .privacy, .help, .delete, .logout, .myaccount {
     margin: 1rem;
     padding: 0.5rem;
 }
@@ -56,6 +64,7 @@
     margin: 2rem;
     
 }
+
 </style>
 <NavBar current_page="/profile/settings"></NavBar>
 <Panel title="Settings">
@@ -75,6 +84,10 @@
         <div class="logout">
             <Button buttonText="Logout" on:click={handleLogout}></Button>
         </div>
+        <div class="myaccount">
+            <button on:click={goToAccountSettings}>My Account</button>
+        </div>
+    
     </div>
     <div class="connection"> 
         <Panel title="Your connected platforms">
