@@ -1,9 +1,10 @@
 <script>
     // @ts-nocheck
     import TextInput from '../../../components/TextInput.svelte';
-    import { updateUserInfo } from '../../../fetch';
     import Panel from '../../../components/Panel.svelte';
     import NavBar from '../../../components/NavBar.svelte';
+    import { post } from '../../../fetch'; 
+
 
     let newUsername = '';
     let newEmail = '';
@@ -40,7 +41,7 @@
                 password: newPassword,
             };
 
-            const response = await updateUserInfo('/user/update', updatedInfo);
+            const response = await post('/user/update', updatedInfo); 
 
             console.log('Gebruikersinformatie succesvol bijgewerkt:', response);
         } catch (error) {

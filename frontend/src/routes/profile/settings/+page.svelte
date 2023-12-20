@@ -3,34 +3,36 @@
     import NavBar from "../../../components/NavBar.svelte";
     import Button from "../../../components/Button.svelte";
     import { goto } from '$app/navigation';
-    import { deleteAccount, logout } from "../../../fetch"; 
+    import { delete_ } from "../../../fetch";
+
 
     async function handleDeleteAccount() {
-        const confirmation = confirm('Weet je zeker dat je je account wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.');
+    const confirmation = confirm('Weet je zeker dat je je account wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.');
 
-        if (confirmation) {
-            try {
-                await deleteAccount('/auth/delete');
-                goto('/auth/login');       
-            } catch (error) {
-                console.error('Fout bij het verwijderen van het account:', error);
-            }
+    if (confirmation) {
+        try {
+            await delete_('/auth/delete');
+            localStorage.removeItem('token');
+            goto('/auth/login');       
+        } catch (error) {
+            console.error('Fout bij het verwijderen van het account:', error);
         }
     }
+}
 
-    async function handleLogout() {
-        const confirmation = confirm('Weet je zeker dat je wilt uitloggen?');
+async function handleLogout() {
+    const confirmation = confirm('Weet je zeker dat je wilt uitloggen?');
 
-        if (confirmation) {
-            try {
-                await logout('/auth/logout');
-                goto('/auth/login');
-            } catch (error) {
-                console.error('Fout bij uitloggen:', error);
-            }
+    if (confirmation) {
+        try {
+            await delete_('/auth/logout'); 
+            localStorage.removeItem('token');
+            goto('/auth/login');
+        } catch (error) {
+            console.error('Fout bij uitloggen:', error);
         }
     }
-
+}
     const goToAccountSettings = () => {
         goto('/profile/edit'); 
     }
@@ -67,7 +69,7 @@
 <Panel title="Settings">
     <div class="buttons">
         <div class="notifications">
-            <Button buttonText="Notifications" link="/profile/settings/notifications"></Button>
+            <Button buttonText="FAQ" link="/profile/settings/notifications"></Button>
         </div>
         <div class="privacy">
             <Button buttonText="Privacy" link="/profile/settings/privacy"></Button>
