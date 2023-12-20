@@ -9,17 +9,11 @@ import (
 func UserRouter() *mux.Router {
     router := mux.NewRouter()
 
-    router.HandleFunc("/", handlers.CreateUser).Methods("POST")
+    router.HandleFunc("/register", handlers.CreateUser).Methods("POST")
+    router.HandleFunc("/login", handlers.CreateSession).Methods("POST")
     router.HandleFunc("/{id}", handlers.GetUser).Methods("GET")
     router.HandleFunc("/{id}", handlers.UpdateUser).Methods("PUT")
     router.HandleFunc("/{id}", handlers.DeleteUser).Methods("DELETE")
-    return router
-}
-
-func SessionRouter() *mux.Router {
-    router := mux.NewRouter()
-
-    router.HandleFunc("/", handlers.CreateSession).Methods("POST")
     return router
 }
 
