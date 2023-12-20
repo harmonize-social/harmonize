@@ -12,7 +12,7 @@
 	let posts: PostModel[] = [];
 	let followers: UserModel[] = [];
 	let following: UserModel[] = [];
-    let follows: boolean = false;
+    let follows: boolean = true;
 	async function getData() {
 		try {
 			const response: PostModel[] = await get('/{user_id}');
