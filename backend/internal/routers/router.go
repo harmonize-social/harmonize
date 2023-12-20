@@ -1,7 +1,8 @@
 package routers
 
 import (
-    "fmt"
+    "backend/internal/models"
+    "backend/internal/repositories"
     "net/http"
     "strings"
 
@@ -20,16 +21,16 @@ func Middleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         splitAuth := strings.Split(r.Header.Get("Authorization"), " ")
         if len(splitAuth) != 2 {
-            fmt.Println("Invalid auth header")
+            models.Error(w, http.StatusUnauthorized, "Invalid auth header")
             return
         }
         auth := splitAuth[1]
         var claims jwt.MapClaims
         _, err := jwt.ParseWithClaims(auth, claims, func(token *jwt.Token) (interface{}, error) {
-            return []byte("secret"), nil
+            return repositories.Secret, nil
         })
         if err != nil {
-            fmt.Println(err)
+            models.Error(w, http.StatusUnauthorized, "Invalid auth header")
             return
         }
         r.Header.Add("id", claims["id"].(string))
