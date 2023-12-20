@@ -21,14 +21,19 @@ type Connection struct {
 }
 
 type Session struct {
-	ID uuid.UUID `json:"id"`
-	UserId uuid.UUID `json:"user_id"`
-	Expiry time.Time `json:"expiry"`
+    ID uuid.UUID `json:"id"`
+    UserId uuid.UUID `json:"user_id"`
+    Expiry time.Time `json:"expiry"`
+}
+
+type FrontendSession struct {
+    ID uuid.UUID `json:"id"`
+    Expiry time.Time `json:"expiry"`
 }
 
 type Follow struct {
-	ID uuid.UUID `json:"id"`
-	FollowedId uuid.UUID `json:"followed_id"`
-	FollowerId uuid.UUID `json:"follower_id"`
-	Date time.Time `json:"date"`
+    ID uuid.UUID `json:"id"`
+    FollowedId uuid.UUID `json:"followed_id"`
+    FollowerId uuid.UUID `json:"follower_id"`
+    Date time.Time `json:"date"`
 }
