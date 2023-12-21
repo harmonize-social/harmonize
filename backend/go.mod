@@ -10,7 +10,6 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/markbates/goth v1.78.0
 	github.com/stayradiated/deezer v0.0.0-20171225235312-1356c000c367
-	github.com/zmb3/spotify v1.3.0
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
@@ -21,7 +20,8 @@ require (
 	github.com/alexedwards/argon2id v1.0.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/jackc/pgx/v4 v4.18.1
-	github.com/schollz/progressbar v1.0.0
+	github.com/schollz/progressbar/v3 v3.14.1
+	github.com/zmb3/spotify/v2 v2.3.2-0.20230721143455-109f1f95011c
 	go.uber.org/ratelimit v0.3.0
 )
 
@@ -38,7 +38,6 @@ require (
 	github.com/jmcvetta/randutil v0.0.0-20150817122601-2bb1b664bcff // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
-	github.com/schollz/progressbar/v3 v3.14.1 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 	golang.org/x/term v0.15.0 // indirect

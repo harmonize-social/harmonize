@@ -214,7 +214,7 @@ CREATE TABLE IF NOT EXISTS user_liked_songs(
 
 DROP FUNCTION IF EXISTS insert_new_artist;
 CREATE OR REPLACE FUNCTION insert_new_artist(new_library_id UUID, platform_specific_id_input VARCHAR(1024), new_name VARCHAR(1024))
-RETURNS UUID AS $$
+RETURNS TABLE (value1 UUID, value2 UUID) AS $$
 DECLARE
     artists_artist_id UUID;
     platform_artists_artist_id UUID;
@@ -230,15 +230,16 @@ BEGIN
         VALUES (uuid_generate_v4(), platform_specific_id_input, artists_artist_id)
         RETURNING id INTO platform_artists_artist_id;
 
-        INSERT INTO user_followed_artists (id, library_id, artist_id)
-        VALUES (uuid_generate_v4(), new_library_id, platform_artists_artist_id);
-
-        RETURN artists_artist_id;
+        RETURN QUERY SELECT artists_artist_id, platform_artists_artist_id;
     ELSE
         SELECT artists.id FROM platform_artists
         JOIN artists ON platform_artists.artist_id = artists.id
         WHERE platform_specific_id = platform_specific_id_input INTO artists_artist_id;
-        RETURN artists_artist_id;
+
+        SELECT platform_artists.id FROM platform_artists
+        WHERE platform_specific_id = platform_specific_id_input INTO platform_artists_artist_id;
+
+        RETURN QUERY SELECT artists_artist_id, platform_artists_artist_id;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -246,7 +247,7 @@ $$ LANGUAGE plpgsql;
 
 DROP FUNCTION IF EXISTS insert_new_album;
 CREATE OR REPLACE FUNCTION insert_new_album(new_library_id UUID, platform_specific_album_id VARCHAR(1024), new_name VARCHAR(1024))
-RETURNS UUID AS $$
+RETURNS TABLE (value1 UUID, value2 UUID) AS $$
 DECLARE
     albums_album_id UUID;
     platform_albums_album_id UUID;
@@ -254,27 +255,31 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM platform_albums WHERE platform_specific_id = platform_specific_album_id
     ) THEN
-        INSERT INTO albums (id, name, author_id)
-        VALUES (uuid_generate_v4(), new_name, artist_id)
+        INSERT INTO albums (id, name)
+        VALUES (uuid_generate_v4(), new_name)
         RETURNING id INTO albums_album_id;
 
         INSERT INTO platform_albums (id, platform_specific_id, album_id)
         VALUES (uuid_generate_v4(), platform_specific_album_id, albums_album_id)
         RETURNING id INTO platform_albums_album_id;
 
-        RETURN albums_album_id;
+        RETURN QUERY SELECT albums_album_id, platform_albums_album_id;
     ELSE
         SELECT albums.id FROM platform_albums
         JOIN albums ON platform_albums.album_id = albums.id
         WHERE platform_specific_id = platform_specific_album_id INTO albums_album_id;
-        RETURN albums_album_id;
+
+        SELECT platform_albums.id FROM platform_albums
+        WHERE platform_specific_id = platform_specific_album_id INTO platform_albums_album_id;
+
+        RETURN QUERY SELECT albums_album_id, platform_albums_album_id;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
 
 DROP FUNCTION IF EXISTS insert_new_playlist;
 CREATE OR REPLACE FUNCTION insert_new_playlist(new_library_id UUID, platform_specific_id_input VARCHAR(1024), new_name VARCHAR(1024))
-RETURNS UUID AS $$
+RETURNS TABLE (value1 UUID, value2 UUID) AS $$
 DECLARE
     playlists_playlist_id UUID;
     platform_playlists_playlist_id UUID;
@@ -290,19 +295,23 @@ BEGIN
         VALUES (uuid_generate_v4(), platform_specific_id_input, playlists_playlist_id)
         RETURNING id INTO platform_playlists_playlist_id;
 
-        RETURN playlists_playlist_id;
+        RETURN QUERY SELECT playlists_playlist_id, platform_playlists_playlist_id;
     ELSE
         SELECT playlists.id FROM platform_playlists
         JOIN playlists ON platform_playlists.playlist_id = playlists.id
         WHERE platform_specific_id = platform_specific_id_input INTO playlists_playlist_id;
-        RETURN playlists_playlist_id;
+
+        SELECT platform_playlists.id FROM platform_playlists
+        WHERE platform_specific_id = platform_specific_id_input INTO platform_playlists_playlist_id;
+
+        RETURN QUERY SELECT playlists_playlist_id, platform_playlists_playlist_id;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
 
 DROP FUNCTION IF EXISTS insert_new_song;
 CREATE OR REPLACE FUNCTION insert_new_song(new_library_id UUID, album_id UUID, platform_specific_song_id VARCHAR(1024), new_name VARCHAR(1024))
-RETURNS UUID AS $$
+RETURNS TABLE (value1 UUID, value2 UUID) AS $$
 DECLARE
     songs_song_id UUID;
     platform_songs_song_id UUID;
@@ -318,12 +327,16 @@ BEGIN
         VALUES (uuid_generate_v4(), platform_specific_song_id, songs_song_id)
         RETURNING id INTO platform_songs_song_id;
 
-        RETURN songs_song_id;
+        RETURN QUERY SELECT songs_song_id, platform_songs_song_id;
     ELSE
         SELECT songs.id FROM platform_songs
         JOIN songs ON platform_songs.song_id = songs.id
         WHERE platform_specific_id = platform_specific_song_id INTO songs_song_id;
-        RETURN songs_song_id;
+
+        SELECT platform_songs.id FROM platform_songs
+        WHERE platform_specific_id = platform_specific_song_id INTO platform_songs_song_id;
+
+        RETURN QUERY SELECT songs_song_id, platform_songs_song_id;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -333,6 +346,8 @@ INSERT INTO images (id, path) VALUES ('7c5c5c3f-6319-4559-82ba-a52106dac824', 's
 INSERT INTO platforms (id, name, icon_id) VALUES ('spotify', 'Spotify', '7c5c5c3f-6319-4559-82ba-a52106dac824');
 
 INSERT INTO users VALUES ('6dc10487-60c6-41f8-a2fd-7a450bc3db2a', 'email', 'username', '$argon2id$v=19$m=65536,t=1,p=24$q1OaktL8qTaXZ2M3gi+Z8Q$HYUty9gm/BH1CQc+tQ2+Yc6nUWpsAKXTIxrdRdbcC7A');
+
+INSERT INTO connections VALUES ('13ca08cf-3141-40b5-820f-736000432976', '6dc10487-60c6-41f8-a2fd-7a450bc3db2a', '', '', CURRENT_TIMESTAMP);
 
 INSERT INTO users (id, email, username, password_hash) VALUES
   ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', 'user1@example.com', 'user1', 'hash1'),

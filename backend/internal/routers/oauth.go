@@ -11,7 +11,6 @@ func OAuthRouter() *mux.Router {
 
     router.HandleFunc("/spotify", handlers.SpotifyURL).Methods("GET")
     router.HandleFunc("/deezer", handlers.DeezerURL).Methods("GET")
-    router.HandleFunc("/callback/spotify", handlers.SpotifyCallback).Methods("GET")
     router.HandleFunc("/callback/deezer", handlers.DeezerCallback).Methods("GET")
     return router
 }
