@@ -14,7 +14,7 @@
 
     const handleLogin = async () => {
         try {
-            const response = await loginpost<{token: string}>('http://localhost:8080/api/v1/users/login', { username, password});
+            const response = await loginpost<{token: string}>(`${process.env.API_URL}/api/v1/users/login`, { username, password });
 
             // Set token in local storage
             localStorage.setItem('token', response.token);
