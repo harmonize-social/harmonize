@@ -1,13 +1,15 @@
 //https://eckertalex.dev/blog/typescript-fetch-wrapper
 //https://github.com/EHB-TI/programming-project-groep-3_brussel-student-guide/blob/main/frontend/src/fetch.ts
 
+import ErrorPopup from './components/ErrorPopup.svelte';
+
 export async function http<T>(path: string, config: RequestInit): Promise<T> {
     // Get token from local storage
     const token = localStorage.getItem('token');
     config.headers = {
         ...config.headers,
-        Authorization: `Bearer ${token}`,
-    }
+        Authorization: `Bearer ${token}`
+    };
     const request = new Request(path, config);
     const response = await fetch(request);
 
@@ -61,8 +63,8 @@ export async function loginpost<T>(url: string, body: Object): Promise<T> {
         body: body_string,
         headers: {
             'Content-Type': 'application/json; charset=UTF-8',
-            'Content-Length': length.toString(),
-        },
+            'Content-Length': length.toString()
+        }
     });
 
     try {
@@ -97,3 +99,11 @@ export async function post<T, U>(path: string, body: T, config?: RequestInit): P
     return await http<U>(path, init);
 }
 
+//create a function that renders a pop up with a message that the backend returns when an error occurs
+export async function throwError(errorMessage: string) {
+    let popup = new ErrorPopup({
+        target: document.body as Element,
+        props: { message: errorMessage }
+    });
+    return popup;
+}
