@@ -1,30 +1,30 @@
 package models
 
 type PlatformArtist struct {
-    ID string `json:"id"`
-    Name string `json:"name"`
-    MediaURL string `json:"mediaUrl"`
+    ID string `json:"id,omitempty"`
+    Name string `json:"name,omitempty"`
+    MediaURL string `json:"mediaUrl,omitempty"`
 }
 
 type PlatformAlbum struct {
-    ID string `json:"id"`
-    Title string `json:"title"`
-    Artists []Artist `json:"artists"`
-    Songs []Song `json:"songs"`
-    MediaURL string `json:"mediaUrl"`
+    ID string `json:"id,omitempty"`
+    Title string `json:"title,omitempty"`
+    Artists []Artist `json:"artists,omitempty"`
+    Songs []Song `json:"songs,omitempty"`
+    MediaURL string `json:"mediaUrl,omitempty"`
 }
 
 type PlatformPlaylist struct {
-    ID string `json:"id"`
-    Title string `json:"title"`
-    Songs []Song `json:"songs"`
-    MediaURL string `json:"mediaUrl"`
+    ID string `json:"id,omitempty"`
+    Title string `json:"title,omitempty"`
+    Songs []Song `json:"songs,omitempty"`
+    MediaURL string `json:"mediaUrl,omitempty"`
 }
 
 type PlatformSong struct {
-    ID string `json:"id"`
-    Artists []Artist `json:"artists"`
-    Title string `json:"title"`
-    PreviewURL string `json:"previewUrl"`
-    MediaURL string `json:"mediaUrl"`
+    ID string `json:"id,omitempty"`
+    Artists []Artist `json:"artists,omitempty"`
+    Title string `json:"title,omitempty"`
+    PreviewURL string `json:"previewUrl,omitempty"`
+    MediaURL string `json:"mediaUrl,omitempty"`
 }
