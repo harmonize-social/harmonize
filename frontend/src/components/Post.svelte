@@ -9,7 +9,7 @@
     export let caption: PostModel['caption'];
     let posts: (SongModel & AlbumModel & PlaylistModel)[] = [];
 	let comments: CommentModel[] = [];
-	export let likes: number
+	export let likes: PostModel['likes'];
 </script>
 
 <div class="post">

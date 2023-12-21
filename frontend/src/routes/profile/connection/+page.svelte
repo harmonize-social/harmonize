@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { get, post } from '../../../fetch';
+	import { get, post, throwError } from '../../../fetch';
 	import Panel from '../../../components/Panel.svelte';
 	import deezerIcon from '../../../lib/assets/deezer-logo-coeur.jpg';
 	import spotifyIcon from '../../../lib/assets/Spotify_App_Logo.svg.png';
@@ -11,17 +11,17 @@
 			const response: ConnectionModel[] = await get('/api/connections');
 			connections = response;
 		} catch (e) {
-			throw new Error('Internal server error');
+			throwError('Internal server error');
 		}
 	}
-  async function addConnection(platform:string){
-    try {
-       const response: ConnectionModel[] = await post(`/api/connections`, platform);
-       connections = response;
-    }catch (e) {
-      throw new Error('Internal server error');
-    }
-  }
+	async function addConnection(platform: string) {
+		try {
+			const response: ConnectionModel[] = await post(`/api/connections`, platform);
+			connections = response;
+		} catch (e) {
+			throwError('Internal server error');
+		}
+	}
 	onMount(getConnections);
 </script>
 
@@ -39,10 +39,10 @@
 		<div class="connected-platforms">
 			Your current connections:
 			<ul>
-        {#each connections as connection}
-          <li>{connection.platform_name}</li>
-        {/each}
-      </ul>
+				{#each connections as connection}
+					<li>{connection.platform_name}</li>
+				{/each}
+			</ul>
 		</div>
 	</div>
 </Panel>

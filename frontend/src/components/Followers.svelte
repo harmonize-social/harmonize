@@ -1,5 +1,5 @@
 <script lang="ts">
-    export let followers: Map<{user_id: string}, {name: string}> = new Map();
+    export let followers: string[] = [];
     export const follows: boolean = true;
 </script>
 
@@ -9,7 +9,7 @@
 </style>
 <div class="followers">
 <h2>Followers: </h2>
-{#each followers as user}
-<a href="/{user[0]}/profile"><p>{user[1]}</p></a>
+{#each followers as user, i}
+<a href="/{user[i]}/profile"><p>{user[i]}</p></a>
 {/each}
 </div>

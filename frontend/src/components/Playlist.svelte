@@ -2,15 +2,10 @@
 <script lang="ts">
     import Song from '../components/Song.svelte';
 	import type PlaylistModel from '../models/playlist';
-	import type SongModel from '../models/song';
     export let content: PlaylistModel;
     import { onMount } from 'svelte';
     import { get } from '../fetch'; 
 
-
-    let playlistName = content.name; 
-    let playlistSongs = content.songs;
-    let playlistUrl = content.url;
 
     let playlists = [];
 
@@ -90,12 +85,10 @@
 
 <div class="playlist">
 
-    <a href="{playlistUrl}"><h1>{playlistName}</h1></a>
-    {#each playlistSongs as song}
+    <a href="{content.url}"><h1>{content.name}</h1></a>
+    {#each content.songs as song}
         <Song
             content={{ title: song.title, url: song.url, id: song.id }} 
-            title={song.title}               
-            url={song.url}
         />
     {/each}
 
