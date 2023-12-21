@@ -25,7 +25,20 @@ func GetFeed(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusUnauthorized, "Invalid session")
         return
     }
-    sqlStatement := `SELECT posts.*, users.username FROM follows JOIN posts ON follows.followed_id = posts.user_id JOIN users ON posts.user_id = users.id WHERE follows.follower_id = $1 ORDER BY posts.created_at DESC LIMIT $2 OFFSET $3;`
+    sqlStatement := `SELECT posts.id, posts.created_at, posts.caption, posts.type, posts.type_specific_id, users.username,
+                        COUNT(liked_posts.post_id) AS like_count,
+                        COUNT(CASE WHEN liked_posts.user_id = $1 THEN 1 END) > 0 AS user_has_liked,
+                        COUNT(CASE WHEN saved_posts.user_id = $1 THEN 1 END) > 0 AS user_has_saved
+                     FROM follows
+                     JOIN posts ON follows.followed_id = posts.user_id
+                     JOIN users ON posts.user_id = users.id
+                     LEFT JOIN liked_posts ON liked_posts.post_id = posts.id
+                     LEFT JOIN saved_posts ON saved_posts.post_id = posts.id
+                     WHERE follows.follower_id = $1
+                     GROUP BY posts.id, users.id
+                     ORDER BY posts.created_at DESC
+                     LIMIT $2
+                     OFFSET $3`
     rows, err := repositories.Pool.Query(context.Background(), sqlStatement, user.ID, limit, offset)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Error getting posts")
@@ -35,9 +48,9 @@ func GetFeed(w http.ResponseWriter, r *http.Request) {
     for rows.Next() {
         var post models.Post
         var typeSpecificId uuid.UUID
-        var userId uuid.UUID
-        err = rows.Scan(&post.ID, &userId, &post.CreatedAt, &post.Caption, &post.Type, &typeSpecificId, &post.Username)
+        err = rows.Scan(&post.ID, &post.CreatedAt, &post.Caption, &post.Type, &typeSpecificId, &post.Username, &post.LikeCount, &post.HasLiked, &post.HasSaved)
         if err != nil {
+            println(err.Error())
             models.Error(w, http.StatusInternalServerError, "Error getting posts")
             return
         }
