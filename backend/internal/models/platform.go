@@ -1,29 +1,30 @@
 package models
 
-import (
-    "github.com/google/uuid"
-)
-
-type UserLikedAlbums struct {
-    ID uuid.UUID `json:"id"`
-    LibraryId uuid.UUID `json:"library_id"`
-    AlbumId uuid.UUID `json:"album_id"`
+type PlatformArtist struct {
+    ID string `json:"id"`
+    Name string `json:"name"`
+    MediaURL string `json:"mediaUrl"`
 }
 
-type UserFollowedArtists struct {
-    ID uuid.UUID `json:"id"`
-    LibraryId uuid.UUID `json:"library_id"`
-    ArtistId uuid.UUID `json:"artist_id"`
+type PlatformAlbum struct {
+    ID string `json:"id"`
+    Title string `json:"title"`
+    Artists []Artist `json:"artists"`
+    Songs []Song `json:"songs"`
+    MediaURL string `json:"mediaUrl"`
 }
 
-type UserFollowedPlaylists struct {
-    ID uuid.UUID `json:"id"`
-    LibraryId uuid.UUID `json:"library_id"`
-    PlaylistId uuid.UUID `json:"playlist_id"`
+type PlatformPlaylist struct {
+    ID string `json:"id"`
+    Title string `json:"title"`
+    Songs []Song `json:"songs"`
+    MediaURL string `json:"mediaUrl"`
 }
 
-type UserLikedSongs struct {
-    ID uuid.UUID `json:"id"`
-    LibraryId uuid.UUID `json:"library_id"`
-    SongId uuid.UUID `json:"song_id"`
+type PlatformSong struct {
+    ID string `json:"id"`
+    Artists []Artist `json:"artists"`
+    Title string `json:"title"`
+    PreviewURL string `json:"previewUrl"`
+    MediaURL string `json:"mediaUrl"`
 }
