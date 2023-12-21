@@ -4,6 +4,7 @@ DROP TABLE IF EXISTS user_liked_albums;
 DROP TABLE IF EXISTS user_followed_artists;
 
 DROP TABLE IF EXISTS saved_posts;
+DROP TABLE IF EXISTS liked_posts;
 DROP TABLE IF EXISTS comment;
 DROP TABLE IF EXISTS likes;
 DROP TABLE IF EXISTS posts;
@@ -179,7 +180,13 @@ CREATE TABLE IF NOT EXISTS comment(
 
 CREATE TABLE IF NOT EXISTS saved_posts(
     id UUID PRIMARY KEY,
-    user_id UUID REFERENCES posts (id) NOT NULL,
+    user_id UUID REFERENCES users (id) NOT NULL,
+    post_id UUID REFERENCES posts (id) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS liked_posts(
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES users (id) NOT NULL,
     post_id UUID REFERENCES posts (id) NOT NULL
 );
 
@@ -346,6 +353,8 @@ INSERT INTO images (id, path) VALUES ('7c5c5c3f-6319-4559-82ba-a52106dac824', 's
 INSERT INTO platforms (id, name, icon_id) VALUES ('spotify', 'Spotify', '7c5c5c3f-6319-4559-82ba-a52106dac824');
 
 INSERT INTO users VALUES ('6dc10487-60c6-41f8-a2fd-7a450bc3db2a', 'email', 'username', '$argon2id$v=19$m=65536,t=1,p=24$q1OaktL8qTaXZ2M3gi+Z8Q$HYUty9gm/BH1CQc+tQ2+Yc6nUWpsAKXTIxrdRdbcC7A');
+INSERT INTO sessions VALUES
+('3df14b9a-70c8-4a00-aff1-185d132be749', '6dc10487-60c6-41f8-a2fd-7a450bc3db2a', CURRENT_TIMESTAMP + INTERVAL '1 day');
 
 INSERT INTO connections VALUES ('13ca08cf-3141-40b5-820f-736000432976', '6dc10487-60c6-41f8-a2fd-7a450bc3db2a', '', '', CURRENT_TIMESTAMP);
 
@@ -365,6 +374,9 @@ INSERT INTO posts (id, user_id, created_at, caption, type, type_specific_id) VAL
   ('53336c2a-6985-430e-968d-fae2a921ba9f', '53336c2a-6985-430e-968d-fae2a921ba9f', CURRENT_TIMESTAMP, 'Post from user3', 'playlist', '53336c2a-6985-430e-968d-fae2a921ba9f'),
   ('53336c2a-5985-430e-968d-fae2a921ba9f', '53336c2a-6985-430e-968d-fae2a921ba9f', CURRENT_TIMESTAMP, 'Post from user3', 'song', '53336c2a-5985-430e-968d-fae2a921ba9f'),
   ('53336c2a-5885-430e-968d-fae2a921ba9f', '6dc10487-60c6-41f8-a2fd-7a450bc3db2a', CURRENT_TIMESTAMP, 'Post from user3', 'song', '53336c2a-5985-430e-968d-fae2a921ba9f');
+
+INSERT INTO saved_posts (id, user_id, post_id) VALUES
+  ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', '6dc10487-60c6-41f8-a2fd-7a450bc3db2a', '8303997f-b12c-4c2b-af9a-7ebe22d5c051');
 
 INSERT INTO artists (id, name) VALUES
   ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', 'Artist 1'),
