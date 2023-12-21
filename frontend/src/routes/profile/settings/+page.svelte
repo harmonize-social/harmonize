@@ -2,6 +2,7 @@
     import Panel from "../../../components/Panel.svelte";
     import NavBar from "../../../components/NavBar.svelte";
     import Button from "../../../components/Button.svelte";
+
     import { goto } from '$app/navigation';
     import { delete_, throwError } from "../../../fetch";
 
@@ -37,6 +38,7 @@ async function handleLogout() {
         goto('/profile/edit'); 
     }
    
+
 </script>
 
 <style>

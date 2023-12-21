@@ -4,9 +4,24 @@
 	import type PlaylistModel from '../models/playlist';
 	import type SongModel from '../models/song';
     export let content: PlaylistModel;
+    import { onMount } from 'svelte';
+    import { get } from '../fetch'; 
+
+
     let playlistName = content.name; 
     let playlistSongs = content.songs;
     let playlistUrl = content.url;
+
+    let playlists = [];
+
+    onMount(async () => {
+    try {
+
+        playlists = await get<PlaylistModel[]>('path_to_playlists_endpoint');
+    } catch (error) {
+      console.error('Error loading playlists:', error);
+    }
+  });
     // export let playlistImage = "path_to_playlist_image.jpg";
     // export let playlistImageAlt = "Playlist Image";
     /**

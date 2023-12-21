@@ -6,13 +6,31 @@ import (
 
     "log"
     "net/http"
+
+    "github.com/rs/cors"
 )
 
 func main() {
-    repositories.CreateConnection()
-    repositories.GenerateSecret()
+    err := repositories.CreateConnection()
+    if err != nil {
+        log.Fatal(err)
+    }
+    err = repositories.GenerateSecret()
+    if err != nil {
+        log.Fatal(err)
+    }
 
     router := routers.FullRouter()
 
-    log.Fatal(http.ListenAndServe(":8080", router))
+    c := cors.New(cors.Options{
+        AllowedOrigins:   []string{"http://localhost:5173"},
+        AllowCredentials: true,
+        AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+    })
+
+
+    handler := c.Handler(router)
+
+    log.Fatal(http.ListenAndServe(":8080", handler))
 }
