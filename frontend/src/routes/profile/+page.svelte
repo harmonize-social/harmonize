@@ -30,7 +30,7 @@
 	}
 	async function getFollowing(){
 		try{
-			const response: UserModel[] = await get('/following');
+			const response: UserModel[] = await get<UserModel[]>('/following');
 			following = response;
 		}catch(e){
 			throwError('Internal server error');
@@ -38,7 +38,7 @@
 	}
 	onMount(getData)
 	onMount(getFollowers)
-	onMount(getFollowing)
+	onMount(getFollowing);
     
 	//https://svelte.dev/repl/4c5dfd34cc634774bd242725f0fc2dab?version=3.46.4 (dropdown handling)
     let isDropdownOpen = false;

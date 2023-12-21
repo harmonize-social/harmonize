@@ -1,6 +1,8 @@
 //https://eckertalex.dev/blog/typescript-fetch-wrapper
 //https://github.com/EHB-TI/programming-project-groep-3_brussel-student-guide/blob/main/frontend/src/fetch.ts
 
+import ErrorPopup from "./components/ErrorPopup.svelte";
+
 export async function http<T>(path: string, config: RequestInit): Promise<T> {
     // Get token from local storage
     const token = localStorage.getItem('token');
@@ -193,26 +195,10 @@ export async function updateUserInfo(url: string, updatedInfo: { username: strin
     }
 }
 
-//create a error function that renders a pop up with a message that the backend returns when an error occurs
-export function throwError(errorMessage: string){
-const popup = document.createElement('div');
-popup.classList.add('popup');
-
-if(popup){
-    setTimeout(() => {
-        popup.remove();
-    }, 10000);
-}
-const closeButton = document.createElement('button');
-closeButton.textContent = 'X';
-closeButton.addEventListener('click', () => {
-    popup.remove();
-});
-
-const message = document.createElement('p');
-message.textContent = errorMessage;
-
-popup.appendChild(closeButton);
-popup.appendChild(message);
-document.body.appendChild(popup);
+//create a function that renders a pop up with a message that the backend returns when an error occurs
+export async function throwError(errorMessage: string){
+    let popup = new ErrorPopup({ 
+        target: document.body as Element, 
+        props: {message: errorMessage}});
+    return popup;
 }
