@@ -16,6 +16,8 @@ services:
         ipv4_address: 172.20.0.2
 
   backend:
+    depends_on:
+      - database
     build:
       context: ./backend
       dockerfile: ./Dockerfile
@@ -35,6 +37,8 @@ services:
         ipv4_address: 172.20.0.3
 
   frontend:
+    depends_on:
+      - backend
     build:
       context: ./frontend
       dockerfile: ./Dockerfile
