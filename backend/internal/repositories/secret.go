@@ -1,10 +1,19 @@
 package repositories
 
-import "crypto/rand"
+import (
+    "crypto/rand"
+    "encoding/hex"
+    "os"
+)
 
 var Secret []byte
 
 func GenerateSecret() (error) {
+    EnvSecret := os.Getenv("BACKEND_SECRET")
+    if EnvSecret != "" {
+        Secret, _ = hex.DecodeString(EnvSecret)
+        return nil
+    }
     // Define the length of the secret (in bytes)
     // Replace this value with the desired length of your secret
     secretLength := 32

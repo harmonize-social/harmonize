@@ -15,12 +15,14 @@ import (
     "github.com/google/uuid"
     "github.com/markbates/goth/providers/deezer"
     deezer2 "github.com/stayradiated/deezer"
-    "github.com/zmb3/spotify"
+    "github.com/zmb3/spotify/v2"
+    "github.com/zmb3/spotify/v2/auth"
 )
 
 const (
-    SPOTIFY_REDIRECT = "http://127.0.0.1:8080/api/oauth/callback/spotify"
-    DEEZER_REDIRECT  = "http://127.0.0.1:8080/api/oauth/callback/deezer"
+    SPOTIFY_REDIRECT = "http://127.0.0.1:8080/api/v1/oauth/callback/spotify"
+    DEEZER_REDIRECT  = "http://127.0.0.1:8080/api/v1/oauth/callback/deezer"
+    TEST_SESSION     = "df8d8816-3280-41aa-9e27-ec60ba297c9e"
 )
 
 type Url struct {
@@ -60,11 +62,10 @@ func DeezerURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func SpotifyURL(w http.ResponseWriter, r *http.Request) {
-    // TODO: Get CSRF Token
-    csrf := "abc123"
-    auth := GetSpotifyAuthenticator(csrf)
+    state := r.Header.Get("id")
+    auth := GetSpotifyAuthenticator(state)
     url := &Url{
-        Url: auth.AuthURL(csrf),
+        Url: auth.AuthURL(state),
     }
     json, err := json.Marshal(url)
     if err != nil {
@@ -73,52 +74,56 @@ func SpotifyURL(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, "%s", json)
 }
 
-func GetSpotifyAuthenticator(csrf string) spotify.Authenticator {
-    auth := spotify.NewAuthenticator(
-        SPOTIFY_REDIRECT,
-        spotify.ScopeImageUpload,
-        spotify.ScopePlaylistReadPrivate,
-        spotify.ScopePlaylistModifyPublic,
-        spotify.ScopePlaylistModifyPrivate,
-        spotify.ScopePlaylistReadCollaborative,
-        spotify.ScopeUserFollowModify,
-        spotify.ScopeUserFollowRead,
-        spotify.ScopeUserLibraryModify,
-        spotify.ScopeUserLibraryRead,
-        spotify.ScopeUserReadPrivate,
-        spotify.ScopeUserReadEmail,
-        spotify.ScopeUserReadCurrentlyPlaying,
-        spotify.ScopeUserReadPlaybackState,
-        spotify.ScopeUserModifyPlaybackState,
-        spotify.ScopeUserReadRecentlyPlayed,
-        spotify.ScopeUserTopRead,
-        spotify.ScopeStreaming,
+func GetSpotifyAuthenticator(csrf string) spotifyauth.Authenticator {
+    auth := spotifyauth.New(
+        spotifyauth.WithRedirectURL(SPOTIFY_REDIRECT),
+        spotifyauth.WithScopes(
+            spotifyauth.ScopeImageUpload,
+            spotifyauth.ScopePlaylistReadPrivate,
+            spotifyauth.ScopePlaylistModifyPublic,
+            spotifyauth.ScopePlaylistModifyPrivate,
+            spotifyauth.ScopePlaylistReadCollaborative,
+            spotifyauth.ScopeUserFollowModify,
+            spotifyauth.ScopeUserFollowRead,
+            spotifyauth.ScopeUserLibraryModify,
+            spotifyauth.ScopeUserLibraryRead,
+            spotifyauth.ScopeUserReadPrivate,
+            spotifyauth.ScopeUserReadEmail,
+            spotifyauth.ScopeUserReadCurrentlyPlaying,
+            spotifyauth.ScopeUserReadPlaybackState,
+            spotifyauth.ScopeUserModifyPlaybackState,
+            spotifyauth.ScopeUserReadRecentlyPlayed,
+            spotifyauth.ScopeUserTopRead,
+            spotifyauth.ScopeStreaming,
+        ),
+        spotifyauth.WithClientID(os.Getenv("SPOTIFY_CLIENT_ID")),
+        spotifyauth.WithClientSecret(os.Getenv("SPOTIFY_SECRET")),
     )
-    id := os.Getenv("SPOTIFY_CLIENT_ID")
-    secret := os.Getenv("SPOTIFY_SECRET")
-    auth.SetAuthInfo(id, secret)
-    return auth
+    return *auth
 }
 
 func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
-    idString := r.Header["id"][0]
-    id, err := getUserFromSession(uuid.MustParse(idString))
+    session := r.URL.Query().Get("state")
+    user, err := getUserFromSession(uuid.MustParse(session))
     if err != nil {
+        fmt.Printf("Error: %s", err.Error())
         models.Error(w, http.StatusUnauthorized, "Invalid token")
-    }
-    auth := GetSpotifyAuthenticator(idString)
-    token, err := auth.Token(idString, r)
-    if err != nil {
-        http.Error(w, "Couldn't get token", http.StatusNotFound)
         return
     }
-    client := auth.NewClient(token)
+    auth := GetSpotifyAuthenticator(session)
+    token, err := auth.Token(r.Context(), session, r)
+    if err != nil {
+        http.Error(w, "Couldn't get token", http.StatusNotFound)
+        fmt.Println(err)
+        return
+    }
+    client := spotify.New(auth.Client(r.Context(), token), spotify.WithRetry(true))
     connection := &models.Connection{
-        ID:     uuid.New(),
-        UserID: id.ID,
-        AccessToken: token.AccessToken,
+        ID:           uuid.New(),
+        UserID:       user.ID,
+        AccessToken:  token.AccessToken,
         RefreshToken: token.RefreshToken,
-        Expiry: token.Expiry,
+        Expiry:       token.Expiry,
     }
     sqlStatement := `INSERT INTO connections (id, user_id, access_token, refresh_token, expiry) VALUES ($1, $2, $3, $4, $5) RETURNING id`
     var connectionID uuid.UUID
@@ -133,7 +138,7 @@ func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintf(w, "connection: %s\n\r", connection.UserID)
         fmt.Fprintf(w, "Unable to execute the query. %s", err2)
     }
-    go scanner.ScanSpotify(client, connectionID)
+    go scanner.Spotify(*client, connectionID)
 }
 
 type DeezerAccessToken struct {

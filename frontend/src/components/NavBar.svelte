@@ -22,7 +22,7 @@
             text2 = 'Profile';
             break;
         default:
-            url1 = '/dashboard';
+            url1 = 'feed/dashboard';
             url2 = '/profile/settings';
             text1 = 'Dashboard';
             text2 = 'Settings';
