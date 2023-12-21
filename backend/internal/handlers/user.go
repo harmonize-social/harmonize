@@ -25,9 +25,6 @@ type LoginRequest struct {
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
-    // Set headers
-    w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
-
     if r.Method == "OPTIONS" {
         return
     }
