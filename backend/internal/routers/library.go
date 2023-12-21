@@ -10,5 +10,7 @@ func LibraryRouter() *mux.Router {
     router := mux.NewRouter()
     router.HandleFunc("/{service}/songs", handlers.SongsHandler).Methods("GET")
     router.HandleFunc("/{service}/artists", handlers.ArtistsHandler).Methods("GET")
+    router.HandleFunc("/{service}/playlists", handlers.PlaylistHandler).Methods("GET")
+    router.HandleFunc("/{service}/albums", handlers.AlbumHandler).Methods("GET")
     return router
 }
