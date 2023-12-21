@@ -11,6 +11,9 @@ services:
       POSTGRES_DB: harmonize
     volumes:
       - /var/lib/postgresql/data:/var/lib/postgresql/data
+    networks:
+      network:
+        ipv4_address: 172.20.0.2
 
   backend:
     build:
@@ -20,16 +23,25 @@ services:
       POSTGRES_URL: "postgres://user:postgres@database:5432/harmonize"
     ports:
       - "8080:8080"
-    links:
-      - database
+    networks:
+      network:
+        ipv4_address: 172.20.0.3
 
   frontend:
     build:
       context: ./frontend
       dockerfile: ./Dockerfile
     environment:
-      API_URL: "backend:8080"
+      API_URL: "http://172.20.0.3:8080"
     ports:
       - "5173:5173"
-    links:
-      - backend
+    networks:
+      network:
+        ipv4_address: 172.20.0.4
+
+networks:
+  network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
