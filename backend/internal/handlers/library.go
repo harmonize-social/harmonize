@@ -38,6 +38,7 @@ func SongsHandler(w http.ResponseWriter, r *http.Request) {
     client, err := SpotifyClientFromRequest(r, &user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        return
     }
     tracks, err := client.CurrentUsersTracks(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
 
@@ -83,10 +84,12 @@ func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
     client, err := SpotifyClientFromRequest(r, &user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        return
     }
     artists, err := client.CurrentUsersTopArtists(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        return
     }
 
     independentArtists := make([]models.PlatformArtist, len(artists.Artists))
@@ -122,6 +125,7 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
     client, err := SpotifyClientFromRequest(r, &user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        return
     }
 
     rl := ratelimit.New(2)
@@ -131,6 +135,7 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
     fmt.Println(len(albums.Albums))
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        return
     }
 
     var albumIds []spotify.ID
@@ -142,6 +147,7 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
 
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        return
     }
 
     independentAlbums := make([]models.PlatformAlbum, len(albums.Albums))
@@ -194,6 +200,7 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
     client, err := SpotifyClientFromRequest(r, &user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        return
     }
 
     rl := ratelimit.New(2)
@@ -201,6 +208,7 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
     playlists, err := client.CurrentUsersPlaylists(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        return
     }
 
     independentPlaylists := make([]models.PlatformPlaylist, len(playlists.Playlists))
@@ -209,6 +217,7 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
         playlistTracks, err := client.GetPlaylistItems(context.Background(), playlist.ID, spotify.Limit(limit))
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+            return
         }
         songs := make([]models.PlatformSong, 0)
         for _, track := range playlistTracks.Items {
