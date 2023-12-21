@@ -19,6 +19,13 @@ services:
     build:
       context: ./backend
       dockerfile: ./Dockerfile
+    develop:
+      watch:
+        - action: rebuild
+          files:
+            - ./**/*.go
+            - ./go.mod
+            - ./go.sum
     environment:
       POSTGRES_URL: "postgres://user:postgres@172.20.0.2:5432/harmonize"
     ports:
@@ -31,6 +38,13 @@ services:
     build:
       context: ./frontend
       dockerfile: ./Dockerfile
+    develop:
+      watch:
+        - action: rebuild
+          files:
+            - ./**/*.ts
+            - ./**/*.svelte
+            - ./**/*.html
     environment:
       API_URL: "http://172.20.0.3:8080"
     ports:

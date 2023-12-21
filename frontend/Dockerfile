@@ -10,7 +10,7 @@ COPY . .
 
 # Install dependencies and build your frontend
 RUN npm install
-# RUN npm run build
+RUN npm run build
 
 EXPOSE 5173/tcp
 
