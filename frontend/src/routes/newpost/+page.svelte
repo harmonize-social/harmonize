@@ -29,6 +29,12 @@
 		</div>
 		<Button buttonText="Get the music on your platform!" link="/api/platform"></Button>
 	</div>
+    <div class="form">
+        <div class="caption">
+            <TextInput placeholder="Insert a caption"></TextInput>
+        </div>
+        <Button buttonText="Get the music on your platform!" link="/profile/connection"></Button>
+    </div>
 </Panel>
 
 <style>

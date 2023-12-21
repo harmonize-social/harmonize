@@ -363,7 +363,8 @@ INSERT INTO posts (id, user_id, created_at, caption, type, type_specific_id) VAL
   ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', '8303997f-b12c-4c2b-af9a-7ebe22d5c051', CURRENT_TIMESTAMP, 'Post from user1', 'artist', '8303997f-b12c-4c2b-af9a-7ebe22d5c051'),
   ('aa0bfc16-a067-46f5-8821-839a9f01564c', 'aa0bfc16-a067-46f5-8821-839a9f01564c', CURRENT_TIMESTAMP, 'Post from user2', 'album', 'aa0bfc16-a067-46f5-8821-839a9f01564c'),
   ('53336c2a-6985-430e-968d-fae2a921ba9f', '53336c2a-6985-430e-968d-fae2a921ba9f', CURRENT_TIMESTAMP, 'Post from user3', 'playlist', '53336c2a-6985-430e-968d-fae2a921ba9f'),
-  ('53336c2a-5985-430e-968d-fae2a921ba9f', '53336c2a-6985-430e-968d-fae2a921ba9f', CURRENT_TIMESTAMP, 'Post from user3', 'song', '53336c2a-5985-430e-968d-fae2a921ba9f');
+  ('53336c2a-5985-430e-968d-fae2a921ba9f', '53336c2a-6985-430e-968d-fae2a921ba9f', CURRENT_TIMESTAMP, 'Post from user3', 'song', '53336c2a-5985-430e-968d-fae2a921ba9f'),
+  ('53336c2a-5885-430e-968d-fae2a921ba9f', '6dc10487-60c6-41f8-a2fd-7a450bc3db2a', CURRENT_TIMESTAMP, 'Post from user3', 'song', '53336c2a-5985-430e-968d-fae2a921ba9f');
 
 INSERT INTO artists (id, name) VALUES
   ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', 'Artist 1'),
