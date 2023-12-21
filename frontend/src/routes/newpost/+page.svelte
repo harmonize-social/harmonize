@@ -29,9 +29,9 @@
 <Panel title="New Post">
     <div class="form">
         <div class="caption">
-            <TextInput title="caption" placeholder="Insert a caption"></TextInput>
+            <TextInput placeholder="Insert a caption"></TextInput>
         </div>
-        <Button buttonText="Get the music on your platform!" link="/connection"></Button>
+        <Button buttonText="Get the music on your platform!" link="/profile/connection"></Button>
     </div>
 </Panel>
 <!--TODO: Adjust input fields to TextInput and Button-->
