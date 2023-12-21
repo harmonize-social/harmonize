@@ -1,105 +1,91 @@
-<script>
-    // @ts-nocheck
-    import Post from '../components/Post.svelte';
-    import { goto } from '$app/navigation';
-    import Panel from '../components/Panel.svelte';
-    import NavBar from '../components/NavBar.svelte';
+<script lang="ts">
+    import { onMount } from 'svelte';
+    import Post from '../../components/Post.svelte';
+    import type { PostModel } from '../models/post';
+    import Panel from '../../components/Panel.svelte';
+    import NavBar from '../../components/NavBar.svelte';
+    import { get } from '../../fetch';
+    import { browser } from '$app/environment';
+    import Button from '../../components/Button.svelte';
     
-   
-        let dashBoard = [
-        {
-            id: 1,
-            user: {
-                username: 'User1',
-                logo: '../src/lib/assets/png-avatar.png'
-            },
-            title: 'Song Title 1',
-            artist: 'Artist 1',
-            likes: 42,
-            comments: 8,
-            shares: 5
-        },
-        {
-            id: 2,
-            user: {
-                username: 'User2',
-                logo: '../src/lib/assets/png-avatar.png'
-            },
-            title: 'Song Title 2',
-            artist: 'Artist 2',
-            likes: 30,
-            comments: 12,
-            shares: 3
-        },
-        {
-            id: 3,
-            user: {
-                username: 'User3',
-                logo: '../src/lib/assets/png-avatar.png'
-            },
-            title: 'Song Title 3',
-            artist: 'Artist 3',
-            likes: 15,
-            comments: 5,
-            shares: 2
-        },
-        {
-            id: 4,
-            user: {
-                username: 'User4',
-                logo: '../src/lib/assets/png-avatar.png'
-            },
-            title: 'Song Title 4',
-            artist: 'Artist 4',
-            likes: 10,
-            comments: 3,
-            shares: 1
-        }
-    ];  
-    
-    function handleAddPost() {
-        goto(`/newpost`);
-    }
-</script>
+    let posts: PostModel[] = [];
+    let loading: boolean = false;
   
-<style>
-    /* Jouw stijlen */
-    main {
-        display: flex;
-        flex-direction: column;
-        align-items: center; 
-        margin: 10px; 
+    async function fetchPosts(): Promise<PostModel[]> {
+      try {
+        
+        loading = true;
+        const response: PostModel[] = await get<PostModel[]>('/api/posts');
+        return response;
+      } catch (error) {
+        console.error('Failed to fetch posts:', error);
+        return [];
+      } finally {
+        loading = false;
+      }
     }
-
     
-    .dashBoard {
-        /* Stijlen voor individuele items in het dashboard */
-        margin-bottom: 10px; 
-        width: 100%; /* Volledige breedte binnen het panel */
+    onMount(() => {
+      
+      fetchPosts().then(fetchedPosts => {
+        posts = fetchedPosts;
+      });
+    });
+    
+    function onScroll(event: Event) {
+      const target = event.target as HTMLElement;
+      if (target.scrollHeight - target.scrollTop === target.clientHeight) {
+        loadMorePosts();
+      }
     }
-
-    .add-post-button {
-        align-self: flex-end; 
-        margin-top: 10px; 
+    function navigateToNewPost() {
+        window.location.href = '/newpost';
+  }
+    async function loadMorePosts() {
+      if (loading) return;
+      const morePosts = await fetchPosts();
+      posts = [...posts, ...morePosts];
     }
-</style>
-
-<NavBar current_page="/feed"></NavBar>
-<main>
-    <Panel title="Dashboard" class="dashboard-panel">
-        {#each dashBoard as item (item.id)}
-            <div class="dashBoard">
-                <Post
-                    caption={item.title}
-                    description={item.artist}
-                    music={item.title}
-                    platform="YourPlatform"
-                    comments={['Comment 1', 'Comment 2', 'Comment 3']}
-                />
-            </div>
-        {/each}
-    </Panel>
-    <button class="add-post-button" on:click={handleAddPost}>
-        <img src="../src/lib/assets/newpost.png" alt="Add Post" style="width: 40px; height: 40px;" />
-    </button>
-</main>
+  </script>
+  
+  <NavBar></NavBar>
+  <Panel title="">
+    <div class="feed-container" on:scroll={onScroll}>
+      {#each posts as post (post.id)}
+        <Post {...post} />
+      {/each}
+      {#if loading}
+        <p>Loading more posts...</p>
+      {/if}
+    </div>
+    <div  class="new-post-button" on:click={navigateToNewPost}>
+        <Button buttonText="New Post" on:click={navigateToNewPost}></Button>
+    </div>
+  </Panel>
+  <style>
+    .feed-container {
+      height: calc(100vh - var(--navbar-height));
+      overflow-y: auto;
+      padding: 1rem;
+    }
+    .new-post-button {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    
+    color: white;
+    border: none;
+    font-size: 2rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    z-index: 1000; /* Ensure it's above other elements */
+  }
+  </style>
+  
