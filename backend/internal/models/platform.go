@@ -1,29 +1,30 @@
 package models
 
-import (
-    "github.com/google/uuid"
-)
-
-type UserLikedAlbums struct {
-    ID uuid.UUID `json:"id"`
-    LibraryId uuid.UUID `json:"library_id"`
-    AlbumId uuid.UUID `json:"album_id"`
+type PlatformArtist struct {
+    ID string `json:"id,omitempty"`
+    Name string `json:"name,omitempty"`
+    MediaURL string `json:"mediaUrl,omitempty"`
 }
 
-type UserFollowedArtists struct {
-    ID uuid.UUID `json:"id"`
-    LibraryId uuid.UUID `json:"library_id"`
-    ArtistId uuid.UUID `json:"artist_id"`
+type PlatformAlbum struct {
+    ID string `json:"id,omitempty"`
+    Title string `json:"title,omitempty"`
+    Artists []PlatformArtist `json:"artists,omitempty"`
+    Songs []PlatformSong `json:"songs,omitempty"`
+    MediaURL string `json:"mediaUrl,omitempty"`
 }
 
-type UserFollowedPlaylists struct {
-    ID uuid.UUID `json:"id"`
-    LibraryId uuid.UUID `json:"library_id"`
-    PlaylistId uuid.UUID `json:"playlist_id"`
+type PlatformPlaylist struct {
+    ID string `json:"id,omitempty"`
+    Title string `json:"title,omitempty"`
+    Songs []PlatformSong `json:"songs,omitempty"`
+    MediaURL string `json:"mediaUrl,omitempty"`
 }
 
-type UserLikedSongs struct {
-    ID uuid.UUID `json:"id"`
-    LibraryId uuid.UUID `json:"library_id"`
-    SongId uuid.UUID `json:"song_id"`
+type PlatformSong struct {
+    ID string `json:"id,omitempty"`
+    Artists []PlatformArtist `json:"artists,omitempty"`
+    Title string `json:"title,omitempty"`
+    PreviewURL string `json:"previewUrl,omitempty"`
+    MediaURL string `json:"mediaUrl,omitempty"`
 }
