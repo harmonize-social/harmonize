@@ -26,8 +26,11 @@ type LoginRequest struct {
 
 func Login(w http.ResponseWriter, r *http.Request) {
     // Set headers
-    setCommonHeaders(w)
-    setAdditionalHeaders(w, "POST")
+    w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
+
+    if r.Method == "OPTIONS" {
+        return
+    }
 
     var loginRequest LoginRequest
     err := json.NewDecoder(r.Body).Decode(&loginRequest)
