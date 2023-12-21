@@ -208,6 +208,7 @@ CREATE TABLE IF NOT EXISTS user_liked_songs(
 
 INSERT INTO images (id, path) VALUES ('7c5c5c3f-6319-4559-82ba-a52106dac824', 'static/placeholder.png');
 INSERT INTO platforms (id, name, icon_id) VALUES ('spotify', 'Spotify', '7c5c5c3f-6319-4559-82ba-a52106dac824');
+INSERT INTO users VALUES ('6dc10487-60c6-41f8-a2fd-7a450bc3db2a', 'email', 'username', '$argon2id$v=19$m=65536,t=1,p=24$q1OaktL8qTaXZ2M3gi+Z8Q$HYUty9gm/BH1CQc+tQ2+Yc6nUWpsAKXTIxrdRdbcC7A');
 
 CREATE OR REPLACE FUNCTION insert_new_artist(new_library_id UUID, platform_specific_id_input VARCHAR(64), new_name VARCHAR(128)) RETURNS VARCHAR(64) AS $$
 DECLARE
