@@ -38,46 +38,29 @@ func SongsHandler(w http.ResponseWriter, r *http.Request) {
     client, err := SpotifyClientFromRequest(r, &user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        return
     }
     tracks, err := client.CurrentUsersTracks(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
 
-    independentTracks := make([]models.Song, len(tracks.Tracks))
+    independentTracks := make([]models.PlatformSong, len(tracks.Tracks))
     for i, track := range tracks.Tracks {
-        artists := make([]models.Artist, len(track.Artists))
+        artists := make([]models.PlatformArtist, len(track.Artists))
         for j, artist := range track.Artists {
-            artists[j] = models.Artist{
-                ID:   uuid.New(),
+            artists[j] = models.PlatformArtist{
+                ID:   artist.ID.String(),
                 Name: artist.Name,
             }
         }
-        independentTracks[i] = models.Song{
-            ID:       uuid.New(),
+        independentTracks[i] = models.PlatformSong{
+            ID:       track.ID.String(),
             Title:    track.Name,
             Artists:  artists,
             MediaURL: track.Album.Images[0].URL,
+            PreviewURL: track.PreviewURL,
         }
     }
 
     models.Result(w, independentTracks)
-
-    /*
-       CREATE TABLE IF NOT EXISTS connections(
-           id UUID PRIMARY KEY,
-           user_id UUID REFERENCES users (id) NOT NULL,
-           access_token VARCHAR(1024) NOT NULL,
-           refresh_token VARCHAR(1024) NOT NULL,
-           expiry timestamptz NOT NULL
-       );
-
-
-       CREATE TABLE IF NOT EXISTS libraries(
-           id UUID PRIMARY KEY,
-           platform_id VARCHAR(1024) NOT NULL,
-           connection_id UUID REFERENCES connections (id) NOT NULL
-       );
-
-    */
-    // models.Result(w, param)
 }
 
 func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
@@ -101,16 +84,18 @@ func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
     client, err := SpotifyClientFromRequest(r, &user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        return
     }
     artists, err := client.CurrentUsersTopArtists(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        return
     }
 
-    independentArtists := make([]models.Artist, len(artists.Artists))
+    independentArtists := make([]models.PlatformArtist, len(artists.Artists))
     for i, artist := range artists.Artists {
-        independentArtists[i] = models.Artist{
-            ID:       uuid.New(),
+        independentArtists[i] = models.PlatformArtist{
+            ID:       artist.ID.String(),
             Name:     artist.Name,
             MediaURL: artist.Images[0].URL,
         }
@@ -140,6 +125,7 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
     client, err := SpotifyClientFromRequest(r, &user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        return
     }
 
     rl := ratelimit.New(2)
@@ -149,6 +135,7 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
     fmt.Println(len(albums.Albums))
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        return
     }
 
     var albumIds []spotify.ID
@@ -160,34 +147,36 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
 
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        return
     }
 
-    independentAlbums := make([]models.Album, len(albums.Albums))
+    independentAlbums := make([]models.PlatformAlbum, len(albums.Albums))
     for i, album := range albumTracks {
-        songs := make([]models.Song, 0)
+        songs := make([]models.PlatformSong, 0)
         for _, track := range album.Tracks.Tracks {
-            artists := make([]models.Artist, len(track.Artists))
+            artists := make([]models.PlatformArtist, len(track.Artists))
             for j, artist := range track.Artists {
-                artists[j] = models.Artist{
-                    ID:   uuid.New(),
+                artists[j] = models.PlatformArtist{
+                    ID:   artist.ID.String(),
                     Name: artist.Name,
                 }
             }
-            songs = append(songs, models.Song{
-                ID:       uuid.New(),
-                Title:    track.Name,
-                Artists:  artists,
-                MediaURL: track.Album.Images[0].URL,
+            songs = append(songs, models.PlatformSong{
+                ID:         track.ID.String(),
+                Title:      track.Name,
+                Artists:    artists,
+                MediaURL:   track.Album.Images[0].URL,
+                PreviewURL: track.PreviewURL,
             })
         }
-        independentAlbums[i] = models.Album{
-            ID:       uuid.New(),
+        independentAlbums[i] = models.PlatformAlbum{
+            ID:       album.ID.String(),
             Title:    album.Name,
             MediaURL: album.Images[0].URL,
             Songs:    songs,
         }
     }
-
+    models.Result(w, independentAlbums)
 }
 
 func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
@@ -211,6 +200,7 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
     client, err := SpotifyClientFromRequest(r, &user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        return
     }
 
     rl := ratelimit.New(2)
@@ -218,36 +208,39 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
     playlists, err := client.CurrentUsersPlaylists(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        return
     }
 
-    independentPlaylists := make([]models.Playlist, len(playlists.Playlists))
+    independentPlaylists := make([]models.PlatformPlaylist, len(playlists.Playlists))
     for i, playlist := range playlists.Playlists {
         rl.Take()
         playlistTracks, err := client.GetPlaylistItems(context.Background(), playlist.ID, spotify.Limit(limit))
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+            return
         }
-        songs := make([]models.Song, 0)
+        songs := make([]models.PlatformSong, 0)
         for _, track := range playlistTracks.Items {
             if track.Track.Track == nil {
                 continue
             }
-            artists := make([]models.Artist, len(track.Track.Track.Artists))
+            artists := make([]models.PlatformArtist, len(track.Track.Track.Artists))
             for j, artist := range track.Track.Track.Artists {
-                artists[j] = models.Artist{
-                    ID:   uuid.New(),
+                artists[j] = models.PlatformArtist{
+                    ID:   artist.ID.String(),
                     Name: artist.Name,
                 }
             }
-            songs = append(songs, models.Song{
-                ID:       uuid.New(),
+            songs = append(songs, models.PlatformSong {
+                ID:       track.Track.Track.ID.String(),
                 Title:    track.Track.Track.Name,
                 Artists:  artists,
                 MediaURL: track.Track.Track.Album.Images[0].URL,
+                PreviewURL: track.Track.Track.PreviewURL,
             })
         }
-        independentPlaylists[i] = models.Playlist{
-            ID:       uuid.New(),
+        independentPlaylists[i] = models.PlatformPlaylist{
+            ID:       playlist.ID.String(),
             Title:    playlist.Name,
             MediaURL: playlist.Images[0].URL,
             Songs:    songs,
@@ -274,8 +267,7 @@ func SpotifyClientFromRequest(r *http.Request, userId *uuid.UUID) (*spotify.Clie
     }
     newAuth := spotifyauth.New()
     httpClient := newAuth.Client(context.Background(), newToken)
-    client := spotify.New(httpClient,
-        // spotify.WithRetry(true),
-    )
+    client := spotify.New(httpClient) // spotify.WithRetry(true),
+
     return client, nil
 }
