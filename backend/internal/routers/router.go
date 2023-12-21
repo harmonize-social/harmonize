@@ -51,13 +51,6 @@ func authedRoutes() *mux.Router {
     mount(router, "/me", MeRouter())
     mount(router, "/oauth", OAuthRouter())
 
-    mount(router, "/follow", FollowRouter())
-
-    // interactions.go routers
-    mount(router, "/post", PostRouter())
-    mount(router, "/like", LikeRouter())
-    mount(router, "/comment", CommentRouter())
-    mount(router, "/savedpost", SavedPostRouter())
     router.Use(Middleware)
     return router
 }

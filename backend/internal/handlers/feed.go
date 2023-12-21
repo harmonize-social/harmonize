@@ -25,7 +25,7 @@ func GetFeed(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusUnauthorized, "Invalid session")
         return
     }
-    sqlStatement := `SELECT posts.* FROM follows JOIN posts ON follows.followed_id = posts.user_id WHERE follows.follower_id = $1 ORDER BY posts.created_at DESC LIMIT $2 OFFSET $3;`
+    sqlStatement := `SELECT posts.*, users.username FROM follows JOIN posts ON follows.followed_id = posts.user_id JOIN users ON posts.user_id = users.id WHERE follows.follower_id = $1 ORDER BY posts.created_at DESC LIMIT $2 OFFSET $3;`
     rows, err := repositories.Pool.Query(context.Background(), sqlStatement, user.ID, limit, offset)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Error getting posts")
@@ -35,7 +35,8 @@ func GetFeed(w http.ResponseWriter, r *http.Request) {
     for rows.Next() {
         var post models.Post
         var typeSpecificId uuid.UUID
-        err = rows.Scan(&post.ID, &post.UserId, &post.CreatedAt, &post.Caption, &post.Type, &typeSpecificId)
+        var userId uuid.UUID
+        err = rows.Scan(&post.ID, &userId, &post.CreatedAt, &post.Caption, &post.Type, &typeSpecificId, &post.Username)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Error getting posts")
             return

@@ -30,7 +30,7 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    sqlStatement := `SELECT * FROM posts WHERE user_id = $1 ORDER BY posts.created_at DESC LIMIT $2 OFFSET $3;`
+    sqlStatement := `SELECT posts.*, users.username FROM posts JOIN users ON posts.user_id = users.id WHERE user_id = $1 ORDER BY posts.created_at DESC LIMIT $2 OFFSET $3;`
     rows, err := repositories.Pool.Query(context.Background(), sqlStatement, user.ID, limit, offset)
 
     if err != nil {
@@ -42,7 +42,8 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
     for rows.Next() {
         var post models.Post
         var typeSpecificId uuid.UUID
-        err = rows.Scan(&post.ID, &post.UserId, &post.CreatedAt, &post.Caption, &post.Type, &typeSpecificId)
+        var userId uuid.UUID
+        err = rows.Scan(&post.ID, &userId, &post.CreatedAt, &post.Caption, &post.Type, &typeSpecificId, &post.Username)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Error getting posts")
             return

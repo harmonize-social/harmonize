@@ -8,7 +8,7 @@ import (
 
 type Post struct {
     ID uuid.UUID `json:"id"`
-    UserId uuid.UUID `json:"user_id"`
+    Username string `json:"username"`
     Caption string `json:"caption"`
     CreatedAt time.Time `json:"created_at"`
     Type string `json:"type"`
