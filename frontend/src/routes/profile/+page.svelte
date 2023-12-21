@@ -2,7 +2,7 @@
 	import Panel from '../../components/Panel.svelte';
 	import NavBar from '../../components/NavBar.svelte';
 	import Button from '../../components/Button.svelte';
-	import { get } from '../../fetch';
+	import { get, throwError } from '../../fetch';
 	import type PostModel from '../../models/post';
 	import Post from '../../components/Post.svelte';
 	import { onMount } from 'svelte';
@@ -17,7 +17,7 @@
 			const response: PostModel[] = await get('/me');
 			posts = response;
 		} catch (e) {
-			throw new Error('Internal server error');
+			throwError('Internal server error');
 		}
 	}
 	async function getFollowers(){
@@ -25,7 +25,7 @@
 			const response: UserModel[] = await get('/followers');
 			followers = response;
 		}catch(e){
-			throw new Error('Internal server error');
+			throwError('Internal server error');
 		}
 	}
 	async function getFollowing(){
@@ -33,7 +33,7 @@
 			const response: UserModel[] = await get('/following');
 			following = response;
 		}catch(e){
-			throw new Error('Internal server error');
+			throwError('Internal server error');
 		}
 	}
 	onMount(getData)

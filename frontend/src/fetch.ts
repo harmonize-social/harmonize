@@ -192,3 +192,27 @@ export async function updateUserInfo(url: string, updatedInfo: { username: strin
         throw new Error('Fout bij het bijwerken van de gebruikersinformatie');
     }
 }
+
+//create a error function that renders a pop up with a message that the backend returns when an error occurs
+export function throwError(errorMessage: string){
+const popup = document.createElement('div');
+popup.classList.add('popup');
+
+if(popup){
+    setTimeout(() => {
+        popup.remove();
+    }, 10000);
+}
+const closeButton = document.createElement('button');
+closeButton.textContent = 'X';
+closeButton.addEventListener('click', () => {
+    popup.remove();
+});
+
+const message = document.createElement('p');
+message.textContent = errorMessage;
+
+popup.appendChild(closeButton);
+popup.appendChild(message);
+document.body.appendChild(popup);
+}

@@ -3,7 +3,7 @@
     import NavBar from "../../../components/NavBar.svelte";
     import Button from "../../../components/Button.svelte";
     import { goto } from '$app/navigation';
-    import { delete_ } from "../../../fetch";
+    import { delete_, throwError } from "../../../fetch";
 
 
     async function handleDeleteAccount() {
@@ -15,7 +15,7 @@
             localStorage.removeItem('token');
             goto('/auth/login');       
         } catch (error) {
-            console.error('Fout bij het verwijderen van het account:', error);
+			throwError('Internal server error');
         }
     }
 }
@@ -29,7 +29,7 @@ async function handleLogout() {
             localStorage.removeItem('token');
             goto('/auth/login');
         } catch (error) {
-            console.error('Fout bij uitloggen:', error);
+			throwError('Internal server error');
         }
     }
 }
