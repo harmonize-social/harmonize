@@ -1,14 +1,15 @@
 <script lang="ts">
-    import type UserModel from "../models/user";
-    export let followers: UserModel[] = [];
+    export let followers: Map<{user_id: string}, {name: string}> = new Map();
     export const follows: boolean = true;
 </script>
 
-<style></style>
+<style>
+ /* TODO: Style followers component */
+
+</style>
 <div class="followers">
 <h2>Followers: </h2>
-{#each followers as user, i}
-<a href="/{user.id[i]}/profile"><p>{user.name[i]}</p></a>
+{#each followers as user}
+<a href="/{user[0]}/profile"><p>{user[1]}</p></a>
 {/each}
 </div>
-<!-- TODO: Component followers -->
