@@ -1,204 +1,207 @@
 //https://eckertalex.dev/blog/typescript-fetch-wrapper
 //https://github.com/EHB-TI/programming-project-groep-3_brussel-student-guide/blob/main/frontend/src/fetch.ts
 
-import ErrorPopup from "./components/ErrorPopup.svelte";
+import ErrorPopup from './components/ErrorPopup.svelte';
 
 export async function http<T>(path: string, config: RequestInit): Promise<T> {
-    // Get token from local storage
-    const token = localStorage.getItem('token');
-    config.headers = {
-        ...config.headers,
-        Authorization: `Bearer ${token}`,
-    }
-    const request = new Request(path, config);
-    const response = await fetch(request);
+	// Get token from local storage
+	const token = localStorage.getItem('token');
+	config.headers = {
+		...config.headers,
+		Authorization: `Bearer ${token}`
+	};
+	const request = new Request(path, config);
+	const response = await fetch(request);
 
-    if (response.status === 401) {
-        console.error('Unauthorized access detected');
-        throw new Error('Unauthorized');
-    }
+	if (response.status === 401) {
+		console.error('Unauthorized access detected');
+		throw new Error('Unauthorized');
+	}
 
-    if (!response.ok) {
-        throw new Error('Error fetching.');
-    }
+	if (!response.ok) {
+		throw new Error('Error fetching.');
+	}
 
-    try {
-        const json = await response.json();
-        const object = json.result;
-        if (object == null) {
-            throw new Error(json.error);
-        }
-        return object;
-    } catch (error) {
-        console.error('Error parsing JSON response:', error);
-        throw new Error('Error parsing JSON response');
-    }
+	try {
+		const json = await response.json();
+		const object = json.result;
+		if (object == null) {
+			throw new Error(json.error);
+		}
+		return object;
+	} catch (error) {
+		console.error('Error parsing JSON response:', error);
+		throw new Error('Error parsing JSON response');
+	}
 }
 
 export async function rawhttp<T>(request: Request): Promise<T> {
-    const response = await fetch(request);
+	const response = await fetch(request);
 
-    if (!response.ok) {
-        throw new Error('Error fetching.');
-    }
+	if (!response.ok) {
+		throw new Error('Error fetching.');
+	}
 
-    try {
-        const json = await response.json();
-        const object = json.result;
-        if (object == null) {
-            throw new Error(json.error);
-        }
-        return object;
-    } catch (error) {
-        console.error('Error parsing JSON response:', error);
-        throw new Error('Error parsing JSON response');
-    }
+	try {
+		const json = await response.json();
+		const object = json.result;
+		if (object == null) {
+			throw new Error(json.error);
+		}
+		return object;
+	} catch (error) {
+		console.error('Error parsing JSON response:', error);
+		throw new Error('Error parsing JSON response');
+	}
 }
 
 export async function loginpost<T>(url: string, body: Object): Promise<T> {
-    const body_string = JSON.stringify(body);
-    const length = new TextEncoder().encode(body_string).length;
-    const request = new Request(url, {
-        method: 'POST',
-        body: body_string,
-        headers: {
-            'Content-Type': 'application/json; charset=UTF-8',
-            'Content-Length': length.toString(),
-        },
-    });
+	const body_string = JSON.stringify(body);
+	const length = new TextEncoder().encode(body_string).length;
+	const request = new Request(url, {
+		method: 'POST',
+		body: body_string,
+		headers: {
+			'Content-Type': 'application/json; charset=UTF-8',
+			'Content-Length': length.toString()
+		}
+	});
 
-    try {
-        const response = await fetch(request);
+	try {
+		const response = await fetch(request);
 
-        if (!response.ok) {
-            const json = await response.json();
-            throw json.error;
-        }
+		if (!response.ok) {
+			const json = await response.json();
+			throw json.error;
+		}
 
-        const json = await response.json();
-        const object = json.result;
-        return object;
-    } catch (error) {
-        console.error('Internal error, try again later:', error);
-        throw new Error('Internal error, try again later.');
-    }
+		const json = await response.json();
+		const object = json.result;
+		return object;
+	} catch (error) {
+		console.error('Internal error, try again later:', error);
+		throw new Error('Internal error, try again later.');
+	}
 }
 
 export async function get<T>(path: string, config?: RequestInit): Promise<T> {
-    const init = { method: 'get', ...config };
-    return await http<T>(path, init);
+	const init = { method: 'get', ...config };
+	return await http<T>(path, init);
 }
 
 export async function delete_<T>(path: string, config?: RequestInit): Promise<T> {
-    const init = { method: 'delete', ...config };
-    return await http<T>(path, init);
+	const init = { method: 'delete', ...config };
+	return await http<T>(path, init);
 }
 
 export async function post<T, U>(path: string, body: T, config?: RequestInit): Promise<U> {
-    const init = { method: 'post', body: JSON.stringify(body), ...config };
-    return await http<U>(path, init);
+	const init = { method: 'post', body: JSON.stringify(body), ...config };
+	return await http<U>(path, init);
 }
 
 export async function deleteAccount(url: string): Promise<void> {
-    const token = localStorage.getItem('token');
-    const request = new Request(url, {
-        method: 'DELETE',
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
+	const token = localStorage.getItem('token');
+	const request = new Request(url, {
+		method: 'DELETE',
+		headers: {
+			Authorization: `Bearer ${token}`
+		}
+	});
 
-    try {
-        const response = await fetch(request);
+	try {
+		const response = await fetch(request);
 
-        if (!response.ok) {
-            const json = await response.json();
-            throw new Error(json.error);
-        }
+		if (!response.ok) {
+			const json = await response.json();
+			throw new Error(json.error);
+		}
 
-        console.log('Account succesvol verwijderd');
-        localStorage.removeItem('token');
-
-
-    } catch (error) {
-        console.error('Fout bij het verwijderen van het account:', error);
-        throw new Error('Fout bij het verwijderen van het account');
-    }
+		console.log('Account succesvol verwijderd');
+		localStorage.removeItem('token');
+	} catch (error) {
+		console.error('Fout bij het verwijderen van het account:', error);
+		throwError('Failed to delete account');
+	}
 }
 
 export async function logout(url: string): Promise<void> {
-    const token = localStorage.getItem('token');
-    
-    if (token) {
-        localStorage.removeItem('token');
-    }
+	const token = localStorage.getItem('token');
 
-    try {
-        const response = await fetch(url, {
-            method: 'POST', 
-        });
+	if (token) {
+		localStorage.removeItem('token');
+	}
 
-        if (!response.ok) {
-            const json = await response.json();
-            throw new Error(json.error);
-        }
+	try {
+		const response = await fetch(url, {
+			method: 'POST'
+		});
 
-        console.log('Uitloggen succesvol');
+		if (!response.ok) {
+			const json = await response.json();
+			throw new Error(json.error);
+		}
 
-    } catch (error) {
-        console.error('Fout bij uitloggen:', error);
-        throw new Error('Fout bij uitloggen');
-    }
+		console.log('Uitloggen succesvol');
+	} catch (error) {
+		console.error('Fout bij uitloggen:', error);
+		throwError('Failed to logout');
+	}
 }
 
-export async function updateUserInfo(url: string, updatedInfo: { username: string, email: string, password: string }) {
-    const { username, email, password } = updatedInfo;
+export async function updateUserInfo(
+	url: string,
+	updatedInfo: { username: string; email: string; password: string }
+) {
+	const { username, email, password } = updatedInfo;
 
-    const usernamePattern = /^[a-zA-Z0-9]{6,}$/;
-    if (!usernamePattern.test(username)) {
-        throw new Error('De gebruikersnaam moet minimaal 6 tekens lang zijn en alleen letters en cijfers bevatten.');
-    }
+	const usernamePattern = /^[a-zA-Z0-9]{6,}$/;
+	if (!usernamePattern.test(username)) {
+		throwError('Username must contain at least 6 characters and only contain letters and numbers');
+	}
 
-    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{5,}$/;
-    if (!passwordPattern.test(password)) {
-        throw new Error('Het wachtwoord moet minimaal 5 tekens lang zijn en minimaal één hoofdletter, één kleine letter en één cijfer bevatten.');
-    }
+	const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{5,}$/;
+	if (!passwordPattern.test(password)) {
+		throwError(
+			'Password must contain at least 5 characters, 1 uppercase letter, 1 lowercase letter and 1 number'
+		);
+	}
 
-    const emailPattern = /\S+@\S+\.\S+/;
-    if (!emailPattern.test(email)) {
-        throw new Error('Voer een geldig e-mailadres in.');
-    }
+	const emailPattern = /\S+@\S+\.\S+/;
+	if (!emailPattern.test(email)) {
+		throwError('Invalid email address');
+	}
 
-    const token = localStorage.getItem('token');
-    const request = new Request(url, {
-        method: 'PUT',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, email, password }),
-    });
+	const token = localStorage.getItem('token');
+	const request = new Request(url, {
+		method: 'PUT',
+		headers: {
+			Authorization: `Bearer ${token}`,
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({ username, email, password })
+	});
 
-    try {
-        const response = await fetch(request);
+	try {
+		const response = await fetch(request);
 
-        if (!response.ok) {
-            const json = await response.json();
-            throw new Error(json.error);
-        }
+		if (!response.ok) {
+			const json = await response.json();
+			throw new Error(json.error);
+		}
 
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Fout bij het bijwerken van de gebruikersinformatie:', error);
-        throw new Error('Fout bij het bijwerken van de gebruikersinformatie');
-    }
+		const data = await response.json();
+		return data;
+	} catch (error) {
+		console.error('Fout bij het bijwerken van de gebruikersinformatie:', error);
+		throwError('Failed to edit user data');
+	}
 }
 
 //create a function that renders a pop up with a message that the backend returns when an error occurs
-export async function throwError(errorMessage: string){
-    let popup = new ErrorPopup({ 
-        target: document.body as Element, 
-        props: {message: errorMessage}});
-    return popup;
+export async function throwError(errorMessage: string) {
+	let popup = new ErrorPopup({
+		target: document.body as Element,
+		props: { message: errorMessage }
+	});
+	return popup;
 }
