@@ -2,14 +2,22 @@ package routers
 
 import (
     "backend/internal/handlers"
-    
+
     "github.com/gorilla/mux"
 )
+
+
+func MeRouter() *mux.Router {
+    router := mux.NewRouter()
+
+    router.HandleFunc("/feed", handlers.GetFeed).Methods("GET")
+    return router
+}
 
 func PostRouter() *mux.Router {
     router := mux.NewRouter()
 
-    router.HandleFunc("/", handlers.CreatePost).Methods("POST")
+    router.HandleFunc("/", handlers.CreatePost).Methods("GET")
     router.HandleFunc("/{id}", handlers.GetPost).Methods("GET")
     router.HandleFunc("/{id}", handlers.UpdatePost).Methods("PUT")
     router.HandleFunc("/{id}", handlers.DeletePost).Methods("DELETE")

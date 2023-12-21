@@ -1,6 +1,7 @@
 package routers
 
 import (
+    "backend/internal/handlers"
     "backend/internal/models"
     "backend/internal/repositories"
     "fmt"
@@ -13,6 +14,7 @@ import (
 
 func FullRouter() *mux.Router {
     router := mux.NewRouter()
+    router.HandleFunc("/api/v1/oauth/callback/spotify", handlers.SpotifyCallback).Methods("GET")
     mount(router, "/api/v1/users", UserRouter())
     mount(router, "/api/v1", authedRoutes())
     return router
@@ -46,7 +48,7 @@ func Middleware(next http.Handler) http.Handler {
 func authedRoutes() *mux.Router {
     router := mux.NewRouter()
 
-    // oauth
+    mount(router, "/me", MeRouter())
     mount(router, "/oauth", OAuthRouter())
 
     mount(router, "/follow", FollowRouter())
