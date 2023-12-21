@@ -1,19 +1,30 @@
-<script>
-    
+<script lang="ts">
     import Panel from "../../../components/Panel.svelte";
     import NavBar from "../../../components/NavBar.svelte";
-    import Button from "../../../components/Button.svelte";
-    import Album from "../../../components/Album.svelte";
-    import Song from "../../../components/Song.svelte";
-  
-    
+    import Post from "../../../components/Post.svelte";
+	import { get, throwError} from "../../../fetch";
+	import type PostModel from "../../../models/post";
+	import { onMount } from "svelte";
+    let liked_posts: PostModel[] = [];
+    async function getLikedPosts(){
+        try{
+            const response: string = await get('/api/v1/me/likedposts' );
+            liked_posts = JSON.parse(response);
+        }catch(e){
+            throwError('Internal server error');
+        }
+    }
+    onMount(getLikedPosts);
 </script>
-<NavBar></NavBar>
-<Panel title="">
+<NavBar current_page="/me/likedposts"></NavBar>
+<Panel title="Your liked posts">
     <div class="liked-container" >
-        <h1>Liked</h1>
-        <Album album_title="Album Title" album_image="path_to_image" album_image_alt="alt_text" album_artist="Artist" url="path_to_album"/>
-        <Button buttonText="Sync Library" link="/connection"></Button>
+
+        {#each liked_posts as post, i}
+            <div class="post">
+                <Post caption={post.caption} likes={post.likes}></Post>
+            </div>
+        {/each}
 
 
     </div>
