@@ -20,7 +20,7 @@ services:
       context: ./backend
       dockerfile: ./Dockerfile
     environment:
-      POSTGRES_URL: "postgres://user:postgres@database:5432/harmonize"
+      POSTGRES_URL: "postgres://user:postgres@172.20.0.2:5432/harmonize"
     ports:
       - "8080:8080"
     networks:
