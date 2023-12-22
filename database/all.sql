@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS follows(
     id UUID PRIMARY KEY,
     followed_id UUID REFERENCES users (id) NOT NULL,
     follower_id UUID REFERENCES users (id) NOT NULL,
+    CONSTRAINT follows_unique_user_combo UNIQUE (followed_id, follower_id),
     date timestamptz NOT NULL
 );
 
