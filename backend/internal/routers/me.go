@@ -6,7 +6,6 @@ import (
     "github.com/gorilla/mux"
 )
 
-
 func MeRouter() *mux.Router {
     router := mux.NewRouter()
 
@@ -18,6 +17,8 @@ func MeRouter() *mux.Router {
     router.HandleFunc("/liked", handlers.GetLikedPosts).Methods("GET")
     router.HandleFunc("/liked", handlers.PostLikedPost).Methods("POST")
     router.HandleFunc("/liked", handlers.DeleteLikedPost).Methods("DELETE")
+    router.HandleFunc("/follow", handlers.PostFollow).Methods("POST")
+    router.HandleFunc("/follow", handlers.DeleteFollow).Methods("DELETE")
     mount(router, "/library", LibraryRouter())
     return router
 }
