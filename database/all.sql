@@ -181,15 +181,15 @@ CREATE TABLE IF NOT EXISTS saved_posts (
     id UUID PRIMARY KEY,
     user_id UUID REFERENCES users (id) NOT NULL,
     post_id UUID REFERENCES posts (id) NOT NULL,
-    CONSTRAINT unique_user_post_combo UNIQUE (user_id, post_id)
+    CONSTRAINT saved_unique_user_post_combo UNIQUE (user_id, post_id)
 );
 
-CREATE TABLE IF NOT EXISTS liked_posts(
+CREATE TABLE IF NOT EXISTS liked_posts (
     id UUID PRIMARY KEY,
     user_id UUID REFERENCES users (id) NOT NULL,
-    post_id UUID REFERENCES posts (id) NOT NULL
+    post_id UUID REFERENCES posts (id) NOT NULL,
+    CONSTRAINT liked_unique_user_post_combo UNIQUE (user_id, post_id)
 );
-
 
 CREATE TABLE IF NOT EXISTS user_followed_artists(
     id UUID PRIMARY KEY,
@@ -376,6 +376,9 @@ INSERT INTO posts (id, user_id, created_at, caption, type, type_specific_id) VAL
   ('53336c2a-5885-430e-968d-fae2a921ba9f', '6dc10487-60c6-41f8-a2fd-7a450bc3db2a', CURRENT_TIMESTAMP, 'Post from user3', 'song', '53336c2a-5985-430e-968d-fae2a921ba9f');
 
 INSERT INTO saved_posts (id, user_id, post_id) VALUES
+  ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', '6dc10487-60c6-41f8-a2fd-7a450bc3db2a', '8303997f-b12c-4c2b-af9a-7ebe22d5c051');
+
+INSERT INTO liked_posts (id, user_id, post_id) VALUES
   ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', '6dc10487-60c6-41f8-a2fd-7a450bc3db2a', '8303997f-b12c-4c2b-af9a-7ebe22d5c051');
 
 INSERT INTO artists (id, name) VALUES
