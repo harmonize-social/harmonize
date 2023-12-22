@@ -93,5 +93,27 @@ CREATE TABLE IF NOT EXISTS saved_posts(
 
 func PostSavedPost(w http.ResponseWriter, r *http.Request) {
     id := r.Header.Get("id")
-    fmt.Println(id)
+    postId := r.URL.Query().Get("id")
+
+    user, err := getUserFromSession(uuid.MustParse(id))
+    if err != nil {
+        models.Error(w, http.StatusInternalServerError, "cannot get session")
+        return
+    }
+
+    var savedPostId uuid.UUID
+    sqlStatement := `INSERT INTO saved_posts (id, user_id, post_id)
+                     VALUES (uuid_generate_v4(), $1, $2)
+                     ON CONFLICT (user_id, post_id) DO UPDATE
+                     SET id = saved_posts.id
+                     RETURNING id;`
+    err = repositories.Pool.QueryRow(context.Background(), sqlStatement, user.ID, postId).Scan(&savedPostId)
+
+    if err != nil {
+        fmt.Println(err.Error())
+        models.Error(w, http.StatusInternalServerError, "Error saving post")
+        return
+    }
+
+    models.Result(w, savedPostId)
 }

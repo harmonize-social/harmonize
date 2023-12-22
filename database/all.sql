@@ -177,11 +177,11 @@ CREATE TABLE IF NOT EXISTS comment(
     message VARCHAR(1024) NOT NULL
 );
 
-
-CREATE TABLE IF NOT EXISTS saved_posts(
+CREATE TABLE IF NOT EXISTS saved_posts (
     id UUID PRIMARY KEY,
     user_id UUID REFERENCES users (id) NOT NULL,
-    post_id UUID REFERENCES posts (id) NOT NULL
+    post_id UUID REFERENCES posts (id) NOT NULL,
+    CONSTRAINT unique_user_post_combo UNIQUE (user_id, post_id)
 );
 
 CREATE TABLE IF NOT EXISTS liked_posts(
