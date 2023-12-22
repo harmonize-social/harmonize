@@ -4,9 +4,31 @@
 	import type PlaylistModel from '../models/playlist';
 	import type SongModel from '../models/song';
     export let content: PlaylistModel;
+
+
+  
+
+
     let playlistName = content.name; 
     let playlistSongs = content.songs;
     let playlistUrl = content.url;
+
+    /**
+   * @param {{ title?: string; songs: any; image?: string; alt?: string; }} playlist
+   */
+  function addSongToPlaylistp(playlist:any) {
+    let songNumber = playlist.songs.length + 1;
+    let newSong = {
+      title: `Song ${songNumber}`,
+      artist: `Artist ${songNumber}`,
+      url: `path_to_song${songNumber}.mp3`
+    };
+    playlist.songs = [...playlist.songs, newSong];
+  }
+
+
+
+    
     // export let playlistImage = "path_to_playlist_image.jpg";
     // export let playlistImageAlt = "Playlist Image";
     /**
