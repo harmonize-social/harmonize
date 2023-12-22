@@ -6,7 +6,7 @@
 	import type AlbumModel from '../../../models/album';
 	import type PlaylistModel from '../../../models/playlist';
 	import type ArtistModel from '../../../models/artist';
-	import { get, throwError } from '../../../fetch';
+	import { get, post, throwError } from '../../../fetch';
 	import { onMount } from 'svelte';
 	import Song from '../../../components/Song.svelte';
 	import Album from '../../../components/Album.svelte';
@@ -54,7 +54,7 @@
 			<div class="platform-button" on:focusout={handleDropdownFocusLoss}>
 				<Button buttonText={connection} on:click={handleDropdownClick} />
 				<div class="platform-dropdown" style:visibility={isDropdownOpen ? 'visible' : 'hidden'}>
-					<ul>
+					<ol>
 						<li on:focusout={handleDropdownFocusLoss}>
 							<Button buttonText="Songs" on:click={handleDropdownClick} />
 							<div class="library-songs-dropdown">
@@ -63,7 +63,7 @@
 										<Song content={{ title: song.title, url: song.url, id: song.id }} />
 									{/each}
 								{:else}
-									<p>You don't have songs in this library!</p>
+									<p>You haven't saved songs in this library!</p>
 								{/if}
 							</div>
 						</li>
@@ -83,7 +83,7 @@
 										/>
 									{/each}
 								{:else}
-									<p>You don't have albums in this library!</p>
+									<p>You haven't saved albums in this library!</p>
 								{/if}
 							</div>
 						</li>
@@ -102,7 +102,7 @@
 										/>
 									{/each}
 								{:else}
-									<p>You don't have playlists in this library!</p>
+									<p>You haven't saved playlists in this library!</p>
 								{/if}
 							</div>
 						</li>
@@ -111,25 +111,34 @@
 							<div class="library-artists-dropdown">
 								{#if artists}
 									{#each artists as artist}
-										<Artist artistName={artist.name} />
-										<!-- TODO:Change Artist component so it matches the other musical components -->
+										<Artist content={{ name: artist.name, id: artist.id, url: artist.url }} />
 									{/each}
 								{:else}
-									<p>You don't have artists in this library!</p>
+									<p>You haven't saved artists in this library!</p>
 								{/if}
 							</div>
 						</li>
-					</ul>
-					<!-- {#each library as item}
-                    if
-                         {item}
-                    {/each} -->
+					</ol>
 				</div>
 			</div>
 		{/each}
 
-		<Button buttonText="Sync Library" link="/connection"></Button>
-	</div></Panel>
+		<Button
+			buttonText="Sync Library"
+			link="/api/v1/connection"
+			on:click={async () => {
+				try {
+					for (let i = 0; i < library.length; i++) {
+						const response = await post(`/api/v1/me/sync`, library[i]);
+						library[i] = response;
+					}
+				} catch (e) {
+					throwError('Internal server error');
+				}
+			}}
+		></Button>
+	</div></Panel
+>
 
 <style>
 </style>
