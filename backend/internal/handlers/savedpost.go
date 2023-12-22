@@ -32,18 +32,18 @@ func GetSavedPosts(w http.ResponseWriter, r *http.Request) {
     fmt.Println(user.ID)
 
     sqlStatement := `SELECT posts.id, posts.created_at, posts.caption, posts.type, posts.type_specific_id, users.username,
-       COUNT(liked_posts.post_id) AS like_count,
-       COUNT(CASE WHEN liked_posts.user_id = $1 THEN 1 END) > 0 AS user_has_liked,
-       COUNT(CASE WHEN saved_posts.user_id = $1 THEN 1 END) > 0 AS user_has_saved
-FROM posts
-JOIN users ON posts.user_id = users.id
-LEFT JOIN liked_posts ON liked_posts.post_id = posts.id
-LEFT JOIN saved_posts ON saved_posts.post_id = posts.id
-WHERE posts.user_id = $1
-GROUP BY posts.id, users.id
-ORDER BY posts.created_at DESC
-LIMIT $2
-OFFSET $3`
+                         COUNT(liked_posts.post_id) AS like_count,
+                         COUNT(CASE WHEN liked_posts.user_id = $1 THEN 1 END) > 0 AS user_has_liked,
+                         COUNT(CASE WHEN saved_posts.user_id = $1 THEN 1 END) > 0 AS user_has_saved
+                     FROM posts
+                     JOIN users ON posts.user_id = users.id
+                     LEFT JOIN liked_posts ON liked_posts.post_id = posts.id
+                     LEFT JOIN saved_posts ON saved_posts.post_id = posts.id
+                     WHERE posts.user_id = $1
+                     GROUP BY posts.id, users.id
+                     ORDER BY posts.created_at DESC
+                     LIMIT $2
+                     OFFSET $3`
     rows, err := repositories.Pool.Query(context.Background(), sqlStatement, user.ID, limit, offset)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Error getting posts")
