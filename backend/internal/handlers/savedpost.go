@@ -4,7 +4,6 @@ import (
     "backend/internal/models"
     "backend/internal/repositories"
     "context"
-    "fmt"
     "net/http"
     "strconv"
 
@@ -29,21 +28,33 @@ func GetSavedPosts(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    fmt.Println(user.ID)
-
-    sqlStatement := `SELECT posts.id, posts.created_at, posts.caption, posts.type, posts.type_specific_id, users.username,
-                         COUNT(liked_posts.post_id) AS like_count,
-                         COUNT(CASE WHEN liked_posts.user_id = $1 THEN 1 END) > 0 AS user_has_liked,
-                         COUNT(CASE WHEN saved_posts.user_id = $1 THEN 1 END) > 0 AS user_has_saved
-                     FROM posts
-                     JOIN users ON posts.user_id = users.id
-                     LEFT JOIN liked_posts ON liked_posts.post_id = posts.id
-                     LEFT JOIN saved_posts ON saved_posts.post_id = posts.id
-                     WHERE posts.user_id = $1
-                     GROUP BY posts.id, users.id
-                     ORDER BY posts.created_at DESC
-                     LIMIT $2
-                     OFFSET $3`
+    sqlStatement := `SELECT
+    p.id AS post_id,
+    p.created_at AS post_created_at,
+    p.caption AS post_caption,
+    p.type AS post_type,
+    p.type_specific_id AS post_specific_id,
+    u.username AS post_username,
+    COUNT(lp.id) AS likes_count,
+    CASE WHEN lp.user_id IS NOT NULL THEN true ELSE false END AS user_liked,
+    CASE WHEN sp.user_id IS NOT NULL THEN true ELSE false END AS user_saved
+    FROM
+        saved_posts sp
+    JOIN
+        posts p ON sp.post_id = p.id
+    LEFT JOIN
+        liked_posts lp ON p.id = lp.post_id
+    JOIN
+        users u ON p.user_id = u.id
+    WHERE
+        sp.user_id = $1
+    GROUP BY
+        sp.id,
+        p.id,
+        lp.user_id,
+        u.id
+    LIMIT $2
+    OFFSET $3;`
     rows, err := repositories.Pool.Query(context.Background(), sqlStatement, user.ID, limit, offset)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Error getting posts")
@@ -122,10 +133,15 @@ func DeleteSavedPost(w http.ResponseWriter, r *http.Request) {
     sqlStatement := `DELETE FROM saved_posts
                      WHERE user_id = $1
                      AND post_id = $2;`
-    _, err = repositories.Pool.Exec(context.Background(), sqlStatement, user.ID, postId)
+    tag, err := repositories.Pool.Exec(context.Background(), sqlStatement, user.ID, postId)
 
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Error saving post")
+        return
+    }
+
+    if tag.RowsAffected() != 1 {
+        models.Error(w, http.StatusInternalServerError, "Failed to delete post")
         return
     }
 
