@@ -83,14 +83,6 @@ func GetSavedPosts(w http.ResponseWriter, r *http.Request) {
     models.Result(w, posts)
 }
 
-/*
-CREATE TABLE IF NOT EXISTS saved_posts(
-    id UUID PRIMARY KEY,
-    user_id UUID REFERENCES posts (id) NOT NULL,
-    post_id UUID REFERENCES posts (id) NOT NULL
-);
-*/
-
 func PostSavedPost(w http.ResponseWriter, r *http.Request) {
     id := r.Header.Get("id")
     postId := r.URL.Query().Get("id")
@@ -110,10 +102,32 @@ func PostSavedPost(w http.ResponseWriter, r *http.Request) {
     err = repositories.Pool.QueryRow(context.Background(), sqlStatement, user.ID, postId).Scan(&savedPostId)
 
     if err != nil {
-        fmt.Println(err.Error())
         models.Error(w, http.StatusInternalServerError, "Error saving post")
         return
     }
 
     models.Result(w, savedPostId)
+}
+
+func DeleteSavedPost(w http.ResponseWriter, r *http.Request) {
+    id := r.Header.Get("id")
+    postId := r.URL.Query().Get("id")
+
+    user, err := getUserFromSession(uuid.MustParse(id))
+    if err != nil {
+        models.Error(w, http.StatusInternalServerError, "cannot get session")
+        return
+    }
+
+    sqlStatement := `DELETE FROM saved_posts
+                     WHERE user_id = $1
+                     AND post_id = $2;`
+    _, err = repositories.Pool.Exec(context.Background(), sqlStatement, user.ID, postId)
+
+    if err != nil {
+        models.Error(w, http.StatusInternalServerError, "Error saving post")
+        return
+    }
+
+    models.Result(w, "Deleted")
 }
