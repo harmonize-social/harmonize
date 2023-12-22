@@ -2,9 +2,31 @@
 <script lang="ts">
     import Song from '../components/Song.svelte';
 	import type PlaylistModel from '../models/playlist';
+
     export let content: PlaylistModel;
+
+    let playlistName = content.name;
+    let playlistSongs = content.songs;
+    let playlistUrl = content.url;
+
+    /**
+     * @param {{ title?: string; songs: any; image?: string; alt?: string; }} playlist
+     */
+    function addSongToPlaylist(playlist: any) {
+      let songNumber = playlist.songs.length + 1;
+      let newSong = {
+        title: `Song ${songNumber}`,
+        artist: `Artist ${songNumber}`,
+        url: `path_to_song${songNumber}.mp3`
+      };
+      playlist.songs = [...playlist.songs, newSong];
+    }
+
+    // FIX: Dit is door de merge fout
+
     import { onMount } from 'svelte';
-    import { get } from '../fetch'; 
+    import { get } from '../fetch';
+
 
 
     let playlists = [];
@@ -20,8 +42,8 @@
     // export let playlistImage = "path_to_playlist_image.jpg";
     // export let playlistImageAlt = "Playlist Image";
     /**
-	 * @type {string | any[]}
-	 */
+     * @type {string | any[]}
+     */
 
     // let playlists = [
     //     {
@@ -54,8 +76,8 @@
     // ];
 
     // /**
-	//  * @param {{ title?: string; songs: any; image?: string; alt?: string; }} playlist
-	//  */
+    //  * @param {{ title?: string; songs: any; image?: string; alt?: string; }} playlist
+    //  */
     // function addSongToPlaylistp(playlist) {
     //     let songNumber = playlist.songs.length + 1;
     //     let newSong = {
@@ -80,7 +102,7 @@
         /* max-width: 100%;
         border-radius: 8px;
         margin-bottom: 10px;
-    } */ 
+    } */
 </style>
 
 <div class="playlist">
@@ -98,7 +120,7 @@
         {#each songs1 as { title, artist, url }}
             <Song
                 song_title={title}
-                song_image="path_to_default_image.jpg" 
+                song_image="path_to_default_image.jpg"
                 song_image_alt="Default Image Alt"
                 url={url}
             />
@@ -112,7 +134,7 @@
                 {#each playlist.songs as { title, artist, url }}
                     <Song
                         song_title={title}
-                        song_image="path_to_default_image.jpg" 
+                        song_image="path_to_default_image.jpg"
                         song_image_alt="Default Image Alt"
                         url={url}
                     />

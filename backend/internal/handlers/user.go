@@ -25,13 +25,6 @@ type LoginRequest struct {
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
-    // Set headers
-    w.Header().Set("Access-Control-Allow-Origin", "http://localhost:5173")
-
-    if r.Method == "OPTIONS" {
-        return
-    }
-
     var loginRequest LoginRequest
     err := json.NewDecoder(r.Body).Decode(&loginRequest)
 
@@ -76,10 +69,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {
-    // Set headers
-    setCommonHeaders(w)
-    setAdditionalHeaders(w, "POST")
-
     // create an empty user of type models.User
     var user models.User
 

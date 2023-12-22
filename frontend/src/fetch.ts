@@ -3,14 +3,17 @@
 
 import ErrorPopup from './components/ErrorPopup.svelte';
 
+const API_URL = process.env.API_URL;
+
 export async function http<T>(path: string, config: RequestInit): Promise<T> {
+    const url = `${API_URL}/api/v1` + path
     // Get token from local storage
     const token = localStorage.getItem('token');
     config.headers = {
         ...config.headers,
         Authorization: `Bearer ${token}`
     };
-    const request = new Request(path, config);
+    const request = new Request(url, config);
     const response = await fetch(request);
 
     if (response.status === 401) {
@@ -55,7 +58,8 @@ export async function rawhttp<T>(request: Request): Promise<T> {
     }
 }
 
-export async function loginpost<T>(url: string, body: Object): Promise<T> {
+export async function loginpost<T>(path: string, body: Object): Promise<T> {
+    const url = `${API_URL}/api/v1` + path
     const body_string = JSON.stringify(body);
     const length = new TextEncoder().encode(body_string).length;
     const request = new Request(url, {
