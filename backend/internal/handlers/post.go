@@ -11,10 +11,6 @@ import (
 )
 
 func GetPosts(w http.ResponseWriter, r *http.Request) {
-
-    setCommonHeaders(w)
-    setAdditionalHeaders(w, "GET")
-
     limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
     if err != nil {
         limit = 10

@@ -29,7 +29,6 @@ func main() {
         AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
     })
 
-
     handler := c.Handler(router)
 
     log.Fatal(http.ListenAndServe(":8080", handler))
