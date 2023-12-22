@@ -1,3 +1,8 @@
+DROP EXTENSION IF EXISTS "pg_trgm";
+DROP EXTENSION IF EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 DROP TABLE IF EXISTS user_liked_songs;
 DROP TABLE IF EXISTS user_followed_playlists;
 DROP TABLE IF EXISTS user_liked_albums;
