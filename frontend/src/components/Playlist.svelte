@@ -1,30 +1,26 @@
 <!-- Playlist.svelte -->
 <script lang="ts">
     import Song from '../components/Song.svelte';
-	import type PlaylistModel from '../models/playlist';
-	import type SongModel from '../models/song';
-    export let content: PlaylistModel;
-
-
+    import type PlaylistModel from '../models/playlist';
   
-
-
-    let playlistName = content.name; 
+    export let content: PlaylistModel;
+  
+    let playlistName = content.name;
     let playlistSongs = content.songs;
     let playlistUrl = content.url;
-
+  
     /**
-   * @param {{ title?: string; songs: any; image?: string; alt?: string; }} playlist
-   */
-  function addSongToPlaylistp(playlist:any) {
-    let songNumber = playlist.songs.length + 1;
-    let newSong = {
-      title: `Song ${songNumber}`,
-      artist: `Artist ${songNumber}`,
-      url: `path_to_song${songNumber}.mp3`
-    };
-    playlist.songs = [...playlist.songs, newSong];
-  }
+     * @param {{ title?: string; songs: any; image?: string; alt?: string; }} playlist
+     */
+    function addSongToPlaylist(playlist: any) {
+      let songNumber = playlist.songs.length + 1;
+      let newSong = {
+        title: `Song ${songNumber}`,
+        artist: `Artist ${songNumber}`,
+        url: `path_to_song${songNumber}.mp3`
+      };
+      playlist.songs = [...playlist.songs, newSong];
+    }
 
 
 
