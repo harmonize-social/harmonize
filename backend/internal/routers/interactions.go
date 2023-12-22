@@ -17,8 +17,3 @@ func MeRouter() *mux.Router {
     mount(router, "/library", LibraryRouter())
     return router
 }
-
-func PostRouter() *mux.Router {
-    router := mux.NewRouter()
-    return router
-}
