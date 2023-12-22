@@ -7,7 +7,7 @@ export default defineConfig({
 		sveltekit(),
 		replace({
 			'process.env.API_URL': JSON.stringify(process.env.API_URL ||'http://localhost:8080'),
-			preventAssignments: true
+			preventAssignment: true
 		})
 	],
 	test: {

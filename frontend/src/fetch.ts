@@ -1,14 +1,19 @@
 //https://eckertalex.dev/blog/typescript-fetch-wrapper
 //https://github.com/EHB-TI/programming-project-groep-3_brussel-student-guide/blob/main/frontend/src/fetch.ts
 
+import ErrorPopup from './components/ErrorPopup.svelte';
+
+const API_URL = process.env.API_URL;
+
 export async function http<T>(path: string, config: RequestInit): Promise<T> {
+    const url = `${API_URL}/api/v1` + path
     // Get token from local storage
     const token = localStorage.getItem('token');
     config.headers = {
         ...config.headers,
-        Authorization: `Bearer ${token}`,
-    }
-    const request = new Request(path, config);
+        Authorization: `Bearer ${token}`
+    };
+    const request = new Request(url, config);
     const response = await fetch(request);
 
     if (response.status === 401) {
@@ -53,7 +58,8 @@ export async function rawhttp<T>(request: Request): Promise<T> {
     }
 }
 
-export async function loginpost<T>(url: string, body: Object): Promise<T> {
+export async function loginpost<T>(path: string, body: Object): Promise<T> {
+    const url = `${API_URL}/api/v1` + path
     const body_string = JSON.stringify(body);
     const length = new TextEncoder().encode(body_string).length;
     const request = new Request(url, {
@@ -61,8 +67,8 @@ export async function loginpost<T>(url: string, body: Object): Promise<T> {
         body: body_string,
         headers: {
             'Content-Type': 'application/json; charset=UTF-8',
-            'Content-Length': length.toString(),
-        },
+            'Content-Length': length.toString()
+        }
     });
 
     try {
@@ -97,98 +103,11 @@ export async function post<T, U>(path: string, body: T, config?: RequestInit): P
     return await http<U>(path, init);
 }
 
-export async function deleteAccount(url: string): Promise<void> {
-    const token = localStorage.getItem('token');
-    const request = new Request(url, {
-        method: 'DELETE',
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
+//create a function that renders a pop up with a message that the backend returns when an error occurs
+export async function throwError(errorMessage: string) {
+    let popup = new ErrorPopup({
+        target: document.body as Element,
+        props: { message: errorMessage }
     });
-
-    try {
-        const response = await fetch(request);
-
-        if (!response.ok) {
-            const json = await response.json();
-            throw new Error(json.error);
-        }
-
-        console.log('Account succesvol verwijderd');
-        localStorage.removeItem('token');
-
-
-    } catch (error) {
-        console.error('Fout bij het verwijderen van het account:', error);
-        throw new Error('Fout bij het verwijderen van het account');
-    }
-}
-
-export async function logout(url: string): Promise<void> {
-    const token = localStorage.getItem('token');
-    
-    if (token) {
-        localStorage.removeItem('token');
-    }
-
-    try {
-        const response = await fetch(url, {
-            method: 'POST', 
-        });
-
-        if (!response.ok) {
-            const json = await response.json();
-            throw new Error(json.error);
-        }
-
-        console.log('Uitloggen succesvol');
-
-    } catch (error) {
-        console.error('Fout bij uitloggen:', error);
-        throw new Error('Fout bij uitloggen');
-    }
-}
-
-export async function updateUserInfo(url: string, updatedInfo: { username: string, email: string, password: string }) {
-    const { username, email, password } = updatedInfo;
-
-    const usernamePattern = /^[a-zA-Z0-9]{6,}$/;
-    if (!usernamePattern.test(username)) {
-        throw new Error('De gebruikersnaam moet minimaal 6 tekens lang zijn en alleen letters en cijfers bevatten.');
-    }
-
-    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{5,}$/;
-    if (!passwordPattern.test(password)) {
-        throw new Error('Het wachtwoord moet minimaal 5 tekens lang zijn en minimaal één hoofdletter, één kleine letter en één cijfer bevatten.');
-    }
-
-    const emailPattern = /\S+@\S+\.\S+/;
-    if (!emailPattern.test(email)) {
-        throw new Error('Voer een geldig e-mailadres in.');
-    }
-
-    const token = localStorage.getItem('token');
-    const request = new Request(url, {
-        method: 'PUT',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, email, password }),
-    });
-
-    try {
-        const response = await fetch(request);
-
-        if (!response.ok) {
-            const json = await response.json();
-            throw new Error(json.error);
-        }
-
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Fout bij het bijwerken van de gebruikersinformatie:', error);
-        throw new Error('Fout bij het bijwerken van de gebruikersinformatie');
-    }
+    return popup;
 }

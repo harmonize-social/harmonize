@@ -11,23 +11,55 @@ services:
       POSTGRES_DB: harmonize
     volumes:
       - /var/lib/postgresql/data:/var/lib/postgresql/data
+    networks:
+      network:
+        ipv4_address: 172.20.0.2
 
   backend:
+    depends_on:
+      - database
     build:
       context: ./backend
       dockerfile: ./Dockerfile
+    develop:
+      watch:
+        - action: rebuild
+          files:
+            - ./**/*.go
+            - ./go.mod
+            - ./go.sum
     environment:
-      POSTGRES_URL: "postgres://user:postgres@database:5432/harmonize"
+      POSTGRES_URL: "postgres://user:postgres@172.20.0.2:5432/harmonize"
     ports:
       - "8080:8080"
-    links:
-      - database
+    networks:
+      network:
+        ipv4_address: 172.20.0.3
 
   frontend:
+    depends_on:
+      - backend
     build:
       context: ./frontend
       dockerfile: ./Dockerfile
+    develop:
+      watch:
+        - action: rebuild
+          files:
+            - ./**/*.ts
+            - ./**/*.svelte
+            - ./**/*.html
+    environment:
+      API_URL: "http://172.20.0.3:8080"
     ports:
       - "5173:5173"
-    links:
-      - backend
+    networks:
+      network:
+        ipv4_address: 172.20.0.4
+
+networks:
+  network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

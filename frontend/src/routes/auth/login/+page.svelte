@@ -6,16 +6,15 @@
     import TextInput from "../../../components/TextInput.svelte";
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
-	import { loginpost } from "../../../fetch";
+    import { loginpost } from "../../../fetch";
 
-    let email = "";
+    let username = "";
     let password = "";
     let errorMessage = "";
 
     const handleLogin = async () => {
         try {
-            const response = await loginpost<{token: string}>('/api/login', JSON.stringify({ email, password }));
-            //TODO: set session cookie to token like
+            const response = await loginpost<{token: string}>('/users/login', { username, password });
 
             // Set token in local storage
             localStorage.setItem('token', response.token);
@@ -73,7 +72,7 @@
         <p class="error-message">{errorMessage}</p>
     {/if}
     <div class="text-input">
-        <TextInput placeholder="Email" bind:value={email} />
+        <TextInput placeholder="Username/Email" bind:value={username} />
     </div>
     <div class="text-input">
         <TextInput placeholder="Password" type="password" bind:value={password} />

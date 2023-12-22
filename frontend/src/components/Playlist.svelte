@@ -2,13 +2,13 @@
 <script lang="ts">
     import Song from '../components/Song.svelte';
     import type PlaylistModel from '../models/playlist';
-  
+
     export let content: PlaylistModel;
-  
+
     let playlistName = content.name;
     let playlistSongs = content.songs;
     let playlistUrl = content.url;
-  
+
     /**
      * @param {{ title?: string; songs: any; image?: string; alt?: string; }} playlist
      */
@@ -22,14 +22,31 @@
       playlist.songs = [...playlist.songs, newSong];
     }
 
+    // FIX: Dit is door de merge fout
+
+    import { onMount } from 'svelte';
+    import { get } from '../fetch';
 
 
-    
+    let playlistName = content.name;
+    let playlistSongs = content.songs;
+    let playlistUrl = content.url;
+
+    let playlists = [];
+
+    onMount(async () => {
+    try {
+
+        playlists = await get<PlaylistModel[]>('path_to_playlists_endpoint');
+    } catch (error) {
+      console.error('Error loading playlists:', error);
+    }
+  });
     // export let playlistImage = "path_to_playlist_image.jpg";
     // export let playlistImageAlt = "Playlist Image";
     /**
-	 * @type {string | any[]}
-	 */
+     * @type {string | any[]}
+     */
 
     // let playlists = [
     //     {
@@ -62,8 +79,8 @@
     // ];
 
     // /**
-	//  * @param {{ title?: string; songs: any; image?: string; alt?: string; }} playlist
-	//  */
+    //  * @param {{ title?: string; songs: any; image?: string; alt?: string; }} playlist
+    //  */
     // function addSongToPlaylistp(playlist) {
     //     let songNumber = playlist.songs.length + 1;
     //     let newSong = {
@@ -88,7 +105,7 @@
         /* max-width: 100%;
         border-radius: 8px;
         margin-bottom: 10px;
-    } */ 
+    } */
 </style>
 
 <div class="playlist">
@@ -96,8 +113,8 @@
     <a href="{playlistUrl}"><h1>{playlistName}</h1></a>
     {#each playlistSongs as song}
         <Song
-            content={{ title: song.title, url: song.url, id: song.id }} 
-            title={song.title}               
+            content={{ title: song.title, url: song.url, id: song.id }}
+            title={song.title}
             url={song.url}
         />
     {/each}
@@ -108,7 +125,7 @@
         {#each songs1 as { title, artist, url }}
             <Song
                 song_title={title}
-                song_image="path_to_default_image.jpg" 
+                song_image="path_to_default_image.jpg"
                 song_image_alt="Default Image Alt"
                 url={url}
             />
@@ -122,7 +139,7 @@
                 {#each playlist.songs as { title, artist, url }}
                     <Song
                         song_title={title}
-                        song_image="path_to_default_image.jpg" 
+                        song_image="path_to_default_image.jpg"
                         song_image_alt="Default Image Alt"
                         url={url}
                     />

@@ -4,13 +4,14 @@ import (
     "backend/internal/models"
     "backend/internal/repositories"
     "context"
+    "fmt"
     "net/http"
     "strconv"
 
     "github.com/google/uuid"
 )
 
-func GetSavedPosts(w http.ResponseWriter, r *http.Request) {
+func GetLikedPosts(w http.ResponseWriter, r *http.Request) {
     limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
     if err != nil {
         limit = 10
@@ -29,34 +30,37 @@ func GetSavedPosts(w http.ResponseWriter, r *http.Request) {
     }
 
     sqlStatement := `SELECT
+    lp.id AS liked_post_id,
     p.id AS post_id,
+    p.user_id AS post_owner_id,
+    u.username AS post_username,
     p.created_at AS post_created_at,
     p.caption AS post_caption,
     p.type AS post_type,
     p.type_specific_id AS post_specific_id,
-    u.username AS post_username,
     COUNT(lp.id) AS likes_count,
     CASE WHEN lp.user_id IS NOT NULL THEN true ELSE false END AS user_liked,
     CASE WHEN sp.user_id IS NOT NULL THEN true ELSE false END AS user_saved
     FROM
-        saved_posts sp
+        liked_posts lp
     JOIN
-        posts p ON sp.post_id = p.id
+        posts p ON lp.post_id = p.id
     LEFT JOIN
-        liked_posts lp ON p.id = lp.post_id
+        saved_posts sp ON p.id = sp.post_id
     JOIN
         users u ON p.user_id = u.id
     WHERE
-        sp.user_id = $1
+        lp.user_id = '6dc10487-60c6-41f8-a2fd-7a450bc3db2a'
     GROUP BY
-        sp.id,
-        p.id,
-        lp.user_id,
-        u.id
-    LIMIT $2
-    OFFSET $3;`
+    lp.id,
+    p.id,
+    sp.user_id,
+    u.id
+    LIMIT $2 OFFSET $3;
+    `
     rows, err := repositories.Pool.Query(context.Background(), sqlStatement, user.ID, limit, offset)
     if err != nil {
+        fmt.Println(err.Error())
         models.Error(w, http.StatusInternalServerError, "Error getting posts")
         return
     }
@@ -65,8 +69,9 @@ func GetSavedPosts(w http.ResponseWriter, r *http.Request) {
     for rows.Next() {
         var post models.Post
         var typeSpecificId uuid.UUID
-        err = rows.Scan(&post.ID, &post.CreatedAt, &post.Caption, &post.Type, &typeSpecificId, &post.Username, &post.LikeCount, &post.HasLiked, &post.HasSaved)
+        err = rows.Scan(&post.ID, &post.CreatedAt, &post.Caption, &post.Type, &typeSpecificId, &post.Username, &post.LikeCount, &post.HasLiked, &post.HasLiked)
         if err != nil {
+            fmt.Println(err.Error())
             models.Error(w, http.StatusInternalServerError, "Error getting posts")
             return
         }
@@ -94,7 +99,7 @@ func GetSavedPosts(w http.ResponseWriter, r *http.Request) {
     models.Result(w, posts)
 }
 
-func PostSavedPost(w http.ResponseWriter, r *http.Request) {
+func PostLikedPost(w http.ResponseWriter, r *http.Request) {
     id := r.Header.Get("id")
     postId := r.URL.Query().Get("id")
 
@@ -105,22 +110,22 @@ func PostSavedPost(w http.ResponseWriter, r *http.Request) {
     }
 
     var savedPostId uuid.UUID
-    sqlStatement := `INSERT INTO saved_posts (id, user_id, post_id)
+    sqlStatement := `INSERT INTO liked_posts (id, user_id, post_id)
                      VALUES (uuid_generate_v4(), $1, $2)
                      ON CONFLICT (user_id, post_id) DO UPDATE
-                     SET id = saved_posts.id
+                     SET id = liked_posts.id
                      RETURNING id;`
     err = repositories.Pool.QueryRow(context.Background(), sqlStatement, user.ID, postId).Scan(&savedPostId)
 
     if err != nil {
-        models.Error(w, http.StatusInternalServerError, "Error saving post")
+        models.Error(w, http.StatusInternalServerError, "Error liking post")
         return
     }
 
     models.Result(w, savedPostId)
 }
 
-func DeleteSavedPost(w http.ResponseWriter, r *http.Request) {
+func DeleteLikedPost(w http.ResponseWriter, r *http.Request) {
     id := r.Header.Get("id")
     postId := r.URL.Query().Get("id")
 
@@ -130,13 +135,13 @@ func DeleteSavedPost(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    sqlStatement := `DELETE FROM saved_posts
+    sqlStatement := `DELETE FROM liked_posts
                      WHERE user_id = $1
                      AND post_id = $2;`
     tag, err := repositories.Pool.Exec(context.Background(), sqlStatement, user.ID, postId)
 
     if err != nil {
-        models.Error(w, http.StatusInternalServerError, "Error saving post")
+        models.Error(w, http.StatusInternalServerError, "Error liking post")
         return
     }
 
