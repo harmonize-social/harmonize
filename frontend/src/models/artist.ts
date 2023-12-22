@@ -1,16 +1,11 @@
-export default class ArtistModel{
-    id: string = 'id'
-    name: string = 'name'
-    url: string = 'url'
-	isFollowing: any;
-	artistAlbums: any;
-	popularSongs: any;
-	alt: any;
-	image: any;
+export default class ArtistModel {
+	id: string = 'id';
+	name: string = 'name';
+	url: string = 'url';
 
-   constructor(id: string, name: string, url: string){
-        this.id = id
-        this.name = name
-        this.url = url
-    }
+	constructor(id: string, name: string, url: string) {
+		this.id = id;
+		this.name = name;
+		this.url = url;
+	}
 }

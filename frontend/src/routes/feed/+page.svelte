@@ -1,10 +1,10 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import Post from '../../components/Post.svelte';
-    import type { PostModel } from '../models/post';
+    import type PostModel from '../../models/post';
     import Panel from '../../components/Panel.svelte';
     import NavBar from '../../components/NavBar.svelte';
-    import { get } from '../../fetch';
+    import { get, throwError } from '../../fetch';
     import { browser } from '$app/environment';
     import Button from '../../components/Button.svelte';
     
@@ -18,7 +18,7 @@
         const response: PostModel[] = await get<PostModel[]>('/api/posts');
         return response;
       } catch (error) {
-        console.error('Failed to fetch posts:', error);
+        throwError('Error fetching posts');
         return [];
       } finally {
         loading = false;

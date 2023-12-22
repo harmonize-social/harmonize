@@ -1,12 +1,11 @@
 <script lang="ts">
-    import type UserModel from "../models/user";
-    export let following: UserModel[] = [];
+    export let following: string[] = [];
     export const follows: boolean = true;
 </script>
-<!-- TODO: Component following -->
+<!-- TODO: Component following styling -->
 <div class="following">
     <h2>Following: </h2>
     {#each following as user, i}
-    <a href="/{user.id[i]}/profile"><p>{user.name[i]}</p></a>
+    <a href="/{user[i]}/profile"><p>{user[i]}</p></a>
     {/each}
 </div>

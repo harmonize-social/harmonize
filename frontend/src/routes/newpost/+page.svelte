@@ -4,37 +4,31 @@
 	import NavBar from '../../components/NavBar.svelte';
 	import Button from '../../components/Button.svelte';
 	import TextInput from '../../components/TextInput.svelte';
-	import { page } from '$app/stores';
-	import { post } from '../../fetch';
+	import { post, throwError } from '../../fetch';
 	let data: PageData;
-	const url = $page.url.pathname;
 	let caption = 'Caption';
 	data = { caption };
 
 	async function handleInput() {
 		try {
-			const response: PageData = await post('/newpost', data);
+			const response: PageData = await post('/api/v1/newpost', data);
 			data = response;
 		} catch (e) {
-			throw new Error('Internal server error');
+			throwError('Failed to post item');
 		}
 	}
+
+
 </script>
 
 <NavBar current_page="/newpost"></NavBar>
 <Panel title="New Post">
 	<div class="form">
 		<div class="caption">
-			<TextInput placeholder="Insert a caption" on:input={handleInput}></TextInput>
+			<TextInput placeholder="Insert a caption" bind:value={caption}></TextInput>
 		</div>
-		<Button buttonText="Get the music on your platform!" link="/api/platform"></Button>
+		<Button buttonText="Get the music on your platform!" link="/api/v1/connection" on:click={handleInput}/>
 	</div>
-    <div class="form">
-        <div class="caption">
-            <TextInput placeholder="Insert a caption"></TextInput>
-        </div>
-        <Button buttonText="Get the music on your platform!" link="/profile/connection"></Button>
-    </div>
 </Panel>
 
 <style>

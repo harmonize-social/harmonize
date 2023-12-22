@@ -8,31 +8,30 @@
 	import { onMount } from 'svelte';
 	import Followers from '../../../components/Followers.svelte';
 	import Following from '../../../components/Following.svelte';
-	import type UserModel from '../../../models/user';
 	let posts: PostModel[] = [];
-	let followers: UserModel[] = [];
-	let following: UserModel[] = [];
+	let followers: string[] = [];
+	let following: string []= [];
     let follows: boolean = true;
 	async function getData() {
 		try {
-			const response: PostModel[] = await get('/{user_id}');
-			posts = response;
+			const response: string = await get('/api/v1/{user_id}');
+			posts = JSON.parse(response);
 		} catch (e) {
 			throwError('Internal server error');
 		}
 	}
 	async function getFollowers() {
 		try {
-			const response: UserModel[] = await get('{user_id}/followers');
-			followers = response;
+			const response: string = await get('/api/v1/{user_id}/followers');
+			followers = JSON.parse(response);
 		} catch (e) {
 			throwError('Internal server error');
 		}
 	}
 	async function getFollowing() {
 		try {
-			const response: UserModel[] = await get('{user_id}/following');
-			following = response;
+			const response: string = await get('/api/v1/{user_id}/following');
+			following = JSON.parse(response);
 		} catch (e) {
 			throwError('Internal server error');
 		}
