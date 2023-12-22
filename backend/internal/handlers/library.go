@@ -4,7 +4,6 @@ import (
     "backend/internal/models"
     "backend/internal/repositories"
     "context"
-    "fmt"
     "net/http"
     "strconv"
 
@@ -48,10 +47,10 @@ func SongsHandler(w http.ResponseWriter, r *http.Request) {
             }
         }
         independentTracks[i] = models.PlatformSong{
-            ID:       track.ID.String(),
-            Title:    track.Name,
-            Artists:  artists,
-            MediaURL: track.Album.Images[0].URL,
+            ID:         track.ID.String(),
+            Title:      track.Name,
+            Artists:    artists,
+            MediaURL:   track.Album.Images[0].URL,
             PreviewURL: track.PreviewURL,
         }
     }
@@ -122,7 +121,6 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
     rl.Take()
 
     albums, err := client.CurrentUsersAlbums(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
-    fmt.Println(len(albums.Albums))
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
         return
@@ -151,13 +149,24 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
                     Name: artist.Name,
                 }
             }
-            songs = append(songs, models.PlatformSong{
-                ID:         track.ID.String(),
-                Title:      track.Name,
-                Artists:    artists,
-                MediaURL:   track.Album.Images[0].URL,
-                PreviewURL: track.PreviewURL,
-            })
+            if len(track.Album.Images) == 0 {
+                songs = append(songs, models.PlatformSong{
+                    ID:         track.ID.String(),
+                    Title:      track.Name,
+                    Artists:    artists,
+                    MediaURL:   "",
+                    PreviewURL: track.PreviewURL,
+                })
+            } else {
+                songs = append(songs, models.PlatformSong{
+                    ID:         track.ID.String(),
+                    Title:      track.Name,
+                    Artists:    artists,
+                    MediaURL:   track.Album.Images[0].URL,
+                    PreviewURL: track.PreviewURL,
+                })
+            }
+
         }
         independentAlbums[i] = models.PlatformAlbum{
             ID:       album.ID.String(),
@@ -218,11 +227,11 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
                     Name: artist.Name,
                 }
             }
-            songs = append(songs, models.PlatformSong {
-                ID:       track.Track.Track.ID.String(),
-                Title:    track.Track.Track.Name,
-                Artists:  artists,
-                MediaURL: track.Track.Track.Album.Images[0].URL,
+            songs = append(songs, models.PlatformSong{
+                ID:         track.Track.Track.ID.String(),
+                Title:      track.Track.Track.Name,
+                Artists:    artists,
+                MediaURL:   track.Track.Track.Album.Images[0].URL,
                 PreviewURL: track.Track.Track.PreviewURL,
             })
         }
