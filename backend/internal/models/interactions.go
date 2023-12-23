@@ -18,12 +18,6 @@ type Post struct {
     HasSaved bool `json:"hasSaved"`
 }
 
-type Like struct {
-    ID uuid.UUID `json:"id"`
-    PostId uuid.UUID `json:"postId"`
-    UserId uuid.UUID `json:"userId"`
-}
-
 type Comment struct {
     ID uuid.UUID `json:"id"`
     PostId uuid.UUID `json:"postId"`
