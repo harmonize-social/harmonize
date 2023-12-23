@@ -178,8 +178,8 @@ CREATE TABLE IF NOT EXISTS likes(
 CREATE TABLE IF NOT EXISTS comments(
     id UUID PRIMARY KEY,
     post_id UUID REFERENCES posts (id) NOT NULL,
-    user_id UUID REFERENCES users (id) NOT NULL,
-    reply_to_id UUID REFERENCES comments (id),
+    username varchar(1024) REFERENCES users (username) NOT NULL,
+    reply_to_id UUID,
     created_at timestamptz NOT NULL DEFAULT NOW(),
     message VARCHAR(1024) NOT NULL
 );
