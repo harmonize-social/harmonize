@@ -279,7 +279,7 @@ func UnconnectedPlatformsHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
     platforms := make([]string, 0)
-    rows, err := repositories.Pool.Query(r.Context(), "SELECT platform_id FROM connections WHERE id NOT IN (SELECT connection_id FROM libraries WHERE user_id = $1)", user.ID)
+    rows, err := repositories.Pool.Query(r.Context(), "SELECT id FROM platforms WHERE id NOT IN (SELECT platform_id FROM libraries JOIN connections ON libraries.connection_id = connections.id WHERE user_id = $1)", user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Internal server error")
         return
