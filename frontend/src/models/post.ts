@@ -1,6 +1,6 @@
-import type AlbumModel from './album';
-import type PlaylistModel from './playlist';
-import type SongModel from './song';
+// import type AlbumModel from './album';
+// import type PlaylistModel from './playlist';
+// import type SongModel from './song';
 
 export default class PostModel {
 	id: string = 'id';
@@ -8,7 +8,7 @@ export default class PostModel {
 	caption: string = 'caption';
 	createdAt: string = 'created_at';
 	type: string = 'type';
-	content: SongModel | AlbumModel | PlaylistModel;
+	content: Object;
 	likeCount: number;
 	hasLiked: boolean = false;
 	hasSaved: boolean = false;
@@ -19,7 +19,7 @@ export default class PostModel {
 		createdAt:string;
 		caption: string;
 		type: string;
-		content: SongModel | AlbumModel | PlaylistModel;
+		content: Object;
 		likes: number;
 		liked: boolean;
 		saved: boolean;

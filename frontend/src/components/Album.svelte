@@ -5,7 +5,7 @@
     let album_title = content.title;
     let album_artists = content.artists;
     let album_songs = content.songs;
-    let album_url = content.url;
+    let album_url = content.mediaUrl;
   </script>
   
   <style>
@@ -19,8 +19,10 @@
       <Song
         content={{
           title: song.title,
-          url: song.url,
-          id: song.id
+          mediaUrl: song.mediaUrl,
+          id: song.id,
+          artists: song.artists,
+          previewUrl: song.previewUrl
         }}
       />
     {/each}

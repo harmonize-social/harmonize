@@ -7,9 +7,9 @@
 </script>
 
 <div class="playlist">
-	<a href={content.url}><h1>{content.name}</h1></a>
+	<a href={content.mediaUrl}><h1>{content.title}</h1></a>
 	{#each content.songs as song}
-		<Song content={{ title: song.title, url: song.url, id: song.id }} />
+		<Song content={{ title: song.title, mediaUrl: song.mediaUrl, id: song.id, artists: song.artists, previewUrl: song.previewUrl }} />
 	{/each}
 
 </div>

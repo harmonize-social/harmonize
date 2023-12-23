@@ -5,7 +5,7 @@
 	import SongModel from '../models/song';
 	import AlbumModel from '../models/album';
 	import PlaylistModel from '../models/playlist';
-	export let content: SongModel & AlbumModel & PlaylistModel;
+	export let content: SongModel | AlbumModel | PlaylistModel;
 	let contentOptions = [
 		{ format: SongModel, component: Song },
 		{ format: AlbumModel, component: Album },
@@ -17,5 +17,14 @@
 	let component = selectedOption ? selectedOption : null;
 </script>
 
-<svelte:component this={component} {content} />
+{#if content instanceof SongModel}
+	<Song content={content} />
+{:else if content instanceof AlbumModel}
+	<Album content={content} />
+{:else if content instanceof PlaylistModel}
+	<Playlist content={content} />
+{:else}
+	<p>Invalid content type</p>
+{/if}
+	
 <!-- https://www.twilio.com/blog/dynamically-render-svelte-components -->

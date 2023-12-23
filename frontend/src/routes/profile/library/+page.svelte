@@ -77,7 +77,7 @@
 												title: album.title,
 												artists: album.artists,
 												songs: album.songs,
-												url: album.url,
+												mediaUrl: album.mediaUrl,
 												id: album.id
 											}}
 										/>
@@ -94,9 +94,9 @@
 									{#each playlists as playlist}
 										<Playlist
 											content={{
-												name: playlist.name,
+												title: playlist.title,
 												songs: playlist.songs,
-												url: playlist.url,
+												mediaUrl: playlist.mediaUrl,
 												id: playlist.id
 											}}
 										/>
@@ -137,8 +137,31 @@
 				}
 			}}
 		></Button>
+		<div  class="new-post-button">
+			<Button buttonText="New Post" link='/me/newpost'></Button>
+		</div>
+
 	</div></Panel
 >
 
 <style>
+		.new-post-button {
+			position: fixed;
+			bottom: 2rem;
+			right: 2rem;
+			width: 56px;
+			height: 56px;
+			border-radius: 50%;
+			
+			color: white;
+			border: none;
+			font-size: 2rem;
+			font-weight: bold;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+			cursor: pointer;
+			z-index: 1000; /* Ensure it's above other elements */
+		  }
 </style>
