@@ -42,17 +42,13 @@ services:
     build:
       context: ./frontend
       dockerfile: ./Dockerfile
-    develop:
-      watch:
-        - action: rebuild
-          files:
-            - ./**/*.ts
-            - ./**/*.svelte
-            - ./**/*.html
+    command: ["npm", "run", "dev", "--", "--host"]
     environment:
       API_URL: "http://172.20.0.3:8080"
     ports:
       - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/frontend/src
     networks:
       network:
         ipv4_address: 172.20.0.4
