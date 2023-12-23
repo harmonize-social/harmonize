@@ -50,6 +50,9 @@ func authedRoutes() *mux.Router {
 
     mount(router, "/me", MeRouter())
     mount(router, "/oauth", OAuthRouter())
+    router.HandleFunc("/comment", handlers.CreateComment).Methods("POST")
+    router.HandleFunc("/comment", handlers.DeleteComment).Methods("DELETE")
+    router.HandleFunc("/comments", handlers.GetComments).Methods("GET")
     router.HandleFunc("/search", handlers.Search).Methods(http.MethodGet)
 
     router.Use(Middleware)

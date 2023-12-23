@@ -1,7 +1,6 @@
 package handlers
 
 import (
-    "backend/internal/handlers"
     "backend/internal/models"
     "backend/internal/repositories"
     "context"
@@ -299,9 +298,13 @@ func UnconnectedPlatformsHandler(w http.ResponseWriter, r *http.Request) {
     for _, platform := range platforms {
         url := ""
         if platform == "spotify" {
-            url = handlers.SpotifyURL(id)
+            url, err = SpotifyURL(id.String())
         } else if platform == "deezer" {
-            url = handlers.DeezerURL(id)
+            url, err = DeezerURL(id.String())
+        }
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            return
         }
         if url == "" {
             continue
