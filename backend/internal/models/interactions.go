@@ -24,6 +24,7 @@ type Comment struct {
     UserId uuid.UUID `json:"userId"`
     ReplyToId uuid.UUID `json:"replyToId"`
     Message string `json:"message"`
+    CreatedAt time.Time `json:"createdAt"`
 }
 
 type SavedPost struct {
