@@ -10,7 +10,7 @@ DROP TABLE IF EXISTS user_followed_artists;
 
 DROP TABLE IF EXISTS saved_posts;
 DROP TABLE IF EXISTS liked_posts;
-DROP TABLE IF EXISTS comment;
+DROP TABLE IF EXISTS comments;
 DROP TABLE IF EXISTS likes;
 DROP TABLE IF EXISTS posts;
 
@@ -175,11 +175,12 @@ CREATE TABLE IF NOT EXISTS likes(
 );
 
 
-CREATE TABLE IF NOT EXISTS comment(
+CREATE TABLE IF NOT EXISTS comments(
     id UUID PRIMARY KEY,
     post_id UUID REFERENCES posts (id) NOT NULL,
     user_id UUID REFERENCES users (id) NOT NULL,
-    reply_to_id UUID REFERENCES comment (id) NOT NULL,
+    reply_to_id UUID REFERENCES comments (id),
+    created_at timestamptz NOT NULL DEFAULT NOW(),
     message VARCHAR(1024) NOT NULL
 );
 
