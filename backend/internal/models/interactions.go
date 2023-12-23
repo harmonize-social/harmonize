@@ -18,11 +18,26 @@ type Post struct {
     HasSaved bool `json:"hasSaved"`
 }
 
+type RootComment struct {
+    ID uuid.UUID `json:"id"`
+    Username string `json:"username"`
+    Message string `json:"message"`
+    Replies []Comment `json:"replies"`
+    CreatedAt time.Time `json:"createdAt"`
+}
+
+type ChildComment struct {
+    ID uuid.UUID `json:"id"`
+    Username string `json:"username"`
+    Message string `json:"message"`
+    CreatedAt time.Time `json:"createdAt"`
+}
+
 type Comment struct {
     ID uuid.UUID `json:"id"`
     PostId uuid.UUID `json:"postId"`
-    UserId uuid.UUID `json:"userId"`
     ReplyToId uuid.UUID `json:"replyToId"`
+    Username string `json:"username"`
     Message string `json:"message"`
     CreatedAt time.Time `json:"createdAt"`
 }
