@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-	import { post, throwError } from "../fetch";
+	import { get, throwError } from "../fetch";
 
   export let placeholder = 'Search';
   let input: string = '';
   let list: string[] = [];
   async function handleInput(){
     try{
-      const response: string = await post('/api/v1/search', input);
+      const response: string = await get('/search');
       list = JSON.parse(response);
     }catch(e){
       throwError('Internal server error');
@@ -26,7 +25,7 @@
 	  isDropdownOpen = false
 	}
 
-  onMount(handleInput);
+  handleInput();
 </script>
 <style>
   .textInputNav{
