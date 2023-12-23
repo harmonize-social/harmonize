@@ -1,12 +1,18 @@
+import type ArtistModel from "./artist"
+
 export default class SongModel{
     id: string = 'id'
+    artists: ArtistModel[] = []
     title: string = 'title'
-    url: string = 'url'
+    mediaUrl: string = 'url'
+    previewUrl: string = 'previewUrl'
 
-    constructor(id: string, title: string, url: string){
+    constructor(id: string, title: string, url: string, artists: ArtistModel[], previewUrl: string){
         this.id = id
         this.title = title
-        this.url = url
+        this.mediaUrl = url
+        this.artists = artists
+        this.previewUrl = previewUrl
     }
 }
 

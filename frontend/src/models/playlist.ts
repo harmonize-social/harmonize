@@ -3,14 +3,14 @@ import type SongModel from "./song";
 
 export default class PlaylistModel {
   id: string = 'id';
-  name: string = 'name';
+  title: string = 'name';
   songs: SongModel[] = [];
-  url: string = 'url';
+  mediaUrl: string = 'url';
 
   constructor(id: string, name: string, songs: SongModel[], url: string) {
     this.id = id;
-    this.name = name;
+    this.title = name;
     this.songs = songs;
-    this.url = url;
+    this.mediaUrl = url;
   }
 }
