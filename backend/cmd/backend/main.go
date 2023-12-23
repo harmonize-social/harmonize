@@ -15,10 +15,7 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-    err = repositories.GenerateSecret()
-    if err != nil {
-        log.Fatal(err)
-    }
+    repositories.LoadEnv()
 
     router := routers.FullRouter()
 

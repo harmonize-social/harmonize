@@ -4,7 +4,6 @@ import (
     "backend/internal/models"
     "backend/internal/repositories"
     "context"
-    "fmt"
     "net/http"
     "strconv"
 
@@ -48,10 +47,10 @@ func SongsHandler(w http.ResponseWriter, r *http.Request) {
             }
         }
         independentTracks[i] = models.PlatformSong{
-            ID:       track.ID.String(),
-            Title:    track.Name,
-            Artists:  artists,
-            MediaURL: track.Album.Images[0].URL,
+            ID:         track.ID.String(),
+            Title:      track.Name,
+            Artists:    artists,
+            MediaURL:   track.Album.Images[0].URL,
             PreviewURL: track.PreviewURL,
         }
     }
@@ -122,7 +121,6 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
     rl.Take()
 
     albums, err := client.CurrentUsersAlbums(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
-    fmt.Println(len(albums.Albums))
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
         return
@@ -151,13 +149,24 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
                     Name: artist.Name,
                 }
             }
-            songs = append(songs, models.PlatformSong{
-                ID:         track.ID.String(),
-                Title:      track.Name,
-                Artists:    artists,
-                MediaURL:   track.Album.Images[0].URL,
-                PreviewURL: track.PreviewURL,
-            })
+            if len(track.Album.Images) == 0 {
+                songs = append(songs, models.PlatformSong{
+                    ID:         track.ID.String(),
+                    Title:      track.Name,
+                    Artists:    artists,
+                    MediaURL:   "",
+                    PreviewURL: track.PreviewURL,
+                })
+            } else {
+                songs = append(songs, models.PlatformSong{
+                    ID:         track.ID.String(),
+                    Title:      track.Name,
+                    Artists:    artists,
+                    MediaURL:   track.Album.Images[0].URL,
+                    PreviewURL: track.PreviewURL,
+                })
+            }
+
         }
         independentAlbums[i] = models.PlatformAlbum{
             ID:       album.ID.String(),
@@ -218,11 +227,11 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
                     Name: artist.Name,
                 }
             }
-            songs = append(songs, models.PlatformSong {
-                ID:       track.Track.Track.ID.String(),
-                Title:    track.Track.Track.Name,
-                Artists:  artists,
-                MediaURL: track.Track.Track.Album.Images[0].URL,
+            songs = append(songs, models.PlatformSong{
+                ID:         track.Track.Track.ID.String(),
+                Title:      track.Track.Track.Name,
+                Artists:    artists,
+                MediaURL:   track.Track.Track.Album.Images[0].URL,
                 PreviewURL: track.Track.Track.PreviewURL,
             })
         }
@@ -236,6 +245,75 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
     models.Result(w, independentPlaylists)
 }
 
+func ConnectedPlatforumsHandler(w http.ResponseWriter, r *http.Request) {
+    id := uuid.MustParse(r.Header.Get("id"))
+    user, err := getUserFromSession(id)
+    if err != nil {
+        models.Error(w, http.StatusUnauthorized, "Malformed session")
+        return
+    }
+    platforms := make([]string, 0)
+    rows, err := repositories.Pool.Query(r.Context(), "SELECT platform_id FROM libraries JOIN connections ON libraries.connection_id = connections.id WHERE user_id = $1", user.ID)
+    if err != nil {
+        models.Error(w, http.StatusInternalServerError, "Internal server error")
+        return
+    }
+    defer rows.Close()
+    for rows.Next() {
+        var platform string
+        err := rows.Scan(&platform)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            return
+        }
+        platforms = append(platforms, platform)
+    }
+    models.Result(w, platforms)
+}
+
+func UnconnectedPlatformsHandler(w http.ResponseWriter, r *http.Request) {
+    id := uuid.MustParse(r.Header.Get("id"))
+    user, err := getUserFromSession(id)
+    if err != nil {
+        models.Error(w, http.StatusUnauthorized, "Malformed session")
+        return
+    }
+    platforms := make([]string, 0)
+    rows, err := repositories.Pool.Query(r.Context(), "SELECT platform_id FROM connections WHERE id NOT IN (SELECT connection_id FROM libraries WHERE user_id = $1)", user.ID)
+    if err != nil {
+        models.Error(w, http.StatusInternalServerError, "Internal server error")
+        return
+    }
+    defer rows.Close()
+    for rows.Next() {
+        var platform string
+        err := rows.Scan(&platform)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            return
+        }
+        platforms = append(platforms, platform)
+    }
+    platformOauths := make(map[string]string, 0)
+    for _, platform := range platforms {
+        url := ""
+        if platform == "spotify" {
+            url, err = SpotifyURL(id.String())
+        } else if platform == "deezer" {
+            url, err = DeezerURL(id.String())
+        }
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            return
+        }
+        if url == "" {
+            continue
+        }
+        platformOauths[platform] = url
+    }
+    models.Result(w, platformOauths)
+}
+
 func SpotifyClientFromRequest(r *http.Request, userId *uuid.UUID) (*spotify.Client, error) {
     params := mux.Vars(r)
     param := params["service"]
@@ -245,8 +323,8 @@ func SpotifyClientFromRequest(r *http.Request, userId *uuid.UUID) (*spotify.Clie
         return nil, err
     }
     auth := spotifyauth.New(
-        spotifyauth.WithClientID("8c3d77ea95764c898afa8ed598c1db01"),
-        spotifyauth.WithClientSecret("3773a05af958442cb77482f1e4601299"),
+        spotifyauth.WithClientID(repositories.SpotifyClientId),
+        spotifyauth.WithClientSecret(repositories.SpotifySecret),
     )
     newToken, err := auth.RefreshToken(context.Background(), &token)
     if err != nil {

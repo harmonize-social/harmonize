@@ -41,37 +41,22 @@ func DeezerProvider() *deezer.Provider {
     return provider
 }
 
-func DeezerURL(w http.ResponseWriter, r *http.Request) {
+func DeezerURL(csrf string) (string, error) {
     provider := DeezerProvider()
-    session, err := provider.BeginAuth("abc123")
+    session, err := provider.BeginAuth(csrf)
     if err != nil {
-        fmt.Printf("Error: %s", err.Error())
+        return "", err
     }
     url, err := session.GetAuthURL()
     if err != nil {
-        fmt.Printf("Error: %s", err.Error())
+        return "", err
     }
-    urlStruct := &Url{
-        Url: url,
-    }
-    json, err := json.Marshal(urlStruct)
-    if err != nil {
-        fmt.Printf("Error: %s", err.Error())
-    }
-    fmt.Fprintf(w, "%s", json)
+    return url, nil
 }
 
-func SpotifyURL(w http.ResponseWriter, r *http.Request) {
-    state := r.Header.Get("id")
-    auth := GetSpotifyAuthenticator(state)
-    url := &Url{
-        Url: auth.AuthURL(state),
-    }
-    json, err := json.Marshal(url)
-    if err != nil {
-        fmt.Printf("Error: %s", err.Error())
-    }
-    fmt.Fprintf(w, "%s", json)
+func SpotifyURL(csrf string) (string, error) {
+    url := GetSpotifyAuthenticator(csrf).AuthURL(csrf)
+    return url, nil
 }
 
 func GetSpotifyAuthenticator(csrf string) spotifyauth.Authenticator {
