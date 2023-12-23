@@ -12,5 +12,7 @@ func LibraryRouter() *mux.Router {
     router.HandleFunc("/{service}/artists", handlers.ArtistsHandler).Methods("GET")
     router.HandleFunc("/{service}/playlists", handlers.PlaylistHandler).Methods("GET")
     router.HandleFunc("/{service}/albums", handlers.AlbumHandler).Methods("GET")
+    router.HandleFunc("/connected", handlers.ConnectedPlatforumsHandler).Methods("GET")
+    router.HandleFunc("/unconnected", handlers.UnconnectedPlatformsHandler).Methods("GET")
     return router
 }
