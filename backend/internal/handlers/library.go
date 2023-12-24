@@ -8,7 +8,6 @@ import (
     "strconv"
 
     "github.com/google/uuid"
-    "github.com/gorilla/mux"
     "github.com/zmb3/spotify/v2"
     spotifyauth "github.com/zmb3/spotify/v2/auth"
     "go.uber.org/ratelimit"
@@ -30,7 +29,7 @@ func SongsHandler(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-    client, err := SpotifyClientFromRequest(r, &user.ID)
+    client, err := SpotifyClientFromRequest(&user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
         return
@@ -73,7 +72,7 @@ func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-    client, err := SpotifyClientFromRequest(r, &user.ID)
+    client, err := SpotifyClientFromRequest(&user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
         return
@@ -111,7 +110,7 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-    client, err := SpotifyClientFromRequest(r, &user.ID)
+    client, err := SpotifyClientFromRequest(&user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
         return
@@ -193,7 +192,7 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-    client, err := SpotifyClientFromRequest(r, &user.ID)
+    client, err := SpotifyClientFromRequest(&user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
         return
@@ -314,11 +313,9 @@ func UnconnectedPlatformsHandler(w http.ResponseWriter, r *http.Request) {
     models.Result(w, platformOauths)
 }
 
-func SpotifyClientFromRequest(r *http.Request, userId *uuid.UUID) (*spotify.Client, error) {
-    params := mux.Vars(r)
-    param := params["service"]
+func SpotifyClientFromRequest(userId *uuid.UUID) (*spotify.Client, error) {
     var token oauth2.Token
-    err := repositories.Pool.QueryRow(r.Context(), "SELECT access_token, refresh_token, expiry FROM connections JOIN libraries ON connections.id = libraries.connection_id WHERE user_id = $1 AND platform_id = $2", userId, param).Scan(&token.AccessToken, &token.RefreshToken, &token.Expiry)
+    err := repositories.Pool.QueryRow(context.Background(), "SELECT access_token, refresh_token, expiry FROM connections JOIN libraries ON connections.id = libraries.connection_id WHERE user_id = $1 AND platform_id = $2", userId, "spotify").Scan(&token.AccessToken, &token.RefreshToken, &token.Expiry)
     if err != nil {
         return nil, err
     }
