@@ -37,6 +37,7 @@
     });
 
     function updateUI() {
+		console.log(unconnected, connected);
         showSpotifyConnected = connected.has('spotify');
         showDeezerConnected = connected.has('deezer');
         showSpotify = unconnected.has('spotify');
@@ -49,7 +50,7 @@
 		<div class="title">Select your preferred music platform:</div>
 		<div class="image-container">
 			{#if showSpotify==true}
-			<a href="/api/spotify" title="Connect with Spotify">
+			<a href={unconnected.get('spotify')} title="Connect with Spotify">
 				<img src={spotifyIcon} alt="Spotify logo" />
 			</a>
 			{/if}
