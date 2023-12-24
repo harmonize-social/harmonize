@@ -1,17 +1,15 @@
-<!-- frontend/src/components/Song.svelte -->
 <script lang="ts">
-    export let title:string;
-    export let image:string;
-    export let alt:string;
-    export let album:string;
-    export let artist:string;
-    export let url:string;
-  </script>
-  
-  <style>
-  </style>
-  
-  <img src="{image}" alt="{alt}">
-  <a href="{url}"><h3>{title}</h3></a>
-  <h4>From the album {album} by {artist}</h4>
-  
+import type SongModel from "../models/song";
+	import Preview from "./Preview.svelte";
+export let content: SongModel;
+</script>
+
+<style>
+</style>
+
+  <h3>{content.title}</h3>
+  <Preview previewUrl={content.previewUrl} />
+  {#each content.artists as artist}
+  <h4>Artist: {artist.name}</h4>
+  {/each}
+

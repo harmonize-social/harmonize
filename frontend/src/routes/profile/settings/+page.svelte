@@ -2,7 +2,45 @@
     import Panel from "../../../components/Panel.svelte";
     import NavBar from "../../../components/NavBar.svelte";
     import Button from "../../../components/Button.svelte";
+
+    import { goto } from '$app/navigation';
+    import { delete_, throwError } from "../../../fetch";
+
+
+    async function handleDeleteAccount() {
+    const confirmation = confirm('Weet je zeker dat je je account wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.');
+
+    if (confirmation) {
+        try {
+            await delete_('/auth/delete');
+            localStorage.removeItem('token');
+            goto('/auth/login');       
+        } catch (error) {
+			throwError('Internal server error');
+        }
+    }
+}
+
+async function handleLogout() {
+    const confirmation = confirm('Weet je zeker dat je wilt uitloggen?');
+
+    if (confirmation) {
+        try {
+            await delete_('/auth/logout'); 
+            localStorage.removeItem('token');
+            goto('/auth/login');
+        } catch (error) {
+			throwError('Internal server error');
+        }
+    }
+}
+    const goToAccountSettings = () => {
+        goto('/profile/edit'); 
+    }
+   
+
 </script>
+
 <style>
 .buttons{
     display: flex;
@@ -12,7 +50,7 @@
     align-items: start;
     align-self: start;
 }
-.notifications, .privacy, .help, .delete, .logout{
+.notifications, .privacy, .help, .delete, .logout, .myaccount {
     margin: 1rem;
     padding: 0.5rem;
 }
@@ -27,12 +65,13 @@
     margin: 2rem;
     
 }
+
 </style>
 <NavBar current_page="/profile/settings"></NavBar>
 <Panel title="Settings">
     <div class="buttons">
         <div class="notifications">
-            <Button buttonText="Notifications" link="/profile/settings/notifications"></Button>
+            <Button buttonText="FAQ" link="/profile/settings/notifications"></Button>
         </div>
         <div class="privacy">
             <Button buttonText="Privacy" link="/profile/settings/privacy"></Button>
@@ -41,17 +80,21 @@
             <Button buttonText="Help" link="/profile/settings/help"></Button>
         </div>
         <div class="delete">
-            <Button buttonText="Delete Account" link="/auth/delete"></Button>
+            <Button buttonText="Delete Account" on:click={handleDeleteAccount}></Button>
         </div>
         <div class="logout">
-            <Button buttonText="Logout" link="/auth/logout"></Button>
+            <Button buttonText="Logout" on:click={handleLogout}></Button>
         </div>
+        <div class="myaccount">
+            <button on:click={goToAccountSettings}>My Account</button>
+        </div>
+    
     </div>
-<div class="connection"> 
-    <Panel title="Your connected platforms">
-        <div class="connection_button">
-            <Button buttonText="Connect to another platform" link="/profile/connection"></Button>
-        </div>
-    </Panel>
-</div>
+    <div class="connection"> 
+        <Panel title="Your connected platforms">
+            <div class="connection_button">
+                <Button buttonText="Connect to another platform" link="/profile/connection"></Button>
+            </div>
+        </Panel>
+    </div>
 </Panel>

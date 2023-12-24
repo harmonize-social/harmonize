@@ -1,0 +1,61 @@
+version: "3.9"
+services:
+
+  database:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: harmonize
+    volumes:
+      - /var/lib/postgresql/data:/var/lib/postgresql/data
+    networks:
+      network:
+        ipv4_address: 172.20.0.2
+
+  backend:
+    depends_on:
+      - database
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile
+    develop:
+      watch:
+        - action: rebuild
+          files:
+            - ./**/*.go
+            - ./go.mod
+            - ./go.sum
+    environment:
+      POSTGRES_URL: "postgres://user:postgres@172.20.0.2:5432/harmonize"
+    ports:
+      - "8080:8080"
+    networks:
+      network:
+        ipv4_address: 172.20.0.3
+
+  frontend:
+    depends_on:
+      - backend
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile
+    command: ["npm", "run", "dev", "--", "--host"]
+    environment:
+      API_URL: "http://172.20.0.3:8080"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/src:/app/frontend/src
+    networks:
+      network:
+        ipv4_address: 172.20.0.4
+
+networks:
+  network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
