@@ -22,17 +22,9 @@
 }
 
 async function handleLogout() {
-    const confirmation = confirm('Weet je zeker dat je wilt uitloggen?');
-
-    if (confirmation) {
-        try {
-            await delete_('/auth/logout'); 
+    
             localStorage.removeItem('token');
             goto('/auth/login');
-        } catch (error) {
-			throwError('Internal server error');
-        }
-    }
 }
     const goToAccountSettings = () => {
         goto('/profile/edit'); 
@@ -82,8 +74,8 @@ async function handleLogout() {
         <div class="delete">
             <Button buttonText="Delete Account" on:click={handleDeleteAccount}></Button>
         </div>
-        <div class="logout">
-            <Button buttonText="Logout" on:click={handleLogout}></Button>
+        <div class="logout" on:click={handleLogout}>
+            <Button buttonText="Logout"></Button>
         </div>
         <div class="myaccount">
             <button on:click={goToAccountSettings}>My Account</button>

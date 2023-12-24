@@ -20,7 +20,7 @@
 			localStorage.setItem('token', response.token);
 
 			// Redirect to dashboard or other protected route on successful login
-			goto('/dashboard');
+			goto('/feed');
 		} catch (error) {
 			throwError('Login failed');
 		}
@@ -41,7 +41,8 @@
 	<div class="buttonlogin" on:click={handleLogin}>
 		<Button buttonText="Login" />
 	</div>
-	<a class="forgot-password" href="#">Forgot Password?</a>
+	<a class="forgot-password" href="/forget-password">Forgot Password?</a>
+	<a class="not-registered" href="/auth/register">Not registred yet?</a>
 </Panel>
 
 <style>
@@ -67,6 +68,11 @@
 	}
 
 	.forgot-password {
+		display: flex;
+		justify-content: center;
+		margin-top: 10px;
+	}
+	.not-registered {
 		display: flex;
 		justify-content: center;
 		margin-top: 10px;

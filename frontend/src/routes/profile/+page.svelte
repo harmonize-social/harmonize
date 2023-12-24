@@ -8,10 +8,11 @@
 	import { onMount } from 'svelte';
 	import Followers from '../../components/Followers.svelte';
 	import Following from '../../components/Following.svelte';
+
 	let posts: PostModel[] = [];
 	let followers: string[] = [];
 	let following: string[] = [];
-	let loading: boolean = false;
+
 	async function getData() {
 		try {
 			const response: string = await get('/me');
@@ -20,79 +21,50 @@
 			throwError('Internal server error');
 		}
 	}
+
 	async function getFollowers() {
 		try {
-			const response: string = await get('/me/followers');
-			followers = JSON.parse(response);
+			followers = await get('/me/followers');
+			console.log(followers);
 		} catch (e) {
 			throwError('Internal server error');
 		}
 	}
+
 	async function getFollowing() {
 		try {
-			const response: string = await get('/me/following');
-			following = JSON.parse(response);
+			following = await get('/me/following');
 		} catch (e) {
 			throwError('Internal server error');
 		}
 	}
-
-	async function fetchPosts(): Promise<PostModel[]> {
-		try {
-			loading = true;
-			const response: PostModel[] = await get<PostModel[]>('/me/posts');
-			return response;
-		} catch (error) {
-			throwError('Error fetching posts');
-			return [];
-		} finally {
-			loading = false;
-		}
-	}
-	onMount(getData);
-	onMount(getFollowers);
-	onMount(getFollowing);
-	onMount(fetchPosts);
-
-	//https://svelte.dev/repl/4c5dfd34cc634774bd242725f0fc2dab?version=3.46.4 (dropdown handling)
-	let isDropdownOpen = false;
-	const handleDropdownClick = () => {
-		isDropdownOpen = !isDropdownOpen;
-	};
-
-	const handleDropdownFocusLoss = (event: FocusEvent) => {
-		const { currentTarget, relatedTarget } = event; // relatedTarget: HTMLElement;
-		// use "focusout" event to ensure that we can close the dropdown when clicking outside or when we leave the dropdown with the "Tab" button
-		if (relatedTarget instanceof HTMLElement && (currentTarget as Node).contains(relatedTarget))
-			return; // check if the new focus target doesn't present in the dropdown tree
-		isDropdownOpen = false;
-	};
 </script>
 
-<!-- navbar -->
 <div class="nav">
 	<NavBar current_page="/profile"></NavBar>
 </div>
-<!-- profile -->
+
 <div class="profile-container">
 	<div class="user-container">
-		<!-- username + followers/following + link to saved and library -->
 		<div class="user">
 			<h2 class="username">Username</h2>
-			<div class="following" on:focusout={handleDropdownFocusLoss}>
-				<Button buttonText="Following" on:click={handleDropdownClick}
-				></Button><!-- generate a dropdown with all the following-->
-				<div class="followingDropdown" style:visibility={isDropdownOpen ? 'visible' : 'hidden'}>
-					<Following {following} />
-				</div>
+			<div class="following" on:click={getFollowing}>
+				<Button buttonText="Following"></Button>
+				{#each following as item}
+					<p>
+						<a href="/user/{item}">{item}</a>
+					</p>
+				{/each}
 			</div>
-			<div class="followers" on:focusout={handleDropdownFocusLoss}>
-				<Button buttonText="Followers" on:click={handleDropdownClick}></Button>
-				<!-- generate a dropdown with all the followers-->
-				<div class="followersDropdown" style:visibility={isDropdownOpen ? 'visible' : 'hidden'}>
-					<Followers {followers} />
-				</div>
+			<div class="followers" on:click={getFollowers}>
+				<Button buttonText="Followers"></Button>
 			</div>
+			{#each followers as item}
+					<p>
+						<a href="/user/{item}">{item}</a>
+					</p>
+				{/each}
+
 			<div class="library">
 				<Button buttonText="Library" link="/profile/library"></Button>
 			</div>
@@ -107,19 +79,27 @@
 			</div>
 		</div>
 	</div>
-	<!-- personal feed -->
-	<div class="feed-container">
-		<Panel title="Your feed">
-			<div class="feed">
-				{#each posts as post, i}
-					<div class="post" id={'post' + (i + 1)}>
-						<Post content={post.content} caption={post.caption} likes={post.likeCount} id={post.id} type={post.type}/>
-					</div>
-				{/each}
-			</div>
-		</Panel>
-	</div>
 </div>
+
+<!-- personal feed -->
+<div class="feed-container">
+	<Panel title="Your feed">
+		<div class="feed">
+			{#each posts as post, i}
+				<div class="post" id={'post' + (i + 1)}>
+					<Post
+						content={post.content}
+						caption={post.caption}
+						likes={post.likeCount}
+						id={post.id}
+						type={post.type}
+					/>
+				</div>
+			{/each}
+		</div>
+	</Panel>
+</div>
+
 <!-- TODO: Check dropdowns -->
 
 <style>
