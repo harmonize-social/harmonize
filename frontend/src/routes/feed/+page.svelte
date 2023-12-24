@@ -46,8 +46,8 @@
   <NavBar current_page='/me/feed'></NavBar>
   <Panel title="">
     <div class="feed-container" on:scroll={onScroll}>
-      {#each posts as post (post.id)}
-        <Post content={post.content} caption={post.caption} likes={post.likeCount} id={post.id} type={post.type}/>
+      {#each posts as post}
+        <Post content={post.content} caption={post.caption} likes={post.likeCount} id={post.id} typez={post.type}/>
       {/each}
       {#if loading}
         <p>Loading more posts...</p>

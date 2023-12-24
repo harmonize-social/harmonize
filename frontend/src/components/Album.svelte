@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	  import type AlbumModel from '../models/album';
     import Song from './Song.svelte';
     export let content: AlbumModel;
@@ -14,14 +15,13 @@
   <div class="album">
   <!-- <img src="{album_image}" alt="{album_image_alt}"> -->
     <a href="{album_url}"><h3>{album_title}</h3></a>
-    <p>By {album_artists}</p>
     {#each album_songs as song}
       <Song
         content={{
           title: song.title,
           mediaUrl: song.mediaUrl,
           id: song.id,
-          artists: song.artists,
+          artists: album_artists,
           previewUrl: song.previewUrl
         }}
       />

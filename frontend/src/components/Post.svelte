@@ -7,35 +7,33 @@
 	import Playlist from './Playlist.svelte';
 	import Artist from './Artist.svelte';
 	import ActionButton from './ActionButton.svelte';
-	import { get, post, throwError } from '../fetch.js';
+	import {  post, throwError } from '../fetch.js';
 	import type ArtistModel from '../models/artist';
-	import { onMount } from 'svelte';
 	export let content: any;
 	let comments: CommentModel[] = [];
-	let artists: ArtistModel[] = [];
 	export let caption: PostModel['caption'];
 	export let likes: PostModel['likeCount'];
-	export let id: PostModel['id'];
-	export let type: PostModel['type'];
+	export let id: string;
+	export let typez: string;
 
-	async function getArtists(): Promise<ArtistModel[]> {
-		try {
-			const response: ArtistModel[] = await get<ArtistModel[]>(`/artists?id=${id}`);
-			return response;
-		} catch (error) {
-			throwError('Error fetching artists');
-			return [];
-		}
-	}
-	async function getComments(): Promise<CommentModel[]> {
-		try {
-			const response: CommentModel[] = await get<CommentModel[]>(`/comments?id=${id}`);
-			return response;
-		} catch (error) {
-			throwError('Error fetching comments');
-			return [];
-		}
-	}
+	// async function getArtists(): Promise<ArtistModel[]> {
+	// 	try {
+	// 		const response: ArtistModel[] = await get<ArtistModel[]>(`/artists?id=${id}`);
+	// 		return response;
+	// 	} catch (error) {
+	// 		throwError('Error fetching artists');
+	// 		return [];
+	// 	}
+	// }
+	// async function getComments(): Promise<CommentModel[]> {
+	// 	try {
+	// 		const response: CommentModel[] = await get<CommentModel[]>(`/comments?id=${id}`);
+	// 		return response;
+	// 	} catch (error) {
+	// 		throwError('Error fetching comments');
+	// 		return [];
+	// 	}
+	// }
 	async function postLike(): Promise<number> {
 		try {
 			const response: number = await post<number, number>(`/likes?id=${id}`, 0);
@@ -54,32 +52,18 @@
 			return 0;
 		}
 	}
-
-	onMount(() => {
-		getComments().then((fetchedComments) => {
-			comments = fetchedComments;
-		});
-
-		getArtists().then((fetchedArtists) => {
-			artists = fetchedArtists;
-		});
-		postLike();
-		postSave();
-	});
 </script>
 
 <div class="post">
 	<h3>{caption}</h3>
-	{#if (type = 'song')}
+	{#if typez == 'song'}
 		<Song {content} />
-	{:else if (type = 'album')}
+	{:else if typez == 'album'}
 		<Album {content} />
-	{:else if (type = 'playlist')}
+	{:else if typez == 'playlist'}
 		<Playlist {content} />
-	{:else if (type = 'artist')}
-		{#each artists as _artist}
-			<Artist {content} />
-		{/each}
+	{:else if typez == 'artist'}
+		<Artist {content} />
 	{:else}
 		<p>Invalid content type</p>
 	{/if}

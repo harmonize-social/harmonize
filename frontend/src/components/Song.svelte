@@ -7,7 +7,9 @@ export let content: SongModel;
 <style>
 </style>
 
-  <a href="{content.mediaUrl}"><h3>{content.title}</h3></a>
-  <Preview previewUrl={content.previewUrl}/>
-  <h4>Artists: {content.artists}</h4>
+  <h3>{content.title}</h3>
+  <Preview previewUrl={content.previewUrl} />
+  {#each content.artists as artist}
+  <h4>Artist: {artist.name}</h4>
+  {/each}
 
