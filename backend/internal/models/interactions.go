@@ -16,6 +16,7 @@ type Post struct {
     LikeCount int `json:"likeCount"`
     HasLiked bool `json:"hasLiked"`
     HasSaved bool `json:"hasSaved"`
+    Comments []RootComment `json:"comments"`
 }
 
 type RootComment struct {
