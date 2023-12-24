@@ -3,7 +3,7 @@
     import Panel from '../components/Panel.svelte';
     import type ArtistModel from '../models/artist';
   
-    export let content: ArtistModel[];
+    export let content: ArtistModel;
 
   </script>
   
@@ -17,10 +17,10 @@
     
   <Panel title="Artist">
     <div class="artist">
-      {#each content as artist}
-        <h2>{artist.name}</h2>
-        <a href={artist.mediaUrl}><p>Go to {artist.name}'s music!</p></a>
-        {/each}
+
+        <h2>{content.name}</h2>
+        <a href={content.mediaUrl}><p>Go to {content.name}'s music!</p></a>
+
     </div>
   </Panel>
   

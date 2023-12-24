@@ -43,7 +43,7 @@
     }
   </script>
   
-  <NavBar></NavBar>
+  <NavBar current_page='/me/feed'></NavBar>
   <Panel title="">
     <div class="feed-container" on:scroll={onScroll}>
       {#each posts as post (post.id)}
