@@ -6,7 +6,7 @@
     export let current_page = $page.url.pathname;
     export let url1: string = '#';
     export let url2: string = '#';
-    export let text1: string = 'Dashboard';
+    export let text1: string = 'Feed';
     export let text2: string = 'Settings';
     switch(current_page){
         case '/':
@@ -16,15 +16,15 @@
             text2 = 'Settings';
             break;
         case '/profile/settings':
-            url1 = '/dashboard';
+            url1 = '/feed';
             url2 = '/profile';
-            text1 = 'Dashboard';
+            text1 = 'Feed';
             text2 = 'Profile';
             break;
         default:
-            url1 = 'feed/dashboard';
+            url1 = '/feed';
             url2 = '/profile/settings';
-            text1 = 'Dashboard';
+            text1 = 'Feed';
             text2 = 'Settings';
             break;}
 

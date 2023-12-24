@@ -15,7 +15,6 @@ import (
     "github.com/google/uuid"
     "github.com/markbates/goth/providers/deezer"
     deezer2 "github.com/stayradiated/deezer"
-    "github.com/zmb3/spotify/v2"
     "github.com/zmb3/spotify/v2/auth"
 )
 
@@ -102,7 +101,6 @@ func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
         fmt.Println(err)
         return
     }
-    client := spotify.New(auth.Client(r.Context(), token), spotify.WithRetry(true))
     connection := &models.Connection{
         ID:           uuid.New(),
         UserID:       user.ID,
@@ -123,7 +121,21 @@ func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintf(w, "connection: %s\n\r", connection.UserID)
         fmt.Fprintf(w, "Unable to execute the query. %s", err2)
     }
-    go scanner.Spotify(*client, connectionID)
+    sqlStatement = `
+    INSERT INTO libraries (platform_id, id, connection_id) VALUES ('spotify', uuid_generate_v4(), $1) RETURNING id;
+    `
+    tag, err := repositories.Pool.Exec(context.Background(),
+        sqlStatement,
+        connectionID)
+    if err != nil {
+        fmt.Printf("error: %v", err)
+        models.Error(w, http.StatusInternalServerError, "Internal server error")
+    }
+
+    if tag.RowsAffected() == 0 {
+        models.Error(w, http.StatusInternalServerError, "Internal server error")
+        return
+    }
 }
 
 type DeezerAccessToken struct {
