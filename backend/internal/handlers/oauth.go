@@ -3,7 +3,6 @@ package handlers
 import (
     "backend/internal/models"
     "backend/internal/repositories"
-    "backend/internal/scanner"
     "context"
     "encoding/json"
     "fmt"
@@ -178,5 +177,4 @@ func DeezerCallback(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintf(w, "%s", err)
         return
     }
-    go scanner.ScanDeezer(user.ID)
 }
