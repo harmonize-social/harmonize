@@ -3,15 +3,14 @@ package handlers
 import (
     "backend/internal/models"
     "backend/internal/repositories"
+    "backend/internal/platforms"
     "context"
     "net/http"
     "strconv"
 
     "github.com/google/uuid"
     "github.com/zmb3/spotify/v2"
-    spotifyauth "github.com/zmb3/spotify/v2/auth"
     "go.uber.org/ratelimit"
-    "golang.org/x/oauth2"
 )
 
 func SongsHandler(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +28,7 @@ func SongsHandler(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-    client, err := SpotifyClientFromRequest(&user.ID)
+    client, err := platforms.SpotifyClientId(&user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
         return
@@ -72,7 +71,7 @@ func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-    client, err := SpotifyClientFromRequest(&user.ID)
+    client, err := platforms.SpotifyClientId(&user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
         return
@@ -110,7 +109,7 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-    client, err := SpotifyClientFromRequest(&user.ID)
+    client, err := platforms.SpotifyClientId(&user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
         return
@@ -192,7 +191,7 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-    client, err := SpotifyClientFromRequest(&user.ID)
+    client, err := platforms.SpotifyClientId(&user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
         return
@@ -311,25 +310,4 @@ func UnconnectedPlatformsHandler(w http.ResponseWriter, r *http.Request) {
         platformOauths[platform] = url
     }
     models.Result(w, platformOauths)
-}
-
-func SpotifyClientFromRequest(userId *uuid.UUID) (*spotify.Client, error) {
-    var token oauth2.Token
-    err := repositories.Pool.QueryRow(context.Background(), "SELECT access_token, refresh_token, expiry FROM connections JOIN libraries ON connections.id = libraries.connection_id WHERE user_id = $1 AND platform_id = $2", userId, "spotify").Scan(&token.AccessToken, &token.RefreshToken, &token.Expiry)
-    if err != nil {
-        return nil, err
-    }
-    auth := spotifyauth.New(
-        spotifyauth.WithClientID(repositories.SpotifyClientId),
-        spotifyauth.WithClientSecret(repositories.SpotifySecret),
-    )
-    newToken, err := auth.RefreshToken(context.Background(), &token)
-    if err != nil {
-        return nil, err
-    }
-    newAuth := spotifyauth.New()
-    httpClient := newAuth.Client(context.Background(), newToken)
-    client := spotify.New(httpClient) // spotify.WithRetry(true),
-
-    return client, nil
 }
