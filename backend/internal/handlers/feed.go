@@ -73,6 +73,49 @@ func GetFeed(w http.ResponseWriter, r *http.Request) {
             models.Error(w, http.StatusInternalServerError, "Error getting posts")
             return
         }
+
+        sqlStatement := `SELECT id, post_id, username, reply_to_id, message, created_at FROM comments WHERE post_id = $1 ORDER BY created_at DESC`
+        rows, err := repositories.Pool.Query(context.Background(), sqlStatement, post.ID)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Failed to get comments")
+            return
+        }
+        defer rows.Close()
+
+        comments := make([]models.Comment, 0)
+        for rows.Next() {
+            var comment models.Comment
+            err = rows.Scan(&comment.ID, &comment.PostId, &comment.Username, &comment.ReplyToId, &comment.Message, &comment.CreatedAt)
+            if err != nil {
+                models.Error(w, http.StatusInternalServerError, "Failed to get comments")
+                return
+            }
+            comments = append(comments, comment)
+        }
+
+        processedComments := make([]models.RootComment, 0)
+        for _, comment := range comments {
+            if comment.ReplyToId == uuid.Nil {
+                processedComments = append(processedComments, models.RootComment{
+                    ID:        comment.ID,
+                    Username:  comment.Username,
+                    Message:   comment.Message,
+                    CreatedAt: comment.CreatedAt,
+                    Replies:   []models.Comment{},
+                })
+            }
+        }
+        for _, comment := range comments {
+            if comment.ReplyToId != uuid.Nil {
+                for i, rootComment := range processedComments {
+                    if rootComment.ID == comment.ReplyToId {
+                        processedComments[i].Replies = append(processedComments[i].Replies, comment)
+                    }
+                }
+            }
+        }
+        post.Comments = processedComments
+
         posts = append(posts, post)
     }
     models.Result(w, posts)
