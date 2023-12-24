@@ -5,7 +5,6 @@
     import Panel from '../../components/Panel.svelte';
     import NavBar from '../../components/NavBar.svelte';
     import { get, throwError } from '../../fetch';
-    import { browser } from '$app/environment';
     import Button from '../../components/Button.svelte';
     
     let posts: PostModel[] = [];
@@ -13,9 +12,8 @@
   
     async function fetchPosts(): Promise<PostModel[]> {
       try {
-        
         loading = true;
-        const response: PostModel[] = await get<PostModel[]>('/api/posts');
+        const response: PostModel[] = await get<PostModel[]>('/me/feed');
         return response;
       } catch (error) {
         throwError('Error fetching posts');
@@ -38,9 +36,6 @@
         loadMorePosts();
       }
     }
-    function navigateToNewPost() {
-        window.location.href = '/newpost';
-  }
     async function loadMorePosts() {
       if (loading) return;
       const morePosts = await fetchPosts();
@@ -48,18 +43,18 @@
     }
   </script>
   
-  <NavBar></NavBar>
+  <NavBar current_page='/me/feed'></NavBar>
   <Panel title="">
     <div class="feed-container" on:scroll={onScroll}>
-      {#each posts as post (post.id)}
-        <Post {...post} />
+      {#each posts as post}
+        <Post content={post.content} caption={post.caption} likes={post.likeCount} id={post.id} typez={post.type}/>
       {/each}
       {#if loading}
         <p>Loading more posts...</p>
       {/if}
     </div>
-    <div  class="new-post-button" on:click={navigateToNewPost}>
-        <Button buttonText="New Post" on:click={navigateToNewPost}></Button>
+    <div  class="new-post-button">
+        <Button buttonText="New Post" link='/me/newpost'></Button>
     </div>
   </Panel>
   <style>

@@ -11,48 +11,63 @@
 	let posts: PostModel[] = [];
 	let followers: string[] = [];
 	let following: string[] = [];
+	let loading: boolean = false;
 	async function getData() {
 		try {
-			const response: string = await get('/api/v1/me');
+			const response: string = await get('/me');
 			posts = JSON.parse(response);
 		} catch (e) {
 			throwError('Internal server error');
 		}
 	}
-	async function getFollowers(){
-		try{
-			const response: string = await get('/api/v1/me/followers');
+	async function getFollowers() {
+		try {
+			const response: string = await get('/me/followers');
 			followers = JSON.parse(response);
-		}catch(e){
+		} catch (e) {
 			throwError('Internal server error');
 		}
 	}
-	async function getFollowing(){
-		try{
-			const response: string = await get('api/v1/me/following');
+	async function getFollowing() {
+		try {
+			const response: string = await get('/me/following');
 			following = JSON.parse(response);
-		}catch(e){
+		} catch (e) {
 			throwError('Internal server error');
 		}
 	}
-	onMount(getData)
-	onMount(getFollowers)
-	onMount(getFollowing);
-    
-	//https://svelte.dev/repl/4c5dfd34cc634774bd242725f0fc2dab?version=3.46.4 (dropdown handling)
-    let isDropdownOpen = false;
-    const handleDropdownClick = () => {
-        isDropdownOpen = ! isDropdownOpen;
-    }
 
-  const handleDropdownFocusLoss = (event: FocusEvent) => {
-		const { currentTarget, relatedTarget } = event; // relatedTarget: HTMLElement;
-	  // use "focusout" event to ensure that we can close the dropdown when clicking outside or when we leave the dropdown with the "Tab" button
-	  if (relatedTarget instanceof HTMLElement && (currentTarget as Node).contains(relatedTarget)) return // check if the new focus target doesn't present in the dropdown tree
-	  isDropdownOpen = false
+	async function fetchPosts(): Promise<PostModel[]> {
+		try {
+			loading = true;
+			const response: PostModel[] = await get<PostModel[]>('/me/posts');
+			return response;
+		} catch (error) {
+			throwError('Error fetching posts');
+			return [];
+		} finally {
+			loading = false;
+		}
 	}
-  
-    </script>
+	onMount(getData);
+	onMount(getFollowers);
+	onMount(getFollowing);
+	onMount(fetchPosts);
+
+	//https://svelte.dev/repl/4c5dfd34cc634774bd242725f0fc2dab?version=3.46.4 (dropdown handling)
+	let isDropdownOpen = false;
+	const handleDropdownClick = () => {
+		isDropdownOpen = !isDropdownOpen;
+	};
+
+	const handleDropdownFocusLoss = (event: FocusEvent) => {
+		const { currentTarget, relatedTarget } = event; // relatedTarget: HTMLElement;
+		// use "focusout" event to ensure that we can close the dropdown when clicking outside or when we leave the dropdown with the "Tab" button
+		if (relatedTarget instanceof HTMLElement && (currentTarget as Node).contains(relatedTarget))
+			return; // check if the new focus target doesn't present in the dropdown tree
+		isDropdownOpen = false;
+	};
+</script>
 
 <!-- navbar -->
 <div class="nav">
@@ -65,13 +80,19 @@
 		<div class="user">
 			<h2 class="username">Username</h2>
 			<div class="following" on:focusout={handleDropdownFocusLoss}>
-				<Button buttonText="Following" on:click={handleDropdownClick}></Button><!-- generate a dropdown with all the following-->
-				<div class="followingDropdown"  style:visibility={isDropdownOpen ? 'visible' : 'hidden'}><Following following={following}/></div>
+				<Button buttonText="Following" on:click={handleDropdownClick}
+				></Button><!-- generate a dropdown with all the following-->
+				<div class="followingDropdown" style:visibility={isDropdownOpen ? 'visible' : 'hidden'}>
+					<Following {following} />
+				</div>
 			</div>
 			<div class="followers" on:focusout={handleDropdownFocusLoss}>
-				<Button buttonText="Followers" on:click={handleDropdownClick}></Button> <!-- generate a dropdown with all the followers-->
-				<div class="followersDropdown"  style:visibility={isDropdownOpen ? 'visible' : 'hidden'}><Followers followers={followers}/></div>
-			</div>			
+				<Button buttonText="Followers" on:click={handleDropdownClick}></Button>
+				<!-- generate a dropdown with all the followers-->
+				<div class="followersDropdown" style:visibility={isDropdownOpen ? 'visible' : 'hidden'}>
+					<Followers {followers} />
+				</div>
+			</div>
 			<div class="library">
 				<Button buttonText="Library" link="/profile/library"></Button>
 			</div>
@@ -92,13 +113,14 @@
 			<div class="feed">
 				{#each posts as post, i}
 					<div class="post" id={'post' + (i + 1)}>
-						<Post caption={post.caption} likes={post.likes}></Post>
+						<Post content={post.content} caption={post.caption} likes={post.likeCount} id={post.id} type={post.type}/>
 					</div>
 				{/each}
 			</div>
 		</Panel>
 	</div>
 </div>
+<!-- TODO: Check dropdowns -->
 
 <style>
 	.profile-container {
@@ -152,4 +174,3 @@
 		display: flex;
 	}
 </style>
-<!-- TODO: Check dropdowns -->

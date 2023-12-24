@@ -30,7 +30,6 @@
   }
 
   let isDropdownOpen = true;
-
   const handleDropdownFocusLoss = (event: FocusEvent) => {
       const { currentTarget, relatedTarget } = event;
       if (relatedTarget instanceof HTMLElement && (currentTarget as Node).contains(relatedTarget)) return;

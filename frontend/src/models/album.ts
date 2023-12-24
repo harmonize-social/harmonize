@@ -5,13 +5,13 @@ export default class AlbumModel{
     title: string = 'title'
     artists: ArtistModel[] = []
     songs: SongModel[] = []
-    url: string = 'url'
+    mediaUrl: string = 'url'
 
    constructor(id: string, title: string, artists: ArtistModel[], songs: SongModel[], url: string){
         this.id = id
         this.title = title
         this.artists = artists
         this.songs = songs
-        this.url = url
+        this.mediaUrl = url
     }
 }

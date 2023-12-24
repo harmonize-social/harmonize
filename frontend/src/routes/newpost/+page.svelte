@@ -11,7 +11,7 @@
 
 	async function handleInput() {
 		try {
-			const response: PageData = await post('/api/v1/newpost', data);
+			const response: PageData = await post('/newpost', data);
 			data = response;
 		} catch (e) {
 			throwError('Failed to post item');
@@ -27,7 +27,7 @@
 		<div class="caption">
 			<TextInput placeholder="Insert a caption" bind:value={caption}></TextInput>
 		</div>
-		<Button buttonText="Get the music on your platform!" link="/api/v1/connection" on:click={handleInput}/>
+		<Button buttonText="Get the music on your platform!" link="/connection" on:click={handleInput}/>
 	</div>
 </Panel>
 

@@ -105,9 +105,10 @@ export async function post<T, U>(path: string, body: T, config?: RequestInit): P
 
 //create a function that renders a pop up with a message that the backend returns when an error occurs
 export async function throwError(errorMessage: string) {
-    let popup = new ErrorPopup({
-        target: document.body as Element,
-        props: { message: errorMessage }
-    });
-    return popup;
+    // let popup = new ErrorPopup({
+    //     target: document.body as Element,
+    //     props: { message: errorMessage }
+    // });
+    // return popup;
+    console.log(errorMessage);
 }
