@@ -1,49 +1,75 @@
 <script lang="ts">
-	import { get, post, throwError } from '../../../fetch';
-	import Panel from '../../../components/Panel.svelte';
-	import deezerIcon from '../../../lib/assets/deezer-logo-coeur.jpg';
-	import spotifyIcon from '../../../lib/assets/Spotify_App_Logo.svg.png';
-	import { onMount } from 'svelte';
-	async function getConnected() {
-		try {
-			 const response: string[] = await get('/me/library/connected');
-			console.log(response);
-		} catch (e) {
-			throwError('Internal server error');
-		}
-	}
-	async function getUnconnected() {
-		try {
-			const response: Map<string, string> = await get('/me/library/unconnected');
-			console.log(response);
-		} catch (e) {
-			throwError('Internal server error');
-		}
-	}
-	onMount(() => {
-		getConnected();
-		getUnconnected();
-	})
+    import { get, post, throwError } from '../../../fetch';
+    import Panel from '../../../components/Panel.svelte';
+    import deezerIcon from '../../../lib/assets/deezer-logo-coeur.jpg';
+    import spotifyIcon from '../../../lib/assets/Spotify_App_Logo.svg.png';
+    import { onMount } from 'svelte';
+
+    let connected: Map<string, string> = new Map<string, string>();
+    let unconnected: Map<string, string> = new Map<string, string>();
+    let showSpotify = false;
+    let showDeezer = false;
+    let showSpotifyConnected = false;
+    let showDeezerConnected = false;
+
+    async function getConnected() {
+        try {
+            const data = await get('/me/library/connected');
+            connected = new Map(Object.entries(data));
+        } catch (e) {
+            throwError('Internal server error');
+        }
+    }
+
+    async function getUnconnected() {
+        try {
+            const data = await get('/me/library/unconnected');
+            unconnected = new Map(Object.entries(data));
+        } catch (e) {
+            throwError('Internal server error');
+        }
+    }
+
+    onMount(async () => {
+        await getConnected();
+        await getUnconnected();
+        updateUI();
+    });
+
+    function updateUI() {
+        showSpotifyConnected = connected.has('spotify');
+        showDeezerConnected = connected.has('deezer');
+        showSpotify = unconnected.has('spotify');
+        showDeezer = unconnected.has('deezer');
+    }
 </script>
 
 <Panel title="Choose the platform to connect:">
 	<div class="container">
 		<div class="title">Select your preferred music platform:</div>
 		<div class="image-container">
-			<!-- <a href="/api/spotify" title="Connect with Spotify" on:click={() => addConnection('spotify')}>
+			{#if showSpotify==true}
+			<a href="/api/spotify" title="Connect with Spotify">
 				<img src={spotifyIcon} alt="Spotify logo" />
 			</a>
-			<a href="/api/deezer" title="Connect with Deezer" on:click={() => addConnection('deezer')}>
+			{/if}
+		{#if showDeezer==true}
+			<a href="/api/deezer" title="Connect with Deezer">
 				<img src={deezerIcon} alt="Deezer logo" />
-			</a> -->
+			</a>
+		{/if}
 		</div>
 		<div class="connected-platforms">
-			<!-- Your current connections:
+			 Your current connections:
 			<ul>
-				{#each connections as connection}
-					<li>{connection.platform_name}</li>
-				{/each}
-			</ul> -->
+				{#if showSpotifyConnected==true}
+					<li>Spotify</li>
+				{/if}
+				{#if showDeezerConnected==true}
+					<li>Deezer</li>
+				{/if}
+				
+			</ul> 
 		</div>
 	</div>
 </Panel>
