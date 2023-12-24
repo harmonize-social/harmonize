@@ -19,6 +19,8 @@ func MeRouter() *mux.Router {
     router.HandleFunc("/liked", handlers.DeleteLikedPost).Methods("DELETE")
     router.HandleFunc("/follow", handlers.PostFollow).Methods("POST")
     router.HandleFunc("/follow", handlers.DeleteFollow).Methods("DELETE")
+    router.HandleFunc("/following", handlers.GetFollowing).Methods("GET")
+    router.HandleFunc("/followers", handlers.GetFollowers).Methods("GET")
     mount(router, "/library", LibraryRouter())
     return router
 }
