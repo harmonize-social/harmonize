@@ -55,7 +55,7 @@
 			</a>
 			{/if}
 		{#if showDeezer==true}
-			<a href="/api/deezer" title="Connect with Deezer">
+			<a href={unconnected.get('deezer')} title="Connect with Deezer">
 				<img src={deezerIcon} alt="Deezer logo" />
 			</a>
 		{/if}
