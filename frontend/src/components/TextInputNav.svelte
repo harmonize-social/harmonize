@@ -25,10 +25,6 @@
       console.log(list);
   }
 
-  function handleClick(item :string) {
-      goto('/user/' + item);  
-  }
-
   let isDropdownOpen = true;
   const handleDropdownFocusLoss = (event: FocusEvent) => {
       const { currentTarget, relatedTarget } = event;
