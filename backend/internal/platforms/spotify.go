@@ -1,6 +1,7 @@
 package platforms
 
 import (
+    "backend/internal/models"
     "backend/internal/repositories"
     "context"
 
@@ -31,8 +32,43 @@ func SpotifyClientId(userId *uuid.UUID) (*spotify.Client, error) {
     return client, nil
 }
 
-func GetSpotifySong(songId string) (string, error) {
-    return "", nil
+func GetSpotifySong(userId *uuid.UUID, songId string) (models.Song, error) {
+    song, err := repositories.GetSong("spotify", songId)
+    if err != nil {
+        return song, err
+    }
+
+    spotifyId := spotify.ID(songId)
+    client, err := SpotifyClientId(userId)
+
+    if err != nil {
+        return song, err
+    }
+
+    apiSong, err := client.GetTrack(context.Background(), spotifyId)
+
+    if err != nil {
+        return song, err
+    }
+
+
+    artists := make([]models.Artist, 0)
+    for _, artist := range apiSong.Artists {
+        artists = append(artists, models.Artist{
+            Name: artist.Name,
+            ID: uuid.New(),
+        })
+    }
+
+    song = models.Song{
+        Title: apiSong.Name,
+        ID: uuid.New(),
+        Artists: artists,
+        MediaURL: apiSong.Album.Images[0].URL,
+        PreviewURL: apiSong.PreviewURL,
+    }
+
+    return song, nil
 }
 
 // func Spotify(client spotify.Client, connectionId uuid.UUID) {

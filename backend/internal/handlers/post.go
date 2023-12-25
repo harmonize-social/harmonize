@@ -4,6 +4,8 @@ import (
     "backend/internal/models"
     "backend/internal/repositories"
     "context"
+    "encoding/json"
+    "fmt"
     "net/http" // used to access the request and response object of the api
     "strconv"
 
@@ -120,5 +122,100 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
     }
 
     models.Result(w, posts)
+}
 
+func NewPost(w http.ResponseWriter, r *http.Request) {
+    sessionId := r.Header.Get("id")
+    user, err := getUserFromSession(uuid.MustParse(sessionId))
+    if err != nil {
+        models.Error(w, http.StatusUnauthorized, "Invalid session")
+        return
+    }
+
+    var newPost models.NewPost
+    err = json.NewDecoder(r.Body).Decode(&newPost)
+    if err != nil {
+        models.Error(w, http.StatusBadRequest, "Invalid post")
+        return
+    }
+
+    if newPost.Type != "playlist" && newPost.Type != "song" && newPost.Type != "album" && newPost.Type != "artist" {
+        models.Error(w, http.StatusBadRequest, "Invalid post type")
+        return
+    }
+
+    if newPost.Platform != "spotify" {
+        models.Error(w, http.StatusNotImplemented, "Invalid platform")
+        return
+    }
+
+    if err != nil {
+        models.Error(w, http.StatusInternalServerError, "Internal server error")
+        return
+    }
+
+    switch newPost.Type {
+    case "playlist":
+        playlist, err := repositories.GetPlaylist("spotify", newPost.PlatformSpecificId)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            fmt.Println(err.Error())
+            return
+        }
+        post, err := repositories.CreatePlaylistPost(playlist, user.ID, newPost.Caption)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            fmt.Println(err.Error())
+            return
+        }
+        models.Result(w, post)
+        break
+    case "song":
+        song, err := repositories.GetSong("spotify", newPost.PlatformSpecificId)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            fmt.Println(err.Error())
+            return
+        }
+        post, err := repositories.CreateSongPost(song, user.ID, newPost.Caption)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            fmt.Println(err.Error())
+            return
+        }
+        models.Result(w, post)
+        break
+    case "album":
+        album, err := repositories.GetAlbum("spotify", newPost.PlatformSpecificId)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            fmt.Println(err.Error())
+            return
+        }
+        post, err := repositories.CreateAlbumPost(album, user.ID, newPost.Caption)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            fmt.Println(err.Error())
+            return
+        }
+        models.Result(w, post)
+        break
+    case "artist":
+        artist, err := repositories.GetArtist("spotify", newPost.PlatformSpecificId)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            fmt.Println(err.Error())
+            return
+        }
+        post, err := repositories.CreateArtistPost(artist, user.ID, newPost.Caption)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            fmt.Println(err.Error())
+            return
+        }
+        models.Result(w, post)
+        break
+    }
+
+    // TODO: get the item from spotigy/deezer based on the type, platform, and PlatformSpecificId
 }
