@@ -7,13 +7,12 @@
 	import Playlist from './Playlist.svelte';
 	import Artist from './Artist.svelte';
 	import ActionButton from './ActionButton.svelte';
-	import {  post, throwError } from '../fetch.js';
-	import type ArtistModel from '../models/artist';
+	import {  delete_, post, throwError } from '../fetch.js';
 	export let content: any;
 	let comments: CommentModel[] = [];
 	export let caption: PostModel['caption'];
 	export let likes: PostModel['likeCount'];
-	export let id: string;
+	export let id: PostModel['id'];
 	export let typez: string;
 
 	// async function getArtists(): Promise<ArtistModel[]> {
@@ -49,6 +48,26 @@
 			return response;
 		} catch (error) {
 			throwError('Error posting save');
+			return 0;
+		}
+	}
+
+	async function deleteLike(): Promise<number> {
+		try {
+			const response: number = await delete_<number>(`/likes?id=${id}`);
+			return response;
+		} catch (error) {
+			throwError('Error deleting like');
+			return 0;
+		}
+	}
+
+	async function deleteSave(): Promise<number> {
+		try {
+			const response: number = await delete_<number>(`/me/saved?id=${id}`);
+			return response;
+		} catch (error) {
+			throwError('Error deleting save');
 			return 0;
 		}
 	}

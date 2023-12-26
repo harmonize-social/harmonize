@@ -1,16 +1,16 @@
 <script lang="ts">
-	import ErrorPopup from './../../../components/ErrorPopup.svelte';
-	import Button from './../../../components/Button.svelte';
+	import ErrorPopup from '../../../components/ErrorPopup.svelte';
+	import Button from '../../../components/Button.svelte';
 	import Panel from '../../../components/Panel.svelte';
-	import NavBar from './../../../components/NavBar.svelte';
-	import { get, throwError } from '../../../fetch';
+	import NavBar from '../../../components/NavBar.svelte';
+	import { delete_, get, post, throwError } from '../../../fetch';
 	import type PostModel from '../../../models/post';
 	import Post from '../../../components/Post.svelte';
 	import { onMount } from 'svelte';
 	import { errorMessage } from '../../../store';
 
 	let posts: PostModel[] = [];
-	let username: string;
+	let name: string = '';
 	let follows: boolean = true;
 	let loading = false;
 	let error = '';
@@ -19,11 +19,10 @@
 		error = value;
 	});
 
-	async function fetchPosts(): Promise<PostModel[]> {
+	async function fetchPosts(username: string | null): Promise<PostModel[]> {
 		try {
 			const response: PostModel[] = await get<PostModel[]>(`/posts?username=${username}`);
-			posts = response;
-			return posts;
+			return response;
 		} catch (e) {
 			throwError('Error fetching posts');
 			return [];
@@ -31,40 +30,66 @@
 			loading = false;
 		}
 	}
-	onMount(() => {
-		fetchPosts().then((fetchedPosts) => {
-			posts = fetchedPosts;
-		});
-	});
 
+	async function deleteFollow(name: string){
+		try{
+			const response: string = await delete_<string>(`/follow?username=${name}`);
+			return response;
+		}catch(e){
+			throwError('Error deleting follow');
+			return 0;
+		}
+	}
+	async function postFollow(name: string){
+		try{
+			const response: string = await post<string, string>(`/follow?username=${name}`, name);
+			return response;
+		}catch(e){
+			throwError('Error posting follow');
+			return 0;
+		}
+	}
+	
 	function onScroll(event: Event) {
 		const target = event.target as HTMLElement;
 		if (target.scrollHeight - target.scrollTop === target.clientHeight) {
-			loadMorePosts();
+			loadMorePosts(name);
 		}
 	}
-	async function loadMorePosts() {
+	async function loadMorePosts(name: string) {
 		if (loading) return;
-		const morePosts = await fetchPosts();
+		const morePosts = await fetchPosts(name);
 		posts = [...posts, ...morePosts];
 	}
-
+	
 	let isClicked = false;
-	const handleButtonClick = () => {
+	const handleButtonClick = async () => {
 		isClicked = !isClicked;
+		if(follows){
+			await deleteFollow(name);
+		}else{
+			await postFollow(name);
+		}
 		follows = !follows;
 	};
+	onMount(() => {
+		const params = new URLSearchParams(window.location.search);
+		let username = params.get('username');
+		fetchPosts(username).then((fetchedPosts) => {
+			posts = fetchedPosts;
+		});
+	});
 </script>
 
 <!-- navbar -->
 <div class="nav">
-	<NavBar current_page={`/user/${username}`}></NavBar>
+	<NavBar current_page={`/user/${name}`}></NavBar>
 </div>
 <!-- profile -->
 <div class="profile-container">
 	<div class="user-container">
 		<div class="user">
-			<h2 class="username">{username}</h2>
+			<h2 class="username">{name}</h2>
 			<div class="bio">
 				<p>
 					Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
@@ -72,7 +97,7 @@
 				</p>
 			</div>
 			<div class="follow_button">
-				{#if isClicked && follows}
+				{#if follows}
 					<Button buttonText="Unfollow" on:click={handleButtonClick}></Button>
 				{:else}
 					<Button buttonText="Follow" on:click={handleButtonClick}></Button>
@@ -82,8 +107,11 @@
 	</div>
 	<!-- personal feed -->
 	<div class="feed-container" on:scroll={onScroll}>
-		<Panel title={`${username}'s posts`}>
+		<Panel title={`${name}'s posts`}>
 			<div class="feed">
+				{#if posts.length === 0}
+					<p>{name} did not post yet!</p>
+				{/if}
 				{#each posts as post}
 					<div class="post">
 						<Post

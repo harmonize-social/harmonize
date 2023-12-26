@@ -5,28 +5,61 @@
 	import { get, throwError} from "../../../fetch";
 	import type PostModel from "../../../models/post";
 	import { onMount } from "svelte";
+	import ErrorPopup from "../../../components/ErrorPopup.svelte";
+	import { errorMessage } from '../../../store';
+
+    let error: string = '';
     let liked_posts: PostModel[] = [];
-    async function getLikedPosts(){
+    let loading = false;
+
+    errorMessage.subscribe((value) => {
+        error = value;
+    }); 
+    async function getLikedPosts(): Promise<PostModel[]>{
         try{
-            const response: string = await get('/api/v1/me/likedposts' );
-            liked_posts = JSON.parse(response);
+            const response: PostModel[] = await get('/me/saved');
+            return response;
         }catch(e){
             throwError('Internal server error');
+            return [];
+        }finally{
+            loading = false;
         }
     }
-    onMount(getLikedPosts);
-</script>
-<NavBar current_page="/me/likedposts"></NavBar>
-<Panel title="Your liked posts">
-    <div class="liked-container" >
 
-        {#each liked_posts as post, i}
+    onMount(() => {
+		getLikedPosts().then((fetchedPosts) => {
+			liked_posts = fetchedPosts;
+		});
+	});
+
+	function onScroll(event: Event) {
+		const target = event.target as HTMLElement;
+		if (target.scrollHeight - target.scrollTop === target.clientHeight) {
+			loadMorePosts();
+		}
+	}
+	async function loadMorePosts() {
+		if (loading) return;
+		const morePosts = await getLikedPosts();
+		liked_posts = [...liked_posts, ...morePosts];
+	}
+</script>
+<NavBar current_page="/me/saved"></NavBar>
+<Panel title="Your liked posts">
+    <div class="liked-container" on:scroll={onScroll} >
+
+        {#each liked_posts as post}
             <div class="post">
-                <Post caption={post.caption} likes={post.likes}></Post>
+                <Post content={post.content} caption={post.caption} likes={post.likeCount} id={post.id} typez={post.type}></Post>
             </div>
         {/each}
-
-
+        {#if loading}
+            <p>Loading more posts...</p>
+        {/if}
+        {#if error}
+        <ErrorPopup message={error}></ErrorPopup>
+        {/if}
     </div>
 
 
