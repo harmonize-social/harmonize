@@ -1,18 +1,22 @@
 <script lang="ts">
-	import type { PageData } from './$types';
 	import Panel from '../../components/Panel.svelte';
 	import NavBar from '../../components/NavBar.svelte';
 	import Button from '../../components/Button.svelte';
 	import TextInput from '../../components/TextInput.svelte';
 	import { post, throwError } from '../../fetch';
-	let data: PageData;
+	import { errorMessage } from '../../store';
+	import ErrorPopup from '../../components/ErrorPopup.svelte';
+	let data: {};
 	let caption = 'Caption';
-	data = { caption };
+	let error = '';
+	errorMessage.subscribe((value) => {
+		error = value;
+	});
 
 	async function handleInput() {
 		try {
-			const response: PageData = await post('/newpost', data);
-			data = response;
+			const request: {} = await post('/me/newpost', caption);
+			data = request;
 		} catch (e) {
 			throwError('Failed to post item');
 		}
@@ -28,6 +32,9 @@
 			<TextInput placeholder="Insert a caption" bind:value={caption}></TextInput>
 		</div>
 		<Button buttonText="Get the music on your platform!" link="/connection" on:click={handleInput}/>
+		{#if error}
+			<ErrorPopup message={error}></ErrorPopup>
+		{/if}
 	</div>
 </Panel>
 

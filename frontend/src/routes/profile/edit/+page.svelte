@@ -3,12 +3,18 @@
     import TextInput from '../../../components/TextInput.svelte';
     import Panel from '../../../components/Panel.svelte';
     import NavBar from '../../../components/NavBar.svelte';
-    import { post } from '../../../fetch'; 
+    import { post, throwError } from '../../../fetch'; 
+	import { errorMessage } from '../../../store';
+    import ErrorPopup from '../../../components/ErrorPopup.svelte';
 
 
     let newUsername = '';
     let newEmail = '';
     let newPassword = '';
+    let error = '';
+    errorMessage.subscribe((value) => {
+        error = value;
+    });    
 
     async function handleSubmit(event) {
         event.preventDefault();
@@ -41,12 +47,11 @@
                 password: newPassword,
             };
 
-            const response = await post('/user/update', updatedInfo); 
+            const response = await post('/me/update', updatedInfo); 
 
             console.log('Gebruikersinformatie succesvol bijgewerkt:', response);
-        } catch (error) {
-            console.error('Fout bij het bijwerken van gebruikersinformatie:', error);
-        }
+        } catch (e) {
+            throwError('Failed to update user information');        }
     }
 </script>
 
@@ -90,4 +95,7 @@
             <button type="submit">Update</button>
         </div>
     </form>
+    {#if error}
+        <ErrorPopup message={error}></ErrorPopup>
+    {/if}
 </Panel>

@@ -5,23 +5,30 @@
 	import { get, throwError } from '../../fetch';
 	import type PostModel from '../../models/post';
 	import Post from '../../components/Post.svelte';
+	import { errorMessage } from '../../store';
 	import { onMount } from 'svelte';
-	import Followers from '../../components/Followers.svelte';
-	import Following from '../../components/Following.svelte';
+	import ErrorPopup from '../../components/ErrorPopup.svelte';
 
 	let posts: PostModel[] = [];
 	let followers: string[] = [];
 	let following: string[] = [];
+	let loading = false;
+	let error = '';
+	errorMessage.subscribe((value) => {
+		error = value;
+	});
 
-	async function getData() {
+	async function fetchPosts(): Promise<PostModel[]> {
 		try {
-			const response: string = await get('/me');
-			posts = JSON.parse(response);
+			const response: PostModel[] = await get<PostModel[]>('/me/posts');
+			return response;
 		} catch (e) {
-			throwError('Internal server error');
+			throwError('Error fetching posts');
+			return [];
+		} finally {
+			loading = false;
 		}
 	}
-
 	async function getFollowers() {
 		try {
 			followers = await get('/me/followers');
@@ -38,6 +45,23 @@
 			throwError('Internal server error');
 		}
 	}
+	function onScroll(event: Event) {
+		const target = event.target as HTMLElement;
+		if (target.scrollHeight - target.scrollTop === target.clientHeight) {
+			loadMorePosts();
+		}
+	}
+	async function loadMorePosts() {
+		if (loading) return;
+		const morePosts = await fetchPosts();
+		posts = [...posts, ...morePosts];
+	}
+
+	onMount(() => {
+		fetchPosts().then((fetchedPosts) => {
+			posts = fetchedPosts;
+		});
+	});
 </script>
 
 <div class="nav">
@@ -55,15 +79,27 @@
 						<a href="/user/{item}">{item}</a>
 					</p>
 				{/each}
+				{#if following.length == 0}
+					<p>Not following anyone</p>
+				{/if}
+				{#if error}
+					<ErrorPopup message = {error}/>
+				{/if}
 			</div>
 			<div class="followers" on:click={getFollowers}>
 				<Button buttonText="Followers"></Button>
-			</div>
-			{#each followers as item}
-					<p>
-						<a href="/user/{item}">{item}</a>
-					</p>
+				{#each followers as item}
+				<p>
+					<a href="/user/{item}">{item}</a>
+				</p>
 				{/each}
+				{#if followers.length == 0}
+					<p>No followers</p>
+				{/if}
+				{#if error}
+					<ErrorPopup message = {error}/>
+				{/if}
+			</div>
 
 			<div class="library">
 				<Button buttonText="Library" link="/profile/library"></Button>
@@ -84,23 +120,27 @@
 <!-- personal feed -->
 <div class="feed-container">
 	<Panel title="Your feed">
-		<div class="feed">
-			{#each posts as post, i}
-				<div class="post" id={'post' + (i + 1)}>
+		<div class="feed" on:scroll={onScroll}>
+			{#each posts as post}
+				<div class="post">
 					<Post
 						content={post.content}
 						caption={post.caption}
 						likes={post.likeCount}
 						id={post.id}
-						type={post.type}
+						typez={post.type}
 					/>
 				</div>
 			{/each}
+			{#if loading}
+				<p>Loading more posts...</p>
+			{/if}
+			{#if error}
+				<ErrorPopup message = {error}/>
+			{/if}
 		</div>
 	</Panel>
 </div>
-
-<!-- TODO: Check dropdowns -->
 
 <style>
 	.profile-container {
@@ -151,6 +191,8 @@
 		width: 100rem;
 	}
 	.feed {
-		display: flex;
+		height: calc(100vh - var(--navbar-height));
+		overflow-y: auto;
+		padding: 1rem;
 	}
 </style>

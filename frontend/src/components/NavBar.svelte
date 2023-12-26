@@ -9,13 +9,13 @@
     export let text1: string = 'Feed';
     export let text2: string = 'Settings';
     switch(current_page){
-        case '/':
+        case '/me/feed':
             url1 = '/profile';
             url2 = '/profile/settings';
             text1 = 'Profile';
             text2 = 'Settings';
             break;
-        case '/profile/settings':
+        case '/me/profile/settings':
             url1 = '/feed';
             url2 = '/profile';
             text1 = 'Feed';

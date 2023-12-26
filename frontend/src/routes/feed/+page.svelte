@@ -6,14 +6,20 @@
     import NavBar from '../../components/NavBar.svelte';
     import { get, throwError } from '../../fetch';
     import Button from '../../components/Button.svelte';
+	import { errorMessage } from '../../store';
+    import ErrorPopup from '../../components/ErrorPopup.svelte';
     
     let posts: PostModel[] = [];
     let loading: boolean = false;
+    let error = '';
+	errorMessage.subscribe((value) => {
+		error = value;
+	});
   
     async function fetchPosts(): Promise<PostModel[]> {
       try {
         loading = true;
-        const response: PostModel[] = await get<PostModel[]>('/me/feed');
+        const response: PostModel[] = await get<PostModel[]>(`/me/feed?offset=${posts.length}`);
         return response;
       } catch (error) {
         throwError('Error fetching posts');
@@ -52,9 +58,12 @@
       {#if loading}
         <p>Loading more posts...</p>
       {/if}
+      {#if error}
+        <ErrorPopup message={error}></ErrorPopup>
+      {/if}
     </div>
     <div  class="new-post-button">
-        <Button buttonText="New Post" link='/me/newpost'></Button>
+        <Button buttonText="New Post" link='/newpost'></Button>
     </div>
   </Panel>
   <style>

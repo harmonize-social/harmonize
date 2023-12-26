@@ -12,39 +12,78 @@
 	import Album from '../../../components/Album.svelte';
 	import Playlist from '../../../components/Playlist.svelte';
 	import Artist from '../../../components/Artist.svelte';
+
 	let songs: SongModel[] = [];
 	let albums: AlbumModel[] = [];
 	let playlists: PlaylistModel[] = [];
 	let artists: ArtistModel[] = [];
-	let library: any[] = [songs, albums, playlists, artists];
 	let connections: string[] = ['spotify', 'deezer'];
+	let model: string = 'songs';
 
-	async function getLibrary() {
+	interface LibraryResponse {
+		songs?: SongModel[];
+		albums?: AlbumModel[];
+		playlists?: PlaylistModel[];
+		artists?: ArtistModel[];
+	}
+
+	async function getLibrary(): Promise<void> {
 		try {
-			connections.forEach((element: string) => async () => {
-				const response: string = await get(`/api/v1/me/${element}/library`);
-				library = JSON.parse(response);
-			});
+			for (const element of connections) {
+				if (model == 'songs') {
+					const response: LibraryResponse = await get(`/me/library/${element}/${model}`);
+					songs = response.songs || [];
+				} else if (model == 'albums') {
+					const response: LibraryResponse = await get(`/me/library/${element}/${model}`);
+					albums = response.albums || [];
+				} else if (model == 'playlists') {
+					const response: LibraryResponse = await get(`/me/library/${element}/${model}`);
+					playlists = response.playlists || [];
+				} else if (model == 'artists') {
+					const response: LibraryResponse = await get(`/me/library/${element}/${model}`);
+					artists = response.artists || [];
+				}
+			}
 		} catch (e) {
 			throwError('Internal server error');
 		}
 	}
 
-	//https://svelte.dev/repl/4c5dfd34cc634774bd242725f0fc2dab?version=3.46.4 (dropdown handling)
-	let isDropdownOpen = false;
-	const handleDropdownClick = () => {
-		isDropdownOpen = !isDropdownOpen;
+	let isPlatformDropdownOpen = false;
+	let isSongsDropdownOpen = false;
+	let isAlbumsDropdownOpen = false;
+	let isPlaylistsDropdownOpen = false;
+	let isArtistsDropdownOpen = false;
+
+	const handlePlatformDropdownClick = (): void => {
+		isPlatformDropdownOpen = !isPlatformDropdownOpen;
+	};
+	const handleSongsDropdownClick = (): void => {
+		isSongsDropdownOpen = !isSongsDropdownOpen;
+	};
+	const handleAlbumsDropdownClick = (): void => {
+		isAlbumsDropdownOpen = !isAlbumsDropdownOpen;
+	};
+	const handlePlaylistsDropdownClick = (): void => {
+		isPlaylistsDropdownOpen = !isPlaylistsDropdownOpen;
+	};
+	const handleArtistsDropdownClick = (): void => {
+		isArtistsDropdownOpen = !isArtistsDropdownOpen;
 	};
 
-	const handleDropdownFocusLoss = (event: FocusEvent) => {
-		const { currentTarget, relatedTarget } = event; // relatedTarget: HTMLElement;
-		// use "focusout" event to ensure that we can close the dropdown when clicking outside or when we leave the dropdown with the "Tab" button
+	const handleDropdownFocusLoss = (event: FocusEvent): void => {
+		const { currentTarget, relatedTarget } = event;
 		if (relatedTarget instanceof HTMLElement && (currentTarget as Node).contains(relatedTarget))
-			return; // check if the new focus target doesn't present in the dropdown tree
-		isDropdownOpen = false;
+			return;
+		isSongsDropdownOpen = false;
+		isAlbumsDropdownOpen = false;
+		isPlaylistsDropdownOpen = false;
+		isArtistsDropdownOpen = false;
 	};
 
-	onMount(getLibrary);
+	onMount(async () => {
+		await getLibrary();
+	});
 </script>
 
 <NavBar current_page="/me/saved"></NavBar>
@@ -52,116 +91,126 @@
 	<div class="library-container">
 		{#each connections as connection}
 			<div class="platform-button" on:focusout={handleDropdownFocusLoss}>
-				<Button buttonText={connection} on:click={handleDropdownClick} />
-				<div class="platform-dropdown" style:visibility={isDropdownOpen ? 'visible' : 'hidden'}>
-					<ol>
-						<li on:focusout={handleDropdownFocusLoss}>
-							<Button buttonText="Songs" on:click={handleDropdownClick} />
-							<div class="library-songs-dropdown">
-								{#if songs}
-									{#each songs as song}
-										<Song content={{ title: song.title, url: song.url, id: song.id }} />
-									{/each}
-								{:else}
-									<p>You haven't saved songs in this library!</p>
-								{/if}
-							</div>
-						</li>
-						<li on:focusout={handleDropdownFocusLoss}>
-							<Button buttonText="Albums" on:click={handleDropdownClick} />
-							<div class="library-albums-dropdown">
-								{#if albums}
-									{#each albums as album}
-										<Album
-											content={{
-												title: album.title,
-												artists: album.artists,
-												songs: album.songs,
-												mediaUrl: album.mediaUrl,
-												id: album.id
-											}}
-										/>
-									{/each}
-								{:else}
-									<p>You haven't saved albums in this library!</p>
-								{/if}
-							</div>
-						</li>
-						<li on:focusout={handleDropdownFocusLoss}>
-							<Button buttonText="Playlists" on:click={handleDropdownClick} />
-							<div class="library-playlists-dropdown">
-								{#if playlists}
-									{#each playlists as playlist}
-										<Playlist
-											content={{
-												title: playlist.title,
-												songs: playlist.songs,
-												mediaUrl: playlist.mediaUrl,
-												id: playlist.id
-											}}
-										/>
-									{/each}
-								{:else}
-									<p>You haven't saved playlists in this library!</p>
-								{/if}
-							</div>
-						</li>
-						<li on:focusout={handleDropdownFocusLoss}>
-							<Button buttonText="Artists" on:click={handleDropdownClick} />
-							<div class="library-artists-dropdown">
-								{#if artists}
-									{#each artists as artist}
-										<Artist content={{ name: artist.name, id: artist.id, url: artist.url }} />
-									{/each}
-								{:else}
-									<p>You haven't saved artists in this library!</p>
-								{/if}
-							</div>
-						</li>
-					</ol>
-				</div>
+				<Button buttonText={connection.toUpperCase()} on:click={handlePlatformDropdownClick}>
+					<div
+						class="library-dropdown-container"
+						style:visibility={isPlatformDropdownOpen ? 'visible' : 'hidden'}
+					>
+						<ul>
+							<li on:focusout={handleDropdownFocusLoss}>
+								<Button buttonText="Songs" on:click={handleSongsDropdownClick}>
+									{model == 'songs'}
+									<div
+										class="library-songs-dropdown"
+										style:visibility={isSongsDropdownOpen ? 'visible' : 'hidden'}
+									>
+										{#if songs.length > 0}
+											{#each songs as song}
+												<Song
+													content={{
+														title: song.title,
+														mediaUrl: song.mediaUrl,
+														id: song.id,
+														artists: song.artists,
+														previewUrl: song.previewUrl
+													}}
+												/>
+											{/each}
+										{:else}
+											<p>You haven't saved songs in this library!</p>
+										{/if}
+									</div>
+								</Button>
+							</li>
+
+							<li on:focusout={handleDropdownFocusLoss}>
+								<Button buttonText="Albums" on:click={handleAlbumsDropdownClick}>
+									{model == 'albums'}
+									<div class="library-albums-dropdown" style:visibility={isAlbumsDropdownOpen ? 'visible' : 'hidden'}>
+										{#if albums.length > 0}
+											{#each albums as album}
+												<Album
+													content={{
+														title: album.title,
+														mediaUrl: album.mediaUrl,
+														id: album.id,
+														artists: album.artists,
+														songs: album.songs
+													}}
+												/>
+											{/each}
+										{:else}
+											<p>You haven't saved albums in this library!</p>
+										{/if}
+									</div>
+								</Button>
+							</li>
+							<li on:focusout={handleDropdownFocusLoss}>
+								<Button buttonText="Playlists" on:click={handlePlaylistsDropdownClick}>
+									{model == 'playlists'}
+									<div class="library-playlists-dropdown" style:visibility={isPlaylistsDropdownOpen ? 'visible' : 'hidden'}>
+										{#if playlists.length > 0}
+											{#each playlists as playlist}
+												<Playlist
+													content={{
+														title: playlist.title,
+														mediaUrl: playlist.mediaUrl,
+														id: playlist.id,
+														songs: playlist.songs
+													}}
+												/>
+											{/each}
+										{:else}
+											<p>You haven't saved playlists in this library!</p>
+										{/if}
+									</div>
+								</Button>
+							</li>
+							<li on:focusout={handleDropdownFocusLoss}>
+								<Button buttonText="Artists" on:click={handleArtistsDropdownClick}>
+									{model == 'artists'}
+									<div class="library-artists-dropdown" style:visibility={isArtistsDropdownOpen ? 'visible' : 'hidden'}>
+										{#if artists.length > 0}
+											{#each artists as artist}
+												<Artist
+													content={{ name: artist.name, mediaUrl: artist.mediaUrl, id: artist.id }}
+												/>
+											{/each}
+										{:else}
+											<p>You haven't saved artists in this library!</p>
+										{/if}
+									</div>
+								</Button>
+							</li>
+						</ul>
+					</div>
+				</Button>
 			</div>
 		{/each}
-
-		<Button
-			buttonText="Sync Library"
-			link="/api/v1/connection"
-			on:click={async () => {
-				try {
-					for (let i = 0; i < library.length; i++) {
-						const response = await post(`/api/v1/me/sync`, library[i]);
-						library[i] = response;
-					}
-				} catch (e) {
-					throwError('Internal server error');
-				}
-			}}
-		></Button>
-		<div  class="new-post-button">
-			<Button buttonText="New Post" link='/me/newpost'></Button>
+		<div class="new-post-button">
+			<Button buttonText="New Post" link="/me/newpost"></Button>
 		</div>
-
-	</div></Panel
->
+	</div>
+</Panel>
 
 <style>
-		.new-post-button {
-			position: fixed;
-			bottom: 2rem;
-			right: 2rem;
-			width: 56px;
-			height: 56px;
-			border-radius: 50%;
-			
-			color: white;
-			border: none;
-			font-size: 2rem;
-			font-weight: bold;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-			cursor: pointer;
-			z-index: 1000; /* Ensure it's above other elements */
-		  }
+	.new-post-button {
+		position: fixed;
+		bottom: 2rem;
+		right: 2rem;
+		width: 56px;
+		height: 56px;
+		border-radius: 50%;
+
+		color: white;
+		border: none;
+		font-size: 2rem;
+		font-weight: bold;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+		cursor: pointer;
+		z-index: 1000; /* Ensure it's above other elements */
+	}
 </style>

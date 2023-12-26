@@ -2,6 +2,7 @@
 //https://github.com/EHB-TI/programming-project-groep-3_brussel-student-guide/blob/main/frontend/src/fetch.ts
 
 import ErrorPopup from './components/ErrorPopup.svelte';
+import { errorMessage } from './store';
 
 const API_URL = process.env.API_URL;
 
@@ -104,11 +105,12 @@ export async function post<T, U>(path: string, body: T, config?: RequestInit): P
 }
 
 //create a function that renders a pop up with a message that the backend returns when an error occurs
-export async function throwError(errorMessage: string) {
+export async function throwError(message: string) {
     // let popup = new ErrorPopup({
     //     target: document.body as Element,
     //     props: { message: errorMessage }
     // });
     // return popup;
-    console.log(errorMessage);
+    errorMessage.set(message);
+    console.log(message);
 }

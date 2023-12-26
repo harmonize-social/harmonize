@@ -4,6 +4,8 @@
     import deezerIcon from '../../../lib/assets/deezer-logo-coeur.jpg';
     import spotifyIcon from '../../../lib/assets/Spotify_App_Logo.svg.png';
     import { onMount } from 'svelte';
+	import { errorMessage } from '../../../store';
+	import ErrorPopup from '../../../components/ErrorPopup.svelte';
 
     let connected: Map<string, string> = new Map<string, string>();
     let unconnected: Map<string, string> = new Map<string, string>();
@@ -11,10 +13,14 @@
     let showDeezer = false;
     let showSpotifyConnected = false;
     let showDeezerConnected = false;
+	let error = '';
+	errorMessage.subscribe((value) => {
+		error = value;
+	});
 
     async function getConnected() {
         try {
-            const data = await get('/me/library/connected');
+            const data = await get('/me/library/connected') as any;
             connected = new Map(Object.entries(data));
         } catch (e) {
             throwError('Internal server error');
@@ -23,7 +29,7 @@
 
     async function getUnconnected() {
         try {
-            const data = await get('/me/library/unconnected');
+            const data = await get('/me/library/unconnected') as any;
             unconnected = new Map(Object.entries(data));
         } catch (e) {
             throwError('Internal server error');
@@ -54,10 +60,16 @@
 				<img src={spotifyIcon} alt="Spotify logo" />
 			</a>
 			{/if}
+			{#if error}
+				<ErrorPopup message={error}></ErrorPopup>
+			{/if}
 		{#if showDeezer==true}
 			<a href={unconnected.get('deezer')} title="Connect with Deezer">
 				<img src={deezerIcon} alt="Deezer logo" />
 			</a>
+		{/if}
+		{#if error}
+			<ErrorPopup message={error}></ErrorPopup>
 		{/if}
 		</div>
 		<div class="connected-platforms">
