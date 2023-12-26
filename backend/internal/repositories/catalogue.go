@@ -303,8 +303,8 @@ func GetSong(platform string, id string) (models.Song, error) {
         return song, err
     }
 
-    sqlStatement = "SELECT name FROM songs WHERE id = $1;"
-    err = Pool.QueryRow(context.Background(), sqlStatement, song.ID).Scan(&song.Title)
+    sqlStatement = "SELECT name, media_url, preview_url FROM songs WHERE id = $1;"
+    err = Pool.QueryRow(context.Background(), sqlStatement, song.ID).Scan(&song.Title, &song.MediaURL, &song.PreviewURL)
 
     if err != nil {
         return song, err
@@ -343,8 +343,8 @@ func GetAlbum(platform string, id string) (models.Album, error) {
         return album, err
     }
 
-    sqlStatement = "SELECT name FROM albums WHERE id = $1;"
-    err = Pool.QueryRow(context.Background(), sqlStatement, album.ID).Scan(&album.Title)
+    sqlStatement = "SELECT name, media_url FROM albums WHERE id = $1;"
+    err = Pool.QueryRow(context.Background(), sqlStatement, album.ID).Scan(&album.Title, &album.MediaURL)
 
     if err != nil {
         return album, err
@@ -372,7 +372,8 @@ func GetAlbum(platform string, id string) (models.Album, error) {
 
     // Get songs by album id
 
-    sqlStatement = "SELECT s.id, s.name FROM songs s JOIN albums al ON s.album_id = al.id WHERE al.id = $1;"
+    //sqlStatement = "SELECT s.id, s.name FROM songs s JOIN albums al ON s.album_id = al.id WHERE al.id = $1;"
+    sqlStatement = "SELECT s.id, s.name, s.media_url, s.preview_url FROM songs s JOIN albums al ON s.album_id = al.id WHERE al.id = $1;"
 
     rows, err = Pool.Query(context.Background(), sqlStatement, album.ID)
 
@@ -383,7 +384,7 @@ func GetAlbum(platform string, id string) (models.Album, error) {
     songs := make([]models.Song, 0)
     for rows.Next() {
         var song models.Song
-        err = rows.Scan(&song.ID, &song.Title)
+        err = rows.Scan(&song.ID, &song.Title, &song.MediaURL, &song.PreviewURL)
 
         if err != nil {
             return album, err
@@ -407,15 +408,16 @@ func GetPlaylist(platform string, id string) (models.Playlist, error) {
         return playlist, err
     }
 
-    sqlStatement = "SELECT name FROM playlists WHERE id = $1;"
-    err = Pool.QueryRow(context.Background(), sqlStatement, playlist.ID).Scan(&playlist.Title)
+    sqlStatement = "SELECT name, media_url FROM playlists WHERE id = $1;"
+    err = Pool.QueryRow(context.Background(), sqlStatement, playlist.ID).Scan(&playlist.Title, &playlist.MediaURL)
 
     if err != nil {
         return playlist, err
     }
 
     // Get songs by playlist id
-    sqlStatement = "SELECT s.id, s.name FROM songs s JOIN playlist_songs ps ON s.id = ps.song_id JOIN playlists p ON ps.playlist_id = p.id WHERE p.id = $1;"
+    // sqlStatement = "SELECT s.id, s.name FROM songs s JOIN playlist_songs ps ON s.id = ps.song_id JOIN playlists p ON ps.playlist_id = p.id WHERE p.id = $1;"
+    sqlStatement = "SELECT s.id, s.name, s.media_url, s.preview_url FROM songs s JOIN playlist_songs ps ON s.id = ps.song_id JOIN playlists p ON ps.playlist_id = p.id WHERE p.id = $1;"
     rows, err := Pool.Query(context.Background(), sqlStatement, playlist.ID)
 
     if err != nil {
@@ -425,7 +427,7 @@ func GetPlaylist(platform string, id string) (models.Playlist, error) {
     songs := make([]models.Song, 0)
     for rows.Next() {
         var song models.Song
-        err = rows.Scan(&song.ID, &song.Title)
+        err = rows.Scan(&song.ID, &song.Title, &song.MediaURL, &song.PreviewURL)
         if err != nil {
             return playlist, err
         }
@@ -447,8 +449,8 @@ func GetArtist(platform string, id string) (models.Artist, error) {
         return artist, err
     }
 
-    sqlStatement = "SELECT name FROM artists WHERE id = $1;"
-    err = Pool.QueryRow(context.Background(), sqlStatement, artist.ID).Scan(&artist.Name)
+    sqlStatement = "SELECT name, media_url FROM artists WHERE id = $1;"
+    err = Pool.QueryRow(context.Background(), sqlStatement, artist.ID).Scan(&artist.Name, &artist.MediaURL)
 
     if err != nil {
         return artist, err
