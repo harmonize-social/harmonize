@@ -236,7 +236,7 @@ CREATE TABLE IF NOT EXISTS user_liked_songs(
 
 
 DROP FUNCTION IF EXISTS insert_new_artist;
-CREATE OR REPLACE FUNCTION insert_new_artist(new_platform_id VARCHAR(1024), platform_specific_id_input VARCHAR(1024), new_name VARCHAR(1024))
+CREATE OR REPLACE FUNCTION insert_new_artist(new_platform_id VARCHAR(1024), platform_specific_id_input VARCHAR(1024), new_name VARCHAR(1024), new_media_url VARCHAR(1024))
 RETURNS TABLE (value1 UUID, value2 UUID) AS $$
 DECLARE
     artists_artist_id UUID;
@@ -245,8 +245,8 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM platform_artists WHERE platform_specific_id = platform_specific_id_input
     ) THEN
-        INSERT INTO artists (id, name)
-        VALUES (uuid_generate_v4(), new_name)
+        INSERT INTO artists (id, name, media_url)
+        VALUES (uuid_generate_v4(), new_name, new_media_url)
         RETURNING id INTO artists_artist_id;
 
         INSERT INTO platform_artists (id, platform_id, platform_specific_id, artist_id)
@@ -269,7 +269,7 @@ $$ LANGUAGE plpgsql;
 
 
 DROP FUNCTION IF EXISTS insert_new_album;
-CREATE OR REPLACE FUNCTION insert_new_album(new_platform_id VARCHAR(1024), platform_specific_album_id VARCHAR(1024), new_name VARCHAR(1024))
+CREATE OR REPLACE FUNCTION insert_new_album(new_platform_id VARCHAR(1024), platform_specific_album_id VARCHAR(1024), new_name VARCHAR(1024), new_media_url VARCHAR(1024))
 RETURNS TABLE (value1 UUID, value2 UUID) AS $$
 DECLARE
     albums_album_id UUID;
@@ -278,8 +278,8 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM platform_albums WHERE platform_specific_id = platform_specific_album_id
     ) THEN
-        INSERT INTO albums (id, name)
-        VALUES (uuid_generate_v4(), new_name)
+        INSERT INTO albums (id, name, media_url)
+        VALUES (uuid_generate_v4(), new_name, new_media_url)
         RETURNING id INTO albums_album_id;
 
         INSERT INTO platform_albums (id, platform_id, platform_specific_id, album_id)
@@ -301,7 +301,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP FUNCTION IF EXISTS insert_new_playlist;
-CREATE OR REPLACE FUNCTION insert_new_playlist(new_platform_id VARCHAR(1024), platform_specific_id_input VARCHAR(1024), new_name VARCHAR(1024))
+CREATE OR REPLACE FUNCTION insert_new_playlist(new_platform_id VARCHAR(1024), platform_specific_id_input VARCHAR(1024), new_name VARCHAR(1024), new_media_url VARCHAR(1024))
 RETURNS TABLE (value1 UUID, value2 UUID) AS $$
 DECLARE
     playlists_playlist_id UUID;
@@ -310,8 +310,8 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM platform_playlists WHERE platform_specific_id = platform_specific_id_input
     ) THEN
-        INSERT INTO playlists (id, name)
-        VALUES (uuid_generate_v4(), new_name)
+        INSERT INTO playlists (id, name, media_url)
+        VALUES (uuid_generate_v4(), new_name, new_media_url)
         RETURNING id INTO playlists_playlist_id;
 
         INSERT INTO platform_playlists (id, platform_id, platform_specific_id, playlist_id)
@@ -333,7 +333,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP FUNCTION IF EXISTS insert_new_song;
-CREATE OR REPLACE FUNCTION insert_new_song(new_platform_id VARCHAR(1024), album_id UUID, platform_specific_song_id VARCHAR(1024), new_name VARCHAR(1024))
+CREATE OR REPLACE FUNCTION insert_new_song(new_platform_id VARCHAR(1024), album_id UUID, platform_specific_song_id VARCHAR(1024), new_name VARCHAR(1024), new_media_url VARCHAR(1024), new_preview_url VARCHAR(1024))
 RETURNS TABLE (value1 UUID, value2 UUID) AS $$
 DECLARE
     songs_song_id UUID;
@@ -342,8 +342,8 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM platform_songs WHERE platform_specific_id = platform_specific_song_id
     ) THEN
-        INSERT INTO songs (id, name, album_id)
-        VALUES (uuid_generate_v4(), new_name, album_id)
+        INSERT INTO songs (id, name, album_id, media_url, preview_url)
+        VALUES (uuid_generate_v4(), new_name, album_id, new_media_url, new_preview_url)
         RETURNING id INTO songs_song_id;
 
         INSERT INTO platform_songs (id, platform_id, platform_specific_id, song_id)
