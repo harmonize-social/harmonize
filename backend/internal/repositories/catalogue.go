@@ -311,7 +311,7 @@ func GetSong(platform string, id string) (models.Song, error) {
     }
 
     // Get artists by song id
-    sqlStatement = "SELECT a.id, a.name FROM artists a JOIN artists_album aa ON a.id = aa.artist_id JOIN albums al ON aa.album_id = al.id JOIN songs s ON al.id = s.album_id WHERE s.id = $1;"
+    sqlStatement = "SELECT a.id, a.name FROM artists a JOIN artists_album aa ON a.id = aa.artist_id JOIN albums al ON aa.album_id = al.id JOIN songs s ON al.id = s.album_id WHERE s.id = $1 GROUP BY a.id;"
     rows, err := Pool.Query(context.Background(), sqlStatement, song.ID)
 
     if err != nil {
