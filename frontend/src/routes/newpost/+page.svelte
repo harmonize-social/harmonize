@@ -1,35 +1,56 @@
 <script lang="ts">
 	import Panel from '../../components/Panel.svelte';
 	import NavBar from '../../components/NavBar.svelte';
-	import Button from '../../components/Button.svelte';
-	import TextInput from '../../components/TextInput.svelte';
-	import { post, throwError } from '../../fetch';
+	import { post, throwError, get } from '../../fetch';
 	import { errorMessage } from '../../store';
 	import ErrorPopup from '../../components/ErrorPopup.svelte';
 	import { onMount } from 'svelte';
 	let caption = '';
 	let error = '';
-	let postData = {};
+	let postData: {};
+	let library;
+	let id;
+	let type;
 
 	errorMessage.subscribe((value) => {
 		error = value;
 	});
 
+	async function getContent(data: any){
+		try{
+			const response: any = await get(`me/library/${data.library}/${data.type}?id=${data.id}`);
+			return response;
+		}catch(e){
+			throwError('Failed to get content');
+		}
+	}
 	async function postPost(){
 		try{
-			const request = await post(`me/posts`, postData);
+			const request = await post(`me/posts`, {postData, caption} );
 			return request;
 		}catch(e){
 			throwError('Failed to post item');
 		}
 	}
 
+	async function handleSubmit(event: Event){
+		event.preventDefault();
+		const response = await postPost();
+		if(response){
+			window.location.href = '/profile/library';
+		}else{
+			throwError('Failed to post item');
+			window.location.href = '/profile/library';
+		}
+	}
+
 onMount(async () => {
 	const params = new URLSearchParams(window.location.search);
-	const library = params.get('library');
-	const id = params.get('id');
-	const type = params.get('type');
-	postData = {library, id, type};
+	 library = params.get('library');
+	 id = params.get('id');
+	 type = params.get('type');
+	postData = {library, type, id};
+	await getContent(postData);
 });
 
 </script>
@@ -37,10 +58,12 @@ onMount(async () => {
 <NavBar current_page="/newpost"></NavBar>
 <Panel title="New Post">
 	<div class="form">
-		<div class="caption">
-			<TextInput placeholder="Insert a caption" bind:value={caption}></TextInput>
-		</div>
-		<Button buttonText="Upload post" on:click={async () => await postPost()}/>
+		<form on:submit={handleSubmit}>
+			<input type="text" placeholder="Insert caption here"  bind:value={caption} class="caption">
+			<div class="submit">
+				<input type="submit" value="Upload your post"/>
+			</div>
+		</form>
 		{#if error}
 			<ErrorPopup message={error}></ErrorPopup>
 		{/if}
@@ -55,7 +78,11 @@ onMount(async () => {
 
 	.caption {
 		width: 25rem;
-		height: 2rem;
+		height: 5rem;
 		margin-bottom: 0.25rem;
+	}
+
+	.submit{
+		margin-top: 3rem;
 	}
 </style>
