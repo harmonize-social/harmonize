@@ -165,7 +165,7 @@ func SaveSpotifyAlbums(albums *spotify.SavedAlbumPage) ([]models.PlatformAlbum, 
         for _, track := range album.Tracks.Tracks {
             var songId uuid.UUID
             var songPlatformId uuid.UUID
-            err := Pool.QueryRow(context.Background(), insertSongStatment, "spotify", albumId, track.ID.String(), track.Name, track.Album.Images[0].URL, track.PreviewURL).Scan(&songId, &songPlatformId)
+            err := Pool.QueryRow(context.Background(), insertSongStatment, "spotify", albumId, track.ID.String(), track.Name, album.Images[0].URL, track.PreviewURL).Scan(&songId, &songPlatformId)
             if err != nil {
                 fmt.Println(err)
                 return independentAlbums, err
