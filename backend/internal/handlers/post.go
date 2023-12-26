@@ -241,22 +241,22 @@ func GetUserPosts(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Check if current user is followed by the user (privacy restrictions)
+    // Get the users that have the username specified, and username follows user.id
 
-    sqlStatement := `SELECT users.id FROM users JOIN follows ON users.id = follows.followed_id WHERE users.username = $1 AND follows.followed_id = $2`
+    sqlStatement := `SELECT id FROM users WHERE username = $1 AND id IN (SELECT follower_id FROM follows WHERE followed_id = $2)`
 
     var followedId uuid.UUID
-
     err = repositories.Pool.QueryRow(context.Background(), sqlStatement, username, user.ID).Scan(&followedId)
     if err != nil {
-        models.Error(w, http.StatusInternalServerError, "Error getting posts")
+        models.Error(w, http.StatusInternalServerError, "You are not followed by this user")
+        fmt.Println(err.Error())
         return
     }
 
     sqlStatement = `SELECT posts.id, posts.created_at, posts.caption, posts.type, posts.type_specific_id, users.username,
                          COUNT(liked_posts.post_id) AS like_count,
-                         COUNT(CASE WHEN liked_posts.user_id = $1 THEN 1 END) > 0 AS user_has_liked,
-                         COUNT(CASE WHEN saved_posts.user_id = $1 THEN 1 END) > 0 AS user_has_saved
+                         COUNT(CASE WHEN liked_posts.user_id = users.id THEN 1 END) > 0 AS user_has_liked,
+                         COUNT(CASE WHEN saved_posts.user_id = users.id THEN 1 END) > 0 AS user_has_saved
                      FROM posts
                      JOIN users ON posts.user_id = users.id
                      LEFT JOIN liked_posts ON liked_posts.post_id = posts.id
@@ -270,6 +270,7 @@ func GetUserPosts(w http.ResponseWriter, r *http.Request) {
 
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Error getting posts")
+        fmt.Println("here1: ", err.Error())
         return
     }
 
@@ -280,6 +281,7 @@ func GetUserPosts(w http.ResponseWriter, r *http.Request) {
         err = rows.Scan(&post.ID, &post.CreatedAt, &post.Caption, &post.Type, &typeSpecificId, &post.Username, &post.LikeCount, &post.HasLiked, &post.HasSaved)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Error getting posts")
+            fmt.Println("here2: ", err.Error())
             return
         }
         var content interface{}
@@ -305,6 +307,7 @@ func GetUserPosts(w http.ResponseWriter, r *http.Request) {
         rows, err := repositories.Pool.Query(context.Background(), sqlStatement, post.ID)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Failed to get comments")
+            fmt.Println(err.Error())
             return
         }
         defer rows.Close()
@@ -315,6 +318,7 @@ func GetUserPosts(w http.ResponseWriter, r *http.Request) {
             err = rows.Scan(&comment.ID, &comment.PostId, &comment.Username, &comment.ReplyToId, &comment.Message, &comment.CreatedAt)
             if err != nil {
                 models.Error(w, http.StatusInternalServerError, "Failed to get comments")
+                fmt.Println(err.Error())
                 return
             }
             comments = append(comments, comment)
