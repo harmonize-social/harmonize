@@ -2,7 +2,7 @@
     import Panel from "../../../components/Panel.svelte";
     import NavBar from "../../../components/NavBar.svelte";
     import Post from "../../../components/Post.svelte";
-	import { get, throwError} from "../../../fetch";
+	import {  get, throwError} from "../../../fetch";
 	import type PostModel from "../../../models/post";
 	import { onMount } from "svelte";
 	import ErrorPopup from "../../../components/ErrorPopup.svelte";
@@ -48,7 +48,6 @@
 <NavBar current_page="/me/saved"></NavBar>
 <Panel title="Your liked posts">
     <div class="liked-container" on:scroll={onScroll} >
-
         {#each liked_posts as post}
             <div class="post">
                 <Post content={post.content} caption={post.caption} likes={post.likeCount} id={post.id} typez={post.type}></Post>

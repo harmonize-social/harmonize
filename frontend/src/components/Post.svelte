@@ -8,67 +8,72 @@
 	import Artist from './Artist.svelte';
 	import ActionButton from './ActionButton.svelte';
 	import {  delete_, post, throwError } from '../fetch.js';
+
 	export let content: any;
 	let comments: CommentModel[] = [];
 	export let caption: PostModel['caption'];
 	export let likes: PostModel['likeCount'];
 	export let id: PostModel['id'];
 	export let typez: string;
+	let isLiked: boolean = false;
+	let isSaved: boolean = false;
 
-	// async function getArtists(): Promise<ArtistModel[]> {
-	// 	try {
-	// 		const response: ArtistModel[] = await get<ArtistModel[]>(`/artists?id=${id}`);
-	// 		return response;
-	// 	} catch (error) {
-	// 		throwError('Error fetching artists');
-	// 		return [];
-	// 	}
-	// }
-	// async function getComments(): Promise<CommentModel[]> {
-	// 	try {
-	// 		const response: CommentModel[] = await get<CommentModel[]>(`/comments?id=${id}`);
-	// 		return response;
-	// 	} catch (error) {
-	// 		throwError('Error fetching comments');
-	// 		return [];
-	// 	}
-	// }
-	async function postLike(): Promise<number> {
+	async function postLike(id: string): Promise<string> {
 		try {
-			const response: number = await post<number, number>(`/likes?id=${id}`, 0);
+			const response: string = await post<string, string>(`/likes?id=${id}`, id);
 			return response;
 		} catch (error) {
 			throwError('Error posting like');
-			return 0;
+			return error as string;
 		}
 	}
-	async function postSave(): Promise<number> {
+	async function postSave(id: string): Promise<string> {
 		try {
-			const response: number = await post<number, number>(`/me/saved?id=${id}`, 0);
+			const response: string = await post<string, string>(`/me/saved?id=${id}`, id);
 			return response;
 		} catch (error) {
 			throwError('Error posting save');
-			return 0;
+			return error as string;
 		}
 	}
 
-	async function deleteLike(): Promise<number> {
+	async function deleteLike(id: string): Promise<string> {
 		try {
-			const response: number = await delete_<number>(`/likes?id=${id}`);
+			const response: string = await delete_<string>(`/likes?id=${id}`);
 			return response;
 		} catch (error) {
 			throwError('Error deleting like');
-			return 0;
+			return error as string;
 		}
 	}
 
-	async function deleteSave(): Promise<number> {
+	async function deleteSave(id: string): Promise<string> {
 		try {
-			const response: number = await delete_<number>(`/me/saved?id=${id}`);
+			const response: string = await delete_<string>(`/me/saved?id=${id}`);
 			return response;
 		} catch (error) {
 			throwError('Error deleting save');
-			return 0;
+			return error as string;
+		}
+	}
+
+	async function toggleLikeButton(id: string){
+		if(isLiked){
+			await postLike(id);
+			isLiked = !isLiked;
+		}else{
+			await deleteLike(id);
+			isLiked = !isLiked;
+		}
+	}
+
+	async function toggleSaveButton(id: string){
+		if(isSaved){
+			await postSave(id);
+			isSaved = !isSaved;
+		}else{
+			await deleteSave(id);
+			isSaved = !isSaved;
 		}
 	}
 </script>
@@ -91,8 +96,8 @@
 		<Comment {content} />
 	{/each}
 	<h4>Likes: {likes}</h4>
-	<ActionButton type="like" on:click={postLike} />
-	<ActionButton type="save" on:click={postSave} />
+	<ActionButton type="like" on:click={async () => await toggleLikeButton(id)} />
+	<ActionButton type="save" on:click={async () => await toggleSaveButton(id)} />
 </div>
 
 <style>
