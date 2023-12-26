@@ -8,19 +8,12 @@ import (
     "fmt"
     "io"
     "net/http"
-    "os"
     "time"
 
     "github.com/google/uuid"
     "github.com/markbates/goth/providers/deezer"
     deezer2 "github.com/stayradiated/deezer"
     "github.com/zmb3/spotify/v2/auth"
-)
-
-const (
-    SPOTIFY_REDIRECT = "http://127.0.0.1:8080/api/v1/oauth/callback/spotify"
-    DEEZER_REDIRECT  = "http://127.0.0.1:8080/api/v1/oauth/callback/deezer"
-    TEST_SESSION     = "df8d8816-3280-41aa-9e27-ec60ba297c9e"
 )
 
 type Url struct {
@@ -33,9 +26,9 @@ type Tokens struct {
 }
 
 func DeezerProvider() *deezer.Provider {
-    id := os.Getenv("DEEZER_CLIENT_ID")
-    secret := os.Getenv("DEEZER_SECRET")
-    provider := deezer.New(id, secret, DEEZER_REDIRECT, "basic_access", "email", "offline_access", "manage_library", "manage_community", "delete_library", "listening_history")
+    id := repositories.DeezerClientId
+    secret := repositories.DeezerSecret
+    provider := deezer.New(id, secret, repositories.DeezerRedirect, "basic_access", "email", "offline_access", "manage_library", "manage_community", "delete_library", "listening_history")
     return provider
 }
 
@@ -59,7 +52,7 @@ func SpotifyURL(csrf string) (string, error) {
 
 func GetSpotifyAuthenticator(csrf string) spotifyauth.Authenticator {
     auth := spotifyauth.New(
-        spotifyauth.WithRedirectURL(SPOTIFY_REDIRECT),
+        spotifyauth.WithRedirectURL(repositories.SpotifyRedirect),
         spotifyauth.WithScopes(
             spotifyauth.ScopeImageUpload,
             spotifyauth.ScopePlaylistReadPrivate,
@@ -79,8 +72,8 @@ func GetSpotifyAuthenticator(csrf string) spotifyauth.Authenticator {
             spotifyauth.ScopeUserTopRead,
             spotifyauth.ScopeStreaming,
         ),
-        spotifyauth.WithClientID(os.Getenv("SPOTIFY_CLIENT_ID")),
-        spotifyauth.WithClientSecret(os.Getenv("SPOTIFY_SECRET")),
+        spotifyauth.WithClientID(repositories.SpotifyClientId),
+        spotifyauth.WithClientSecret(repositories.SpotifySecret),
     )
     return *auth
 }
@@ -135,6 +128,7 @@ func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusInternalServerError, "Internal server error")
         return
     }
+    models.Result(w, "Ok")
 }
 
 type DeezerAccessToken struct {

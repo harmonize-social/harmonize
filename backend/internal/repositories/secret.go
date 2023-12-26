@@ -11,9 +11,11 @@ var Secret []byte
 
 var SpotifySecret string
 var SpotifyClientId string
+var SpotifyRedirect string
 
 var DeezerSecret string
 var DeezerClientId string
+var DeezerRedirect string
 
 func LoadSecret() error {
     EnvSecret := os.Getenv("BACKEND_SECRET")
@@ -49,6 +51,15 @@ func LoadDeezerEnv() error {
     return nil
 }
 
+func LoadCallbackURLs() error {
+    SpotifyRedirect = os.Getenv("SPOTIFY_REDIRECT")
+    DeezerRedirect = os.Getenv("DEEZER_REDIRECT")
+    if SpotifyRedirect == "" || DeezerRedirect == "" {
+        return fmt.Errorf("SPOTIFY_REDIRECT or DEEZER_REDIRECT not set")
+    }
+    return nil
+}
+
 func LoadEnv() {
     err := LoadSecret()
     if err != nil {
@@ -66,5 +77,9 @@ func LoadEnv() {
     err = LoadDeezerEnv()
     if err != nil {
         fmt.Println("Warning: Deezer environment variables not set")
+    }
+    err = LoadCallbackURLs()
+    if err != nil {
+        fmt.Println("Warning: Callback URLs not set")
     }
 }
