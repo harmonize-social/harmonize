@@ -6,22 +6,31 @@
 	import { post, throwError } from '../../fetch';
 	import { errorMessage } from '../../store';
 	import ErrorPopup from '../../components/ErrorPopup.svelte';
-	let data: {};
-	let caption = 'Caption';
+	import { onMount } from 'svelte';
+	let caption = '';
 	let error = '';
+	let postData = {};
+
 	errorMessage.subscribe((value) => {
 		error = value;
 	});
 
-	async function handleInput() {
-		try {
-			const request: {} = await post('/me/newpost', caption);
-			data = request;
-		} catch (e) {
+	async function postPost(){
+		try{
+			const request = await post(`me/posts`, postData);
+			return request;
+		}catch(e){
 			throwError('Failed to post item');
 		}
 	}
 
+onMount(async () => {
+	const params = new URLSearchParams(window.location.search);
+	const library = params.get('library');
+	const id = params.get('id');
+	const type = params.get('type');
+	postData = {library, id, type};
+});
 
 </script>
 
@@ -31,7 +40,7 @@
 		<div class="caption">
 			<TextInput placeholder="Insert a caption" bind:value={caption}></TextInput>
 		</div>
-		<Button buttonText="Get the music on your platform!" link="/connection" on:click={handleInput}/>
+		<Button buttonText="Upload post" on:click={async () => await postPost()}/>
 		{#if error}
 			<ErrorPopup message={error}></ErrorPopup>
 		{/if}
