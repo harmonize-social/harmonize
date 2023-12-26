@@ -96,12 +96,14 @@ CREATE TABLE IF NOT EXISTS platforms(
 
 CREATE TABLE IF NOT EXISTS artists(
     id UUID PRIMARY KEY,
-    name VARCHAR(1024) NOT NULL
+    name VARCHAR(1024) NOT NULL,
+    media_url VARCHAR(1024) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS albums(
     id UUID PRIMARY KEY,
-    name VARCHAR(1024) NOT NULL
+    name VARCHAR(1024) NOT NULL,
+    media_url VARCHAR(1024) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS artists_album(
@@ -114,12 +116,15 @@ CREATE TABLE IF NOT EXISTS artists_album(
 CREATE TABLE IF NOT EXISTS songs(
     id UUID PRIMARY KEY,
     name VARCHAR(1024) NOT NULL,
-    album_id UUID REFERENCES albums (id) NOT NULL
+    album_id UUID REFERENCES albums (id) NOT NULL,
+    media_url VARCHAR(1024) NOT NULL,
+    preview_url VARCHAR(1024) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS playlists(
     id UUID PRIMARY KEY,
-    name VARCHAR(1024) NOT NULL
+    name VARCHAR(1024) NOT NULL,
+    media_url VARCHAR(1024) NOT NULL
 );
 
 
