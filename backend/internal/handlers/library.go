@@ -219,7 +219,7 @@ func DeleteConnectedPlatformHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    _, err = repositories.Pool.Exec(r.Context(), "DELETE FROM libraries WHERE user_id = $1 AND platform_id = $2", user.ID, platform)
+    _, err = repositories.Pool.Exec(r.Context(), "DELETE FROM libraries WHERE connection_id = $1 AND platform_id = $2", connectionId, platform)
     if err != nil {
         fmt.Println("2:", err)
         models.Error(w, http.StatusInternalServerError, "Internal server error")
