@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { get, post, throwError } from '../../../fetch';
+    import { get, delete_, throwError } from '../../../fetch';
     import Panel from '../../../components/Panel.svelte';
     import deezerIcon from '../../../lib/assets/deezer-logo-coeur.jpg';
     import spotifyIcon from '../../../lib/assets/Spotify_App_Logo.svg.png';
@@ -30,6 +30,18 @@
         try {
             let data = await get('/me/library/unconnected');
             unconnected = new Map<string, string>(Object.entries(data));
+        } catch (e) {
+            throwError('Internal server error');
+        }
+    }
+
+    async function deleteConnection(platform: string) {
+        try {
+            //await _delete('/me/library/disconnect?platofmr', { platform: platform });
+            await delete_(`/me/library/disconnect?platform={platform}`);
+            await getConnected();
+            await getUnconnected();
+            updateUI();
         } catch (e) {
             throwError('Internal server error');
         }
@@ -84,10 +96,10 @@
             Your current connections:
             <ul>
                 {#if showSpotifyConnected == true}
-                    <li>Spotify</li>
+                    <button on:click={() => deleteConnection('spotify')}>Disconnect Spotify</button>
                 {/if}
                 {#if showDeezerConnected == true}
-                    <li>Deezer</li>
+                    <button on:click={() => deleteConnection('deezer')}>Disconnect Deezer</button>
                 {/if}
             </ul>
         </div>
