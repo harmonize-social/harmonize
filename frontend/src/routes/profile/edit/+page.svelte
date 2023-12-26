@@ -47,7 +47,7 @@
                 password: newPassword,
             };
 
-            const response = await post('/user/update', updatedInfo); 
+            const response = await post('/me/update', updatedInfo); 
 
             console.log('Gebruikersinformatie succesvol bijgewerkt:', response);
         } catch (e) {
