@@ -78,7 +78,7 @@ func SaveSpotifySongs(tracks *spotify.SavedTrackPage) ([]models.PlatformSong, er
     for i, track := range tracks.Tracks {
         var albumId uuid.UUID
         var albumPlatformId string
-        err := Pool.QueryRow(context.Background(), insertAlbumStatment, "spotify", track.Album.ID.String(), track.Album.Name, track.Album.Images[0]).Scan(&albumId, &albumPlatformId)
+        err := Pool.QueryRow(context.Background(), insertAlbumStatment, "spotify", track.Album.ID.String(), track.Album.Name, track.Album.Images[0].URL).Scan(&albumId, &albumPlatformId)
         if err != nil {
             return independentTracks, err
         }
@@ -145,7 +145,7 @@ func SaveSpotifyAlbums(albums *spotify.SavedAlbumPage) ([]models.PlatformAlbum, 
             }
             var artistID uuid.UUID
             var artistPlatformId uuid.UUID
-            err := Pool.QueryRow(context.Background(), insertArtistStatment, "spotify", artist.ID.String(), artist.Name, "").Scan(&artistID, &artistPlatformId)
+            err := Pool.QueryRow(context.Background(), insertArtistStatment, "spotify", artist.ID.String(), artist.Name, album.Images[0].URL).Scan(&artistID, &artistPlatformId)
 
             if err != nil {
                 return independentAlbums, err
@@ -214,7 +214,7 @@ func SaveSpotifyPlaylists(playlists *spotify.SimplePlaylistPage, playlistTracks 
         for _, track := range tracks {
             var albumId uuid.UUID
             var albumPlatformId uuid.UUID
-            err := Pool.QueryRow(context.Background(), insertAlbumStatment, "spotify", track.Album.ID.String(), track.Album.Name, track.Album.Images[0].URL, track.PreviewURL).Scan(&albumId, &albumPlatformId)
+            err := Pool.QueryRow(context.Background(), insertAlbumStatment, "spotify", track.Album.ID.String(), track.Album.Name, track.Album.Images[0].URL).Scan(&albumId, &albumPlatformId)
             if err != nil {
                 return independentPlaylists, err
             }
@@ -245,7 +245,7 @@ func SaveSpotifyPlaylists(playlists *spotify.SimplePlaylistPage, playlistTracks 
             }
             var songId uuid.UUID
             var songPlatformId uuid.UUID
-            err = Pool.QueryRow(context.Background(), insertSongStatment, "spotify", albumId, track.ID.String(), track.Name, track.Album.Images[0].URL, track.PreviewURL).Scan(&songId, &songPlatformId)
+            err = Pool.QueryRow(context.Background(), insertSongStatment, "spotify", albumId, track.ID.String(), track.Name, "", track.PreviewURL).Scan(&songId, &songPlatformId)
             if err != nil {
                 return independentPlaylists, err
             }

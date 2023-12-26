@@ -173,6 +173,7 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
         tracks, err := client.GetPlaylistItems(context.Background(), spotify.ID(playlist.ID), spotify.Limit(100))
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+            fmt.Println(err)
             return
         }
         playlistTracks[playlist.ID.String()] = make([]spotify.FullTrack, 0)
@@ -188,6 +189,7 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
 
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        fmt.Println(err)
         return
     }
 
