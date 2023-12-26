@@ -66,7 +66,7 @@ async function handleLogout() {
 }
 
 </style>
-<NavBar current_page="/profile/settings"></NavBar>
+<NavBar current_page="/me/profile/settings"></NavBar>
 <Panel title="Settings">
     <div class="buttons">
         <div class="notifications">

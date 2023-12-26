@@ -1,4 +1,5 @@
 <script lang="ts">
+	import ErrorPopup from './../../../components/ErrorPopup.svelte';
 	import Button from './../../../components/Button.svelte';
 	import Panel from '../../../components/Panel.svelte';
 	import NavBar from './../../../components/NavBar.svelte';
@@ -6,86 +7,64 @@
 	import type PostModel from '../../../models/post';
 	import Post from '../../../components/Post.svelte';
 	import { onMount } from 'svelte';
-	import Followers from '../../../components/Followers.svelte';
-	import Following from '../../../components/Following.svelte';
+	import { errorMessage } from '../../../store';
+
 	let posts: PostModel[] = [];
-	let followers: string[] = [];
-	let following: string []= [];
-    let follows: boolean = true;
-	async function getData() {
-		try {
-			const response: string = await get('/api/v1/{user_id}');
-			posts = JSON.parse(response);
-		} catch (e) {
-			throwError('Internal server error');
-		}
-	}
-	async function getFollowers() {
-		try {
-			const response: string = await get('/api/v1/{user_id}/followers');
-			followers = JSON.parse(response);
-		} catch (e) {
-			throwError('Internal server error');
-		}
-	}
-	async function getFollowing() {
-		try {
-			const response: string = await get('/api/v1/{user_id}/following');
-			following = JSON.parse(response);
-		} catch (e) {
-			throwError('Internal server error');
-		}
-	}
-	onMount(getData);
-	onMount(getFollowers);
-	onMount(getFollowing);
+	let username: string;
+	let follows: boolean = true;
+	let loading = false;
+	let error = '';
 
-	//https://svelte.dev/repl/4c5dfd34cc634774bd242725f0fc2dab?version=3.46.4 (dropdown handling)
-	let isDropdownOpen = false;
-	const handleDropdownClick = () => {
-		isDropdownOpen = !isDropdownOpen;
+	errorMessage.subscribe((value) => {
+		error = value;
+	});
+
+	async function fetchPosts(): Promise<PostModel[]> {
+		try {
+			const response: PostModel[] = await get<PostModel[]>(`/posts?username=${username}`);
+			posts = response;
+			return posts;
+		} catch (e) {
+			throwError('Error fetching posts');
+			return [];
+		} finally {
+			loading = false;
+		}
+	}
+	onMount(() => {
+		fetchPosts().then((fetchedPosts) => {
+			posts = fetchedPosts;
+		});
+	});
+
+	function onScroll(event: Event) {
+		const target = event.target as HTMLElement;
+		if (target.scrollHeight - target.scrollTop === target.clientHeight) {
+			loadMorePosts();
+		}
+	}
+	async function loadMorePosts() {
+		if (loading) return;
+		const morePosts = await fetchPosts();
+		posts = [...posts, ...morePosts];
+	}
+
+	let isClicked = false;
+	const handleButtonClick = () => {
+		isClicked = !isClicked;
+		follows = !follows;
 	};
-
-	const handleDropdownFocusLoss = (event: FocusEvent) => {
-		const { currentTarget, relatedTarget } = event; // relatedTarget: HTMLElement;
-		// use "focusout" event to ensure that we can close the dropdown when clicking outside or when we leave the dropdown with the button
-		if (relatedTarget instanceof HTMLElement && (currentTarget as Node).contains(relatedTarget))
-			return; // check if the new focus target doesn't present in the dropdown tree
-		isDropdownOpen = false;
-	};
-
-    let isClicked = false;
-    const handleButtonClick = () => {
-        isClicked = !isClicked;
-        follows = !follows;
-
-    }
 </script>
 
 <!-- navbar -->
 <div class="nav">
-	<NavBar current_page={'/{user_id}'}></NavBar>
+	<NavBar current_page={`/user/${username}`}></NavBar>
 </div>
 <!-- profile -->
 <div class="profile-container">
 	<div class="user-container">
-		<!-- username + followers/following + link to saved and library -->
 		<div class="user">
-			<h2 class="username">Username</h2>
-			<div class="following" on:focusout={handleDropdownFocusLoss}>
-				<Button buttonText="Following" on:click={handleDropdownClick}
-				></Button><!-- generate a dropdown with all the following-->
-				<div class="followingDropdown" style:visibility={isDropdownOpen ? 'visible' : 'hidden'}>
-					<Following {following} />
-				</div>
-			</div>
-			<div class="followers" on:focusout={handleDropdownFocusLoss}>
-				<Button buttonText="Followers" on:click={handleDropdownClick}></Button>
-				<!-- generate a dropdown with all the followers-->
-				<div class="followersDropdown" style:visibility={isDropdownOpen ? 'visible' : 'hidden'}>
-					<Followers {followers} />
-				</div>
-			</div>
+			<h2 class="username">{username}</h2>
 			<div class="bio">
 				<p>
 					Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
@@ -93,28 +72,39 @@
 				</p>
 			</div>
 			<div class="follow_button">
-                {#if isClicked && follows}
-				<Button buttonText="Unfollow" on:click={handleButtonClick}></Button>
-                {:else}
-                <Button buttonText="Follow" on:click={handleButtonClick}></Button>
-                {/if}
+				{#if isClicked && follows}
+					<Button buttonText="Unfollow" on:click={handleButtonClick}></Button>
+				{:else}
+					<Button buttonText="Follow" on:click={handleButtonClick}></Button>
+				{/if}
 			</div>
 		</div>
 	</div>
 	<!-- personal feed -->
-	<div class="feed-container">
-		<Panel title="Your feed">
+	<div class="feed-container" on:scroll={onScroll}>
+		<Panel title={`${username}'s posts`}>
 			<div class="feed">
-				{#each posts as post, i}
-					<div class="post" id={'post' + (i + 1)}>
-						<Post caption={post.caption} likes={post.likes}></Post>
+				{#each posts as post}
+					<div class="post">
+						<Post
+							content={post.content}
+							caption={post.caption}
+							likes={post.likeCount}
+							id={post.id}
+							typez={post.type}
+						/>
 					</div>
 				{/each}
+				{#if loading}
+					<p>Loading more posts...</p>
+				{/if}
+				{#if error}
+					<ErrorPopup message={error}></ErrorPopup>
+				{/if}
 			</div>
 		</Panel>
 	</div>
 </div>
-<!-- TODO: Check dropdowns -->
 
 <style>
 	.profile-container {
@@ -142,14 +132,6 @@
 	}
 	.username {
 		grid-area: username;
-	}
-	.following {
-		grid-area: following;
-		margin-top: 0.5rem;
-	}
-	.followers {
-		grid-area: followers;
-		margin-top: 0.5rem;
 	}
 	.bio {
 		margin-top: 2rem;

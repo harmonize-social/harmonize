@@ -84,19 +84,6 @@
 	onMount(async () => {
 		await getLibrary();
 	});
-
-	async function syncLibrary(): Promise<void> {
-		try {
-			for (let category of [songs, albums, playlists, artists]) {
-				const response = await post(`/me/sync`, category);
-
-				// Update the state with the new data
-				// This part depends on how your API responds and how you want to handle the response
-			}
-		} catch (e) {
-			throwError('Internal server error');
-		}
-	}
 </script>
 
 <NavBar current_page="/me/saved"></NavBar>
@@ -200,8 +187,6 @@
 				</Button>
 			</div>
 		{/each}
-
-		<Button buttonText="Sync Library" on:click={syncLibrary}></Button>
 		<div class="new-post-button">
 			<Button buttonText="New Post" link="/me/newpost"></Button>
 		</div>
