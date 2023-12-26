@@ -196,6 +196,23 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
     models.Result(w, independentPlaylists)
 }
 
+func DeleteConnectedPlatformHandler(w http.ResponseWriter, r *http.Request) {
+    platform := r.URL.Query().Get("platform")
+    id := uuid.MustParse(r.Header.Get("id"))
+    user, err := getUserFromSession(id)
+    if err != nil {
+        models.Error(w, http.StatusUnauthorized, "Malformed session")
+        return
+    }
+    _, err = repositories.Pool.Exec(r.Context(), "DELETE FROM libraries WHERE connection_id = (SELECT id FROM connections WHERE user_id = $1 AND platform_id = $2)", user.ID, platform)
+    if err != nil {
+        models.Error(w, http.StatusInternalServerError, "Internal server error")
+        return
+    }
+    _, err = repositories.Pool.Exec(r.Context(), "DELETE FROM connections WHERE user_id = $1 AND platform_id = $2", user.ID, platform)
+    models.Result(w, "Success")
+}
+
 func ConnectedPlatforumsHandler(w http.ResponseWriter, r *http.Request) {
     id := uuid.MustParse(r.Header.Get("id"))
     user, err := getUserFromSession(id)
