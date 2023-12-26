@@ -14,7 +14,6 @@ import (
 
 func FullRouter() *mux.Router {
     router := mux.NewRouter()
-    router.HandleFunc("/api/v1/oauth/callback/spotify", handlers.SpotifyCallback).Methods(http.MethodGet, http.MethodOptions)
     mount(router, "/api/v1/users", UserRouter())
     mount(router, "/api/v1", authedRoutes())
     return router
@@ -49,7 +48,7 @@ func authedRoutes() *mux.Router {
     router := mux.NewRouter()
 
     mount(router, "/me", MeRouter())
-    mount(router, "/oauth", OAuthRouter())
+    mount(router, "/oauth/callback", OAuthRouter())
     router.HandleFunc("/posts", handlers.GetUserPosts).Methods("GET")
     router.HandleFunc("/comment", handlers.CreateComment).Methods("POST")
     router.HandleFunc("/comment", handlers.DeleteComment).Methods("DELETE")
