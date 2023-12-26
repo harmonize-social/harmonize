@@ -38,7 +38,7 @@
     async function deleteConnection(platform: string) {
         try {
             //await _delete('/me/library/disconnect?platofmr', { platform: platform });
-            await delete_(`/me/library/disconnect?platform={platform}`);
+            await delete_(`/me/library/disconnect?platform=${platform}`);
             await getConnected();
             await getUnconnected();
             updateUI();
