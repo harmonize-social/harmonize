@@ -123,18 +123,18 @@ func GetFeed(w http.ResponseWriter, r *http.Request) {
 
 func getArtist(Id uuid.UUID) (models.Artist, error) {
     var artist models.Artist
-    err := repositories.Pool.QueryRow(context.Background(), `SELECT * FROM artists WHERE id = $1;`, Id).Scan(&artist.ID, &artist.Name)
+    err := repositories.Pool.QueryRow(context.Background(), `SELECT * FROM artists WHERE id = $1;`, Id).Scan(&artist.ID, &artist.Name, &artist.MediaURL)
     return artist, err
 }
 
 func getAlbum(Id uuid.UUID) (models.Album, error) {
     var album models.Album
-    err := repositories.Pool.QueryRow(context.Background(), `SELECT id, name FROM albums WHERE id = $1;`, Id).Scan(&album.ID, &album.Title)
+    err := repositories.Pool.QueryRow(context.Background(), `SELECT id, name, media_url FROM albums WHERE id = $1;`, Id).Scan(&album.ID, &album.Title, &album.MediaURL)
     if err != nil {
         return album, err
     }
-    var artists []models.Artist
-    rows, err := repositories.Pool.Query(context.Background(), `SELECT artists.id, artists.name FROM artists JOIN artists_album ON artists.id = artists_album.artist_id WHERE artists_album.album_id = $1;`, Id)
+    artists := make([]models.Artist, 0)
+    rows, err := repositories.Pool.Query(context.Background(), `SELECT artists.id, artists.name FROM artists JOIN artists_album ON artists.id = artists_album.artist_id WHERE artists_album.album_id = $1 GROUP BY artists.id;`, Id)
     if err != nil {
         return album, err
     }
@@ -147,14 +147,14 @@ func getAlbum(Id uuid.UUID) (models.Album, error) {
         artists = append(artists, artist)
     }
     album.Artists = artists
-    rows, err = repositories.Pool.Query(context.Background(), `SELECT id, name FROM songs WHERE album_id = $1;`, Id)
+    rows, err = repositories.Pool.Query(context.Background(), `SELECT id, name, preview_url FROM songs WHERE album_id = $1;`, Id)
     if err != nil {
         return album, err
     }
-    var songs []models.Song
+    songs := make([]models.Song, 0)
     for rows.Next() {
         var song models.Song
-        err = rows.Scan(&song.ID, &song.Title)
+        err = rows.Scan(&song.ID, &song.Title, &song.PreviewURL)
         if err != nil {
             return album, err
         }
