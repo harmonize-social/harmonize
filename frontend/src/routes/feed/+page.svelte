@@ -6,16 +6,16 @@
     import NavBar from '../../components/NavBar.svelte';
     import { get, throwError } from '../../fetch';
     import Button from '../../components/Button.svelte';
-	import { errorMessage } from '../../store';
+    import { errorMessage } from '../../store';
     import ErrorPopup from '../../components/ErrorPopup.svelte';
-    
+
     let posts: PostModel[] = [];
     let loading: boolean = false;
     let error = '';
-	errorMessage.subscribe((value) => {
-		error = value;
-	});
-  
+    errorMessage.subscribe((value) => {
+        error = value;
+    });
+
     async function fetchPosts(): Promise<PostModel[]> {
       try {
         loading = true;
@@ -28,14 +28,14 @@
         loading = false;
       }
     }
-    
+
     onMount(() => {
-      
+
       fetchPosts().then(fetchedPosts => {
         posts = fetchedPosts;
       });
     });
-    
+
     function onScroll(event: Event) {
       const target = event.target as HTMLElement;
       if (target.scrollHeight - target.scrollTop === target.clientHeight) {
@@ -48,12 +48,12 @@
       posts = [...posts, ...morePosts];
     }
   </script>
-  
+
   <NavBar current_page='/me/feed'></NavBar>
   <Panel title="">
     <div class="feed-container" on:scroll={onScroll}>
       {#each posts as post}
-        <Post content={post.content} caption={post.caption} likes={post.likeCount} id={post.id} typez={post.type}/>
+        <Post content={post.content} caption={post.caption} likes={post.likeCount} id={post.id} typez={post.type} isSaved={post.hasSaved} isLiked={post.hasLiked}/>
       {/each}
       {#if loading}
         <p>Loading more posts...</p>
@@ -79,7 +79,7 @@
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    
+
     color: white;
     border: none;
     font-size: 2rem;
@@ -92,4 +92,3 @@
     z-index: 1000; /* Ensure it's above other elements */
   }
   </style>
-  
