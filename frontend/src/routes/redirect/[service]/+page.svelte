@@ -1,10 +1,13 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { get } from '../../fetch';
+    import { get } from '../../../fetch';
     let error = '';
+
+    import { page } from '$app/stores';
 
     onMount(async () => {
         let queryParams = new URLSearchParams(window.location.search);
+        let service = $page.params.service;
         let state = queryParams.get('state');
         let code = queryParams.get('code');
         if (!code) {
@@ -16,7 +19,7 @@
             return;
         }
         try {
-            let response = await get(`/oauth/callback/spotify?state=${state}&code=${code}`);
+            let response = await get(`/oauth/callback/${service}?state=${state}&code=${code}`);
             window.location.href = '/profile';
         } catch (e) {
             if (e instanceof Error) {
