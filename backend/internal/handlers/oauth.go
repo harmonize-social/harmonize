@@ -136,6 +136,13 @@ type DeezerAccessToken struct {
 }
 
 func DeezerCallback(w http.ResponseWriter, r *http.Request) {
+    session := r.URL.Query().Get("state")
+    user, err := getUserFromSession(uuid.MustParse(session))
+    if err != nil {
+        fmt.Printf("Error: %s", err.Error())
+        models.Error(w, http.StatusUnauthorized, "Invalid token")
+        return
+    }
     provider := DeezerProvider()
     code := r.URL.Query().Get("code")
     url := "https://connect.deezer.com/oauth/access_token.php?app_id=" + provider.ClientKey + "&secret=" + provider.Secret + "&code=" + code + "&output=json"
@@ -165,10 +172,46 @@ func DeezerCallback(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintf(w, "%s", err)
         return
     }
-    var user deezer2.User
-    json.Unmarshal(body2, &user)
+    var deezerUser deezer2.User
+    json.Unmarshal(body2, &deezerUser)
     if err != nil {
         fmt.Fprintf(w, "%s", err)
         return
     }
+    connection := &models.Connection{
+        ID:           uuid.New(),
+        UserID:       user.ID,
+        AccessToken:  sessionActual.AccessToken,
+        RefreshToken: "",
+        Expiry:       time.Now().Add(time.Hour * 24 * 365 * 100),
+    }
+    sqlStatement := `INSERT INTO connections (id, user_id, access_token, refresh_token, expiry) VALUES ($1, $2, $3, $4, $5) RETURNING id`
+    var connectionID uuid.UUID
+    err2 := repositories.Pool.QueryRow(context.Background(),
+        sqlStatement,
+        connection.ID,
+        connection.UserID,
+        connection.AccessToken,
+        connection.RefreshToken,
+        connection.Expiry.Format(time.RFC3339)).Scan(&connectionID)
+    if err2 != nil {
+        fmt.Fprintf(w, "connection: %s\n\r", connection.UserID)
+        fmt.Fprintf(w, "Unable to execute the query. %s", err2)
+    }
+    sqlStatement = `
+    INSERT INTO libraries (platform_id, id, connection_id) VALUES ('deezer', uuid_generate_v4(), $1) RETURNING id;
+    `
+    tag, err := repositories.Pool.Exec(context.Background(),
+        sqlStatement,
+        connectionID)
+    if err != nil {
+        fmt.Printf("error: %v", err)
+        models.Error(w, http.StatusInternalServerError, "Internal server error")
+    }
+
+    if tag.RowsAffected() == 0 {
+        models.Error(w, http.StatusInternalServerError, "Internal server error")
+        return
+    }
+    models.Result(w, "Ok")
 }

@@ -196,6 +196,46 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
     models.Result(w, independentPlaylists)
 }
 
+func DeleteConnectedPlatformHandler(w http.ResponseWriter, r *http.Request) {
+    platform := r.URL.Query().Get("platform")
+    id := uuid.MustParse(r.Header.Get("id"))
+    user, err := getUserFromSession(id)
+    if err != nil {
+        models.Error(w, http.StatusUnauthorized, "Malformed session")
+        return
+    }
+
+    if platform == "" {
+        models.Error(w, http.StatusBadRequest, "Missing platform")
+        return
+    }
+
+    // Library has platform_id and connection_id, connection has user_id, so you have to join to get connection_id
+    var connectionId uuid.UUID
+    err = repositories.Pool.QueryRow(r.Context(), "SELECT connection_id FROM libraries JOIN connections ON libraries.connection_id = connections.id WHERE user_id = $1 AND platform_id = $2", user.ID, platform).Scan(&connectionId)
+    if err != nil {
+        fmt.Println("1:", err)
+        models.Error(w, http.StatusInternalServerError, "Internal server error")
+        return
+    }
+
+    _, err = repositories.Pool.Exec(r.Context(), "DELETE FROM libraries WHERE connection_id = $1 AND platform_id = $2", connectionId, platform)
+    if err != nil {
+        fmt.Println("2:", err)
+        models.Error(w, http.StatusInternalServerError, "Internal server error")
+        return
+    }
+
+    _, err = repositories.Pool.Exec(r.Context(), "DELETE FROM connections WHERE id = $1", connectionId)
+    if err != nil {
+        fmt.Println("2:", err)
+        models.Error(w, http.StatusInternalServerError, "Internal server error")
+        return
+    }
+
+    models.Result(w, "Success")
+}
+
 func ConnectedPlatforumsHandler(w http.ResponseWriter, r *http.Request) {
     id := uuid.MustParse(r.Header.Get("id"))
     user, err := getUserFromSession(id)
