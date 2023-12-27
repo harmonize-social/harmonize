@@ -13,7 +13,6 @@
     errorMessage.subscribe((value) => {
         error = value;
     });
-
     async function handleInput() {
         try {
             const urlParams = new URLSearchParams(window.location.search);
@@ -24,9 +23,9 @@
                 caption,
                 platform,
                 id,
-                type,
+                type
             });
-            goto("/feed")
+            goto('/feed');
         } catch (e) {
             throwError('Failed to post item');
         }
@@ -56,7 +55,11 @@
 
     .caption {
         width: 25rem;
-        height: 2rem;
+        height: 5rem;
         margin-bottom: 0.25rem;
+    }
+
+    .submit{
+        margin-top: 3rem;
     }
 </style>

@@ -1,33 +1,30 @@
 <script lang="ts">
     import NavBar from './../../../components/NavBar.svelte';
     import Panel from '../../../components/Panel.svelte';
-    import button from '../../../components/Button.svelte';
     import type SongModel from '../../../models/song';
     import type AlbumModel from '../../../models/album';
     import type PlaylistModel from '../../../models/playlist';
     import type ArtistModel from '../../../models/artist';
-    import { get, post, throwError } from '../../../fetch';
+    import { get, throwError } from '../../../fetch';
     import { onMount } from 'svelte';
     import Song from '../../../components/Song.svelte';
     import Album from '../../../components/Album.svelte';
     import Playlist from '../../../components/Playlist.svelte';
     import Artist from '../../../components/Artist.svelte';
+    import ErrorPopup from '../../../components/ErrorPopup.svelte';
+    import { errorMessage } from '../../../store';
 
     let songs: SongModel[] = [];
     let albums: AlbumModel[] = [];
     let playlists: PlaylistModel[] = [];
     let artists: ArtistModel[] = [];
     let connections: string[] = [];
-
-    interface LibraryResponse {
-        songs?: SongModel[];
-        albums?: AlbumModel[];
-        playlists?: PlaylistModel[];
-        artists?: ArtistModel[];
-    }
+    let error: string = '';
+    errorMessage.subscribe((value: string) => {
+        error = value;
+    });
 
     async function getLibrary(model: string): Promise<void> {
-        console.log('getLibrary');
         try {
             for (const element of connections) {
                 if (model == 'songs') {
@@ -50,35 +47,25 @@
     }
 
     let isPlatformDropdownOpen = true;
-    let isSongsDropdownOpen = true;
-    let isAlbumsDropdownOpen = true;
-    let isPlaylistsDropdownOpen = true;
-    let isArtistsDropdownOpen = true;
+    let isSongsDropdownOpen = false;
+    let isAlbumsDropdownOpen = false;
+    let isPlaylistsDropdownOpen = false;
+    let isArtistsDropdownOpen = false;
 
     const handlePlatformDropdownClick = (): void => {
-        isPlatformDropdownOpen = true;
+        isPlatformDropdownOpen = !isPlatformDropdownOpen;
     };
     const handleSongsDropdownClick = (): void => {
-        isSongsDropdownOpen = true;
+        isSongsDropdownOpen = !isSongsDropdownOpen;
     };
     const handleAlbumsDropdownClick = (): void => {
-        isAlbumsDropdownOpen = true;
+        isAlbumsDropdownOpen = !isAlbumsDropdownOpen;
     };
     const handlePlaylistsDropdownClick = (): void => {
-        isPlaylistsDropdownOpen = true;
+        isPlaylistsDropdownOpen = !isPlaylistsDropdownOpen;
     };
     const handleArtistsDropdownClick = (): void => {
-        isArtistsDropdownOpen = true;
-    };
-
-    const handleDropdownFocusLoss = (event: FocusEvent): void => {
-        const { currentTarget, relatedTarget } = event;
-        if (relatedTarget instanceof HTMLElement && (currentTarget as Node).contains(relatedTarget))
-            return;
-        isSongsDropdownOpen = true;
-        isAlbumsDropdownOpen = true;
-        isPlaylistsDropdownOpen = true;
-        isArtistsDropdownOpen = true;
+        isArtistsDropdownOpen = !isArtistsDropdownOpen;
     };
 
     onMount(async () => {
@@ -91,7 +78,7 @@
     });
 </script>
 
-<NavBar current_page="/me/saved"></NavBar>
+<NavBar current_page="/profile/library"></NavBar>
 <Panel title="Your music library">
     <div class="library-container">
         {#each connections as connection}
@@ -184,23 +171,59 @@
 </Panel>
 
 <style>
-    .new-post-button {
-        position: fixed;
-        bottom: 2rem;
-        right: 2rem;
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-
-        color: white;
-        border: none;
+    .newpost {
+        color: rebeccapurple;
+        border: 0.2rem solid rebeccapurple;
+        border-radius: 60%;
+        width: 2rem;
+        height: 1.5rem;
         font-size: 2rem;
         font-weight: bold;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        margin: 1rem;
+    }
+    .newpost:hover {
+        color: blue;
+    }
+
+    .library-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+    .songs-dropdown{
+        padding: 0.5rem;
+        color: rebeccapurple;
+        border: none;
         cursor: pointer;
-        z-index: 1000; /* Ensure it's above other elements */
+    }
+
+    .library-songs-dropdown {
+    position: relative;
+    }
+    .library-albums-dropdown {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    .library-playlists-dropdown {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    .library-artists-dropdown {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    .song {
+        margin: 1rem;
+        border: 0.2rem solid rebeccapurple;
+        border-radius: 10%;
     }
 </style>

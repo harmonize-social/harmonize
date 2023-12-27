@@ -300,6 +300,7 @@ func GetSong(platform string, id string) (models.Song, error) {
     err := Pool.QueryRow(context.Background(), sqlStatement, platform, id).Scan(&platformSongId, &id, &platform, &song.ID)
 
     if err != nil {
+        fmt.Println("1:", err)
         return song, err
     }
 
@@ -307,6 +308,7 @@ func GetSong(platform string, id string) (models.Song, error) {
     err = Pool.QueryRow(context.Background(), sqlStatement, song.ID).Scan(&song.Title, &song.MediaURL, &song.PreviewURL)
 
     if err != nil {
+        fmt.Println("2:", err)
         return song, err
     }
 
@@ -315,6 +317,7 @@ func GetSong(platform string, id string) (models.Song, error) {
     rows, err := Pool.Query(context.Background(), sqlStatement, song.ID)
 
     if err != nil {
+        fmt.Println("3:", err)
         return song, err
     }
 
@@ -323,6 +326,7 @@ func GetSong(platform string, id string) (models.Song, error) {
         var artist models.Artist
         err = rows.Scan(&artist.ID, &artist.Name)
         if err != nil {
+            fmt.Println("4:", err)
             return song, err
         }
         artists = append(artists, artist)
@@ -460,6 +464,86 @@ func GetArtist(platform string, id string) (models.Artist, error) {
 }
 
 /*
+
+CREATE TABLE IF NOT EXISTS platforms(
+    id VARCHAR(1024) PRIMARY KEY,
+    name VARCHAR(1024) NOT NULL,
+    icon_id UUID REFERENCES images (id) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS artists(
+    id UUID PRIMARY KEY,
+    name VARCHAR(1024) NOT NULL,
+    media_url VARCHAR(1024) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS albums(
+    id UUID PRIMARY KEY,
+    name VARCHAR(1024) NOT NULL,
+    media_url VARCHAR(1024) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS artists_album(
+    id UUID PRIMARY KEY,
+    artist_id UUID REFERENCES artists (id) NOT NULL,
+    album_id UUID REFERENCES albums (id) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS songs(
+    id UUID PRIMARY KEY,
+    name VARCHAR(1024) NOT NULL,
+    album_id UUID REFERENCES albums (id) NOT NULL,
+    media_url VARCHAR(1024) NOT NULL,
+    preview_url VARCHAR(1024) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS playlists(
+    id UUID PRIMARY KEY,
+    name VARCHAR(1024) NOT NULL,
+    media_url VARCHAR(1024) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS playlist_songs(
+    id UUID PRIMARY KEY,
+    playlist_id UUID REFERENCES playlists (id) NOT NULL,
+    song_id UUID REFERENCES songs (id) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS platform_artists(
+    id UUID PRIMARY KEY,
+    platform_specific_id VARCHAR(1024) NOT NULL,
+    platform_id VARCHAR(1024) REFERENCES platforms(id) NOT NULL,
+    artist_id UUID REFERENCES artists (id) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS platform_albums(
+    id UUID PRIMARY KEY,
+    platform_specific_id VARCHAR(1024) NOT NULL,
+    platform_id VARCHAR(1024) REFERENCES platforms(id) NOT NULL,
+    album_id UUID REFERENCES albums (id) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS platform_songs(
+    id UUID PRIMARY KEY,
+    platform_specific_id VARCHAR(1024) NOT NULL,
+    platform_id VARCHAR(1024) REFERENCES platforms(id) NOT NULL,
+    song_id UUID REFERENCES songs (id) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS platform_playlists(
+    id UUID PRIMARY KEY,
+    platform_specific_id VARCHAR(1024) NOT NULL,
+    platform_id VARCHAR(1024) REFERENCES platforms(id) NOT NULL,
+    playlist_id UUID REFERENCES playlists (id) NOT NULL
+);
+
 DROP FUNCTION IF EXISTS insert_new_artist;
 CREATE OR REPLACE FUNCTION insert_new_artist(new_platform_id VARCHAR(1024), platform_specific_id_input VARCHAR(1024), new_name VARCHAR(1024), new_media_url VARCHAR(1024))
 RETURNS TABLE (value1 UUID, value2 UUID) AS $$
