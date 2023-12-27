@@ -166,7 +166,7 @@ func getAlbum(Id uuid.UUID) (models.Album, error) {
 
 func getPlaylist(Id uuid.UUID) (models.Playlist, error) {
     playlist := models.Playlist{}
-    err := repositories.Pool.QueryRow(context.Background(), `SELECT * FROM playlists WHERE id = $1;`, Id).Scan(&playlist.ID, &playlist.Title)
+    err := repositories.Pool.QueryRow(context.Background(), `SELECT * FROM playlists WHERE id = $1;`, Id).Scan(&playlist.ID, &playlist.Title, &playlist.MediaURL)
     if err != nil {
         return playlist, err
     }
@@ -174,12 +174,12 @@ func getPlaylist(Id uuid.UUID) (models.Playlist, error) {
     if err != nil {
         return playlist, err
     }
-    songs := []models.Song{}
+    songs := make([]models.Song, 0)
     for rows.Next() {
         var albumId uuid.UUID
         var song models.Song
         err = rows.Scan(&song.ID, &albumId, &song.Title, &song.MediaURL, &song.PreviewURL)
-        rows2, err := repositories.Pool.Query(context.Background(), `SELECT artists.id, artists.name FROM artists JOIN artists_album ON artists.id = artists_album.artist_id WHERE artists_album.album_id = $1;`, Id)
+        rows2, err := repositories.Pool.Query(context.Background(), `SELECT artists.id, artists.name FROM artists JOIN artists_album ON artists.id = artists_album.artist_id WHERE artists_album.album_id = $1 GROUP BY artists.id;`, &albumId)
         for rows2.Next() {
             var artist models.Artist
             err = rows2.Scan(&artist.ID, &artist.Name)
