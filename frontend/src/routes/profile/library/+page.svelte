@@ -88,26 +88,27 @@
 				</button>
 				<div
 					class="library-dropdown-container"
-					style:visibility={isPlatformDropdownOpen ? 'visible' : 'hidden'}
+					style:display={isPlatformDropdownOpen ? 'block' : 'none'}
 				>
-					<ol>
-						<li>
+					
+						<div class='songs-dropdown'>
 							<button
 								value="Songs"
+								class="songs-dropdown-button"
 								on:click={async () => {
 									await getLibrary('songs');
 									handleSongsDropdownClick();
 								}}>Songs</button
 							>
 							<div
-								class="library-songs-dropdown"
+								class="songs-dropdown-content"
 								style:visibility={isSongsDropdownOpen ? 'visible' : 'hidden'}
 							>
 								{#if songs.length > 0}
 									{#each songs as song}
 										<div class="song">
 											<a
-												href="/newpost?library={connection}&id={song.id}&type=song&"
+												href="/newpost?library={connection}&id={song.id}&type=song&title={song.title}&mediaUrl={song.mediaUrl}&artists={song.artists}&previewUrl={song.previewUrl}"
 												class="newpost">+</a
 											>
 											<Song
@@ -124,9 +125,9 @@
 								{:else}
 									<p>You haven't saved songs in this library!</p>{/if}
 							</div>
-						</li>
+						</div>
 
-						<li>
+						<div>
 							<button
 								value="Albums"
 								on:click={async () => {
@@ -150,15 +151,15 @@
 											}}
 										/>
 										<a
-											href="/newpost?library={connection}&id={album.id}&type=album&"
+											href="/newpost?library={connection}&id={album.id}&type=album&title={album.title}&mediaUrl={album.mediaUrl}&artists={album.artists}&songs={album.songs}"
 											class="newpost">+</a
 										>
 									{/each}
 								{:else}
 									<p>You haven't saved albums in this library!</p>{/if}
 							</div>
-						</li>
-						<li>
+						</div>
+						<div>
 							<button
 								value="Playlists"
 								on:click={async () => {
@@ -181,15 +182,15 @@
 											}}
 										/>
 										<a
-											href="/newpost?library={connection}&id={playlist.id}&type=song&"
+											href="/newpost?library={connection}&id={playlist.id}&type=playlist&title={playlist.title}&mediaUrl={playlist.mediaUrl}&songs={playlist.songs}"
 											class="newpost">+</a
 										>
 									{/each}
 								{:else}
 									<p>You haven't saved playlists in this library!</p>{/if}
 							</div>
-						</li>
-						<li>
+						</div>
+						<div>
 							<button
 								value="Artists"
 								on:click={async () => {
@@ -207,17 +208,16 @@
 											content={{ name: artist.name, mediaUrl: artist.mediaUrl, id: artist.id }}
 										/>
 										<a
-											href="/newpost?library={connection}&id={artist.id}&type=song&"
+											href="/newpost?library={connection}&id={artist.id}&type=artist&name={artist.name}&mediaUrl={artist.mediaUrl}"
 											class="newpost">+</a
 										>
 									{/each}
 								{:else}
 									<p>You haven't saved artists in this library!</p>{/if}
 							</div>
-						</li>
-					</ol>
+						</div>
+					</div>
 				</div>
-			</div>
 		{/each}
 		{#if error}
 			<ErrorPopup message={error}></ErrorPopup>
@@ -251,16 +251,30 @@
 		justify-content: center;
 		width: 100%;
 	}
+	.songs-dropdown{
+		padding: 0.5rem;
+		color: rebeccapurple;
+		border: none;
+		cursor: pointer;
+	}
+
 	.library-songs-dropdown {
+	position: relative;
+	}
+	.library-albums-dropdown {
 		display: flex;
 		flex-direction: row;
 		flex-wrap: wrap;
 	}
-	.library-albums-dropdown {
-	}
 	.library-playlists-dropdown {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
 	}
 	.library-artists-dropdown {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
 	}
 	.song {
 		margin: 1rem;

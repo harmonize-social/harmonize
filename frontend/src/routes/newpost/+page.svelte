@@ -8,22 +8,11 @@
 	let caption = '';
 	let error = '';
 	let postData: {};
-	let library;
-	let id;
-	let type;
 
 	errorMessage.subscribe((value) => {
 		error = value;
 	});
 
-	async function getContent(data: any){
-		try{
-			const response: any = await get(`me/library/${data.library}/${data.type}?id=${data.id}`);
-			return response;
-		}catch(e){
-			throwError('Failed to get content');
-		}
-	}
 	async function postPost(){
 		try{
 			const request = await post(`me/posts`, {postData, caption} );
@@ -46,11 +35,26 @@
 
 onMount(async () => {
 	const params = new URLSearchParams(window.location.search);
-	 library = params.get('library');
-	 id = params.get('id');
-	 type = params.get('type');
-	postData = {library, type, id};
-	await getContent(postData);
+	 let library = params.get('library');
+	 let id = params.get('id');
+	 let type = params.get('type');
+	 let title= params.get('title');
+	 let name= params.get('name');
+	 let mediaUrl= params.get('mediaUrl');
+	 let previewUrl= params.get('previewUrl');
+	 let songs= params.get('songs');
+	 let artists= params.get('artists');
+	 let postData = {};
+	if(type=='song'){
+		postData = {library, type, id, title, mediaUrl, previewUrl, artists};
+	} else if(type=='album'){
+		postData = {library, type, id, title, mediaUrl, songs, artists};
+	} else if(type=='playlist'){
+		postData = {library, type, id, title, mediaUrl, songs};
+	} else if(type=='artist'){
+		postData = {library, type, id, name, mediaUrl};
+	}
+	return postData;
 });
 
 </script>
