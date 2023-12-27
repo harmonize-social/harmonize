@@ -113,10 +113,10 @@
                                                 previewUrl: song.previewUrl
                                             }}
                                         />
-                                        <a href="/newpost?library={connection}&id={song.id}&type=song&">+</a>
+                                        <a href="/newpost?library={connection}&id={song.id}&type=song">+</a>
                                     {/each}
                                 {:else}
-                                    <p>You haven't saved songs in this librarytrue;</p>{/if}
+                                    <p>You haven't saved songs in this library</p>{/if}
                             </div>
                         </li>
 
@@ -136,7 +136,7 @@
                                             />
                                         {/each}
                                     {:else}
-                                        <p>You haven't saved albums in this librarytrue;</p>{/if}
+                                        <p>You haven't saved albums in this library</p>{/if}
                                 </div>
                             </button>
                         </li>
@@ -155,7 +155,7 @@
                                             />
                                         {/each}
                                     {:else}
-                                        <p>You haven't saved playlists in this librarytrue;</p>{/if}
+                                        <p>You haven't saved playlists in this library</p>{/if}
                                 </div>
                             </button>
                         </li>
@@ -169,7 +169,7 @@
                                             />
                                         {/each}
                                     {:else}
-                                        <p>You haven't saved artists in this librarytrue;</p>{/if}
+                                        <p>You haven't saved artists in this library</p>{/if}
                                 </div>
                             </button>
                         </li>
