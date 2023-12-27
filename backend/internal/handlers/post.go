@@ -138,6 +138,7 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusBadRequest, "Invalid post")
         return
     }
+    fmt.Println(newPost)
 
     if newPost.Type != "playlist" && newPost.Type != "song" && newPost.Type != "album" && newPost.Type != "artist" {
         models.Error(w, http.StatusBadRequest, "Invalid post type")
@@ -159,28 +160,30 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
         playlist, err := repositories.GetPlaylist("spotify", newPost.PlatformSpecificId)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
-            fmt.Println(err.Error())
+            fmt.Println("playlist1:", err.Error())
             return
         }
         post, err := repositories.CreatePlaylistPost(playlist, user.ID, newPost.Caption)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
             fmt.Println(err.Error())
+            fmt.Println("playlist2:", err.Error())
             return
         }
         models.Result(w, post)
         break
     case "song":
+        fmt.Println(newPost.PlatformSpecificId)
         song, err := repositories.GetSong("spotify", newPost.PlatformSpecificId)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
-            fmt.Println(err.Error())
+            fmt.Println("song1:", err.Error())
             return
         }
         post, err := repositories.CreateSongPost(song, user.ID, newPost.Caption)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
-            fmt.Println(err.Error())
+            fmt.Println("song2:", err.Error())
             return
         }
         models.Result(w, post)
@@ -189,13 +192,13 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
         album, err := repositories.GetAlbum("spotify", newPost.PlatformSpecificId)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
-            fmt.Println(err.Error())
+            fmt.Println("album1:", err.Error())
             return
         }
         post, err := repositories.CreateAlbumPost(album, user.ID, newPost.Caption)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
-            fmt.Println(err.Error())
+            fmt.Println("album2:", err.Error())
             return
         }
         models.Result(w, post)
@@ -204,13 +207,13 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
         artist, err := repositories.GetArtist("spotify", newPost.PlatformSpecificId)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
-            fmt.Println(err.Error())
+            fmt.Println("artist1:", err.Error())
             return
         }
         post, err := repositories.CreateArtistPost(artist, user.ID, newPost.Caption)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
-            fmt.Println(err.Error())
+            fmt.Println("artist2:", err.Error())
             return
         }
         models.Result(w, post)
