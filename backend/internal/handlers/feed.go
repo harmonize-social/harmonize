@@ -170,7 +170,7 @@ func getPlaylist(Id uuid.UUID) (models.Playlist, error) {
     if err != nil {
         return playlist, err
     }
-    rows, err := repositories.Pool.Query(context.Background(), `SELECT songs.id, songs.album_id, songs.name FROM songs JOIN playlist_songs ON songs.id = playlist_songs.song_id WHERE playlist_songs.playlist_id = $1;`, Id)
+    rows, err := repositories.Pool.Query(context.Background(), `SELECT songs.id, songs.album_id, songs.name, songs.media_url, songs.preview_url FROM songs JOIN playlist_songs ON songs.id = playlist_songs.song_id WHERE playlist_songs.playlist_id = $1;`, Id)
     if err != nil {
         return playlist, err
     }
@@ -178,7 +178,7 @@ func getPlaylist(Id uuid.UUID) (models.Playlist, error) {
     for rows.Next() {
         var albumId uuid.UUID
         var song models.Song
-        err = rows.Scan(&song.ID, &albumId, &song.Title)
+        err = rows.Scan(&song.ID, &albumId, &song.Title, &song.MediaURL, &song.PreviewURL)
         rows2, err := repositories.Pool.Query(context.Background(), `SELECT artists.id, artists.name FROM artists JOIN artists_album ON artists.id = artists_album.artist_id WHERE artists_album.album_id = $1;`, Id)
         for rows2.Next() {
             var artist models.Artist
@@ -197,12 +197,12 @@ func getPlaylist(Id uuid.UUID) (models.Playlist, error) {
 func getSong(Id uuid.UUID) (models.Song, error) {
     song := models.Song{}
     var albumId uuid.UUID
-    err := repositories.Pool.QueryRow(context.Background(), `SELECT id, album_id, name FROM songs WHERE id = $1;`, Id).Scan(&song.ID, &albumId, &song.Title)
+    err := repositories.Pool.QueryRow(context.Background(), `SELECT id, album_id, name, media_url, preview_url FROM songs WHERE id = $1;`, Id).Scan(&song.ID, &albumId, &song.Title, &song.MediaURL, &song.PreviewURL)
     if err != nil {
         return song, err
     }
-    rows, err := repositories.Pool.Query(context.Background(), `SELECT artists.id, artists.name FROM artists JOIN artists_album ON artists.id = artists_album.artist_id WHERE artists_album.album_id = $1;`, Id)
-    artists := []models.Artist{}
+    rows, err := repositories.Pool.Query(context.Background(), `SELECT artists.id, artists.name FROM artists JOIN artists_album ON artists.id = artists_album.artist_id WHERE artists_album.album_id = $1 GROUP BY artists.id`, &albumId)
+    artists := make([]models.Artist, 0)
     for rows.Next() {
         var artist models.Artist
         err = rows.Scan(&artist.ID, &artist.Name)
