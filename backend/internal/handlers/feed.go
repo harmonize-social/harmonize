@@ -44,7 +44,7 @@ func GetFeed(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusInternalServerError, "Error getting posts")
         return
     }
-    var posts []models.Post
+    posts := make([]models.Post, 0)
     for rows.Next() {
         var post models.Post
         var typeSpecificId uuid.UUID
