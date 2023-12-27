@@ -9,6 +9,7 @@ import (
 func OAuthRouter() *mux.Router {
     router := mux.NewRouter()
 
-    router.HandleFunc("/callback/deezer", handlers.DeezerCallback).Methods("GET")
+    router.HandleFunc("/deezer", handlers.DeezerCallback).Methods("GET")
+    router.HandleFunc("/spotify", handlers.SpotifyCallback).Methods("GET")
     return router
 }

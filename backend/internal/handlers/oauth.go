@@ -3,25 +3,17 @@ package handlers
 import (
     "backend/internal/models"
     "backend/internal/repositories"
-    "backend/internal/scanner"
     "context"
     "encoding/json"
     "fmt"
     "io"
     "net/http"
-    "os"
     "time"
 
     "github.com/google/uuid"
     "github.com/markbates/goth/providers/deezer"
     deezer2 "github.com/stayradiated/deezer"
     "github.com/zmb3/spotify/v2/auth"
-)
-
-const (
-    SPOTIFY_REDIRECT = "http://127.0.0.1:8080/api/v1/oauth/callback/spotify"
-    DEEZER_REDIRECT  = "http://127.0.0.1:8080/api/v1/oauth/callback/deezer"
-    TEST_SESSION     = "df8d8816-3280-41aa-9e27-ec60ba297c9e"
 )
 
 type Url struct {
@@ -34,9 +26,9 @@ type Tokens struct {
 }
 
 func DeezerProvider() *deezer.Provider {
-    id := os.Getenv("DEEZER_CLIENT_ID")
-    secret := os.Getenv("DEEZER_SECRET")
-    provider := deezer.New(id, secret, DEEZER_REDIRECT, "basic_access", "email", "offline_access", "manage_library", "manage_community", "delete_library", "listening_history")
+    id := repositories.DeezerClientId
+    secret := repositories.DeezerSecret
+    provider := deezer.New(id, secret, repositories.DeezerRedirect, "basic_access", "email", "offline_access", "manage_library", "manage_community", "delete_library", "listening_history")
     return provider
 }
 
@@ -60,7 +52,7 @@ func SpotifyURL(csrf string) (string, error) {
 
 func GetSpotifyAuthenticator(csrf string) spotifyauth.Authenticator {
     auth := spotifyauth.New(
-        spotifyauth.WithRedirectURL(SPOTIFY_REDIRECT),
+        spotifyauth.WithRedirectURL(repositories.SpotifyRedirect),
         spotifyauth.WithScopes(
             spotifyauth.ScopeImageUpload,
             spotifyauth.ScopePlaylistReadPrivate,
@@ -80,8 +72,8 @@ func GetSpotifyAuthenticator(csrf string) spotifyauth.Authenticator {
             spotifyauth.ScopeUserTopRead,
             spotifyauth.ScopeStreaming,
         ),
-        spotifyauth.WithClientID(os.Getenv("SPOTIFY_CLIENT_ID")),
-        spotifyauth.WithClientSecret(os.Getenv("SPOTIFY_SECRET")),
+        spotifyauth.WithClientID(repositories.SpotifyClientId),
+        spotifyauth.WithClientSecret(repositories.SpotifySecret),
     )
     return *auth
 }
@@ -136,6 +128,7 @@ func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusInternalServerError, "Internal server error")
         return
     }
+    models.Result(w, "Ok")
 }
 
 type DeezerAccessToken struct {
@@ -143,6 +136,13 @@ type DeezerAccessToken struct {
 }
 
 func DeezerCallback(w http.ResponseWriter, r *http.Request) {
+    session := r.URL.Query().Get("state")
+    user, err := getUserFromSession(uuid.MustParse(session))
+    if err != nil {
+        fmt.Printf("Error: %s", err.Error())
+        models.Error(w, http.StatusUnauthorized, "Invalid token")
+        return
+    }
     provider := DeezerProvider()
     code := r.URL.Query().Get("code")
     url := "https://connect.deezer.com/oauth/access_token.php?app_id=" + provider.ClientKey + "&secret=" + provider.Secret + "&code=" + code + "&output=json"
@@ -172,11 +172,46 @@ func DeezerCallback(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintf(w, "%s", err)
         return
     }
-    var user deezer2.User
-    json.Unmarshal(body2, &user)
+    var deezerUser deezer2.User
+    json.Unmarshal(body2, &deezerUser)
     if err != nil {
         fmt.Fprintf(w, "%s", err)
         return
     }
-    go scanner.ScanDeezer(user.ID)
+    connection := &models.Connection{
+        ID:           uuid.New(),
+        UserID:       user.ID,
+        AccessToken:  sessionActual.AccessToken,
+        RefreshToken: "",
+        Expiry:       time.Now().Add(time.Hour * 24 * 365 * 100),
+    }
+    sqlStatement := `INSERT INTO connections (id, user_id, access_token, refresh_token, expiry) VALUES ($1, $2, $3, $4, $5) RETURNING id`
+    var connectionID uuid.UUID
+    err2 := repositories.Pool.QueryRow(context.Background(),
+        sqlStatement,
+        connection.ID,
+        connection.UserID,
+        connection.AccessToken,
+        connection.RefreshToken,
+        connection.Expiry.Format(time.RFC3339)).Scan(&connectionID)
+    if err2 != nil {
+        fmt.Fprintf(w, "connection: %s\n\r", connection.UserID)
+        fmt.Fprintf(w, "Unable to execute the query. %s", err2)
+    }
+    sqlStatement = `
+    INSERT INTO libraries (platform_id, id, connection_id) VALUES ('deezer', uuid_generate_v4(), $1) RETURNING id;
+    `
+    tag, err := repositories.Pool.Exec(context.Background(),
+        sqlStatement,
+        connectionID)
+    if err != nil {
+        fmt.Printf("error: %v", err)
+        models.Error(w, http.StatusInternalServerError, "Internal server error")
+    }
+
+    if tag.RowsAffected() == 0 {
+        models.Error(w, http.StatusInternalServerError, "Internal server error")
+        return
+    }
+    models.Result(w, "Ok")
 }

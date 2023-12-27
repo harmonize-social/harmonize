@@ -5,7 +5,13 @@
 
     import { goto } from '$app/navigation';
     import { delete_, throwError } from "../../../fetch";
+    import { errorMessage } from "../../../store";
+    import ErrorPopup from "../../../components/ErrorPopup.svelte";
 
+    let error = '';
+    errorMessage.subscribe((value) => {
+        error = value;
+    });
 
     async function handleDeleteAccount() {
     const confirmation = confirm('Weet je zeker dat je je account wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.');
@@ -15,29 +21,22 @@
             await delete_('/auth/delete');
             localStorage.removeItem('token');
             goto('/auth/login');       
-        } catch (error) {
+        } catch (e) {
 			throwError('Internal server error');
         }
     }
 }
 
 async function handleLogout() {
-    const confirmation = confirm('Weet je zeker dat je wilt uitloggen?');
-
-    if (confirmation) {
-        try {
-            await delete_('/auth/logout'); 
+    
             localStorage.removeItem('token');
             goto('/auth/login');
-        } catch (error) {
-			throwError('Internal server error');
-        }
-    }
 }
     const goToAccountSettings = () => {
         goto('/profile/edit'); 
     }
    
+
 
 </script>
 
@@ -67,7 +66,7 @@ async function handleLogout() {
 }
 
 </style>
-<NavBar current_page="/profile/settings"></NavBar>
+<NavBar current_page="/me/profile/settings"></NavBar>
 <Panel title="Settings">
     <div class="buttons">
         <div class="notifications">
@@ -81,9 +80,12 @@ async function handleLogout() {
         </div>
         <div class="delete">
             <Button buttonText="Delete Account" on:click={handleDeleteAccount}></Button>
+            {#if error}
+                <ErrorPopup message={error}></ErrorPopup>
+            {/if}
         </div>
-        <div class="logout">
-            <Button buttonText="Logout" on:click={handleLogout}></Button>
+        <div class="logout" on:click={handleLogout}>
+            <Button buttonText="Logout"></Button>
         </div>
         <div class="myaccount">
             <button on:click={goToAccountSettings}>My Account</button>

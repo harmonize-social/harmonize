@@ -6,6 +6,13 @@ import (
     "github.com/google/uuid"
 )
 
+type NewPost struct {
+    Caption string `json:"caption"`
+    Platform string `json:"platform"`
+    Type string `json:"type"`
+    PlatformSpecificId string `json:"id"`
+}
+
 type Post struct {
     ID uuid.UUID `json:"id"`
     Username string `json:"username"`

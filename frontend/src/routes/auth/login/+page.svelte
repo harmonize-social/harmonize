@@ -7,42 +7,50 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { loginpost, throwError } from '../../../fetch';
+	import { errorMessage } from '../../../store';
+	import ErrorPopup from '../../../components/ErrorPopup.svelte';
 
 	let username = '';
 	let password = '';
-	let errorMessage = '';
+	let error = '';
+	errorMessage.subscribe((value) => {
+		error = value;
+	});
 
-    const handleLogin = async () => {
-        try {
-            const response = await loginpost<{token: string}>('/users/login', { username, password });
+	const handleLogin = async () => {
+		try {
+			const response = await loginpost<{ token: string }>('/users/login', { username, password });
 
 			// Set token in local storage
 			localStorage.setItem('token', response.token);
 
 			// Redirect to dashboard or other protected route on successful login
-			goto('/dashboard');
-		} catch (error) {
+			goto('/feed');
+		} catch (e) {
 			throwError('Login failed');
 		}
 	};
 </script>
 
-<Panel title="" class="panel-container" color="#B931FC">
-	<h2>Login</h2>
-	{#if errorMessage}
-		<p class="error-message">{errorMessage}</p>
-	{/if}
-	<div class="text-input">
-		<TextInput placeholder="Username/Email" bind:value={username} />
-	</div>
-	<div class="text-input">
-		<TextInput placeholder="Password" type="password" bind:value={password} />
-	</div>
-	<div class="buttonlogin" on:click={handleLogin}>
-		<Button buttonText="Login" />
-	</div>
-	<a class="forgot-password" href="#">Forgot Password?</a>
-</Panel>
+<div class="panel-container">
+	<Panel title="">
+		<h2>Login</h2>
+		{#if error}
+			<ErrorPopup message={error} />
+		{/if}
+		<div class="text-input">
+			<TextInput placeholder="Username/Email" bind:value={username} />
+		</div>
+		<div class="text-input">
+			<TextInput placeholder="Password" type="password" bind:value={password} />
+		</div>
+		<div class="buttonlogin" on:click={handleLogin}>
+			<Button buttonText="Login" />
+		</div>
+		<a class="forgot-password" href="/forget-password">Forgot Password?</a>
+		<a class="not-registered" href="/auth/register">Not registred yet?</a>
+	</Panel>
+</div>
 
 <style>
 	.panel-container {
@@ -67,6 +75,11 @@
 	}
 
 	.forgot-password {
+		display: flex;
+		justify-content: center;
+		margin-top: 10px;
+	}
+	.not-registered {
 		display: flex;
 		justify-content: center;
 		margin-top: 10px;

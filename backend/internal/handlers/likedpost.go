@@ -50,7 +50,7 @@ func GetLikedPosts(w http.ResponseWriter, r *http.Request) {
     JOIN
         users u ON p.user_id = u.id
     WHERE
-        lp.user_id = '6dc10487-60c6-41f8-a2fd-7a450bc3db2a'
+        lp.user_id = $1
     GROUP BY
     lp.id,
     p.id,

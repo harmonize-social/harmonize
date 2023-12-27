@@ -96,12 +96,14 @@ CREATE TABLE IF NOT EXISTS platforms(
 
 CREATE TABLE IF NOT EXISTS artists(
     id UUID PRIMARY KEY,
-    name VARCHAR(1024) NOT NULL
+    name VARCHAR(1024) NOT NULL,
+    media_url VARCHAR(1024) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS albums(
     id UUID PRIMARY KEY,
-    name VARCHAR(1024) NOT NULL
+    name VARCHAR(1024) NOT NULL,
+    media_url VARCHAR(1024) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS artists_album(
@@ -114,12 +116,15 @@ CREATE TABLE IF NOT EXISTS artists_album(
 CREATE TABLE IF NOT EXISTS songs(
     id UUID PRIMARY KEY,
     name VARCHAR(1024) NOT NULL,
-    album_id UUID REFERENCES albums (id) NOT NULL
+    album_id UUID REFERENCES albums (id) NOT NULL,
+    media_url VARCHAR(1024) NOT NULL,
+    preview_url VARCHAR(1024) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS playlists(
     id UUID PRIMARY KEY,
-    name VARCHAR(1024) NOT NULL
+    name VARCHAR(1024) NOT NULL,
+    media_url VARCHAR(1024) NOT NULL
 );
 
 
@@ -133,6 +138,7 @@ CREATE TABLE IF NOT EXISTS playlist_songs(
 CREATE TABLE IF NOT EXISTS platform_artists(
     id UUID PRIMARY KEY,
     platform_specific_id VARCHAR(1024) NOT NULL,
+    platform_id VARCHAR(1024) REFERENCES platforms(id) NOT NULL,
     artist_id UUID REFERENCES artists (id) NOT NULL
 );
 
@@ -140,6 +146,7 @@ CREATE TABLE IF NOT EXISTS platform_artists(
 CREATE TABLE IF NOT EXISTS platform_albums(
     id UUID PRIMARY KEY,
     platform_specific_id VARCHAR(1024) NOT NULL,
+    platform_id VARCHAR(1024) REFERENCES platforms(id) NOT NULL,
     album_id UUID REFERENCES albums (id) NOT NULL
 );
 
@@ -147,6 +154,7 @@ CREATE TABLE IF NOT EXISTS platform_albums(
 CREATE TABLE IF NOT EXISTS platform_songs(
     id UUID PRIMARY KEY,
     platform_specific_id VARCHAR(1024) NOT NULL,
+    platform_id VARCHAR(1024) REFERENCES platforms(id) NOT NULL,
     song_id UUID REFERENCES songs (id) NOT NULL
 );
 
@@ -154,6 +162,7 @@ CREATE TABLE IF NOT EXISTS platform_songs(
 CREATE TABLE IF NOT EXISTS platform_playlists(
     id UUID PRIMARY KEY,
     platform_specific_id VARCHAR(1024) NOT NULL,
+    platform_id VARCHAR(1024) REFERENCES platforms(id) NOT NULL,
     playlist_id UUID REFERENCES playlists (id) NOT NULL
 );
 
@@ -227,7 +236,7 @@ CREATE TABLE IF NOT EXISTS user_liked_songs(
 
 
 DROP FUNCTION IF EXISTS insert_new_artist;
-CREATE OR REPLACE FUNCTION insert_new_artist(new_library_id UUID, platform_specific_id_input VARCHAR(1024), new_name VARCHAR(1024))
+CREATE OR REPLACE FUNCTION insert_new_artist(new_platform_id VARCHAR(1024), platform_specific_id_input VARCHAR(1024), new_name VARCHAR(1024), new_media_url VARCHAR(1024))
 RETURNS TABLE (value1 UUID, value2 UUID) AS $$
 DECLARE
     artists_artist_id UUID;
@@ -236,12 +245,12 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM platform_artists WHERE platform_specific_id = platform_specific_id_input
     ) THEN
-        INSERT INTO artists (id, name)
-        VALUES (uuid_generate_v4(), new_name)
+        INSERT INTO artists (id, name, media_url)
+        VALUES (uuid_generate_v4(), new_name, new_media_url)
         RETURNING id INTO artists_artist_id;
 
-        INSERT INTO platform_artists (id, platform_specific_id, artist_id)
-        VALUES (uuid_generate_v4(), platform_specific_id_input, artists_artist_id)
+        INSERT INTO platform_artists (id, platform_id, platform_specific_id, artist_id)
+        VALUES (uuid_generate_v4(), new_platform_id, platform_specific_id_input, artists_artist_id)
         RETURNING id INTO platform_artists_artist_id;
 
         RETURN QUERY SELECT artists_artist_id, platform_artists_artist_id;
@@ -260,7 +269,7 @@ $$ LANGUAGE plpgsql;
 
 
 DROP FUNCTION IF EXISTS insert_new_album;
-CREATE OR REPLACE FUNCTION insert_new_album(new_library_id UUID, platform_specific_album_id VARCHAR(1024), new_name VARCHAR(1024))
+CREATE OR REPLACE FUNCTION insert_new_album(new_platform_id VARCHAR(1024), platform_specific_album_id VARCHAR(1024), new_name VARCHAR(1024), new_media_url VARCHAR(1024))
 RETURNS TABLE (value1 UUID, value2 UUID) AS $$
 DECLARE
     albums_album_id UUID;
@@ -269,12 +278,12 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM platform_albums WHERE platform_specific_id = platform_specific_album_id
     ) THEN
-        INSERT INTO albums (id, name)
-        VALUES (uuid_generate_v4(), new_name)
+        INSERT INTO albums (id, name, media_url)
+        VALUES (uuid_generate_v4(), new_name, new_media_url)
         RETURNING id INTO albums_album_id;
 
-        INSERT INTO platform_albums (id, platform_specific_id, album_id)
-        VALUES (uuid_generate_v4(), platform_specific_album_id, albums_album_id)
+        INSERT INTO platform_albums (id, platform_id, platform_specific_id, album_id)
+        VALUES (uuid_generate_v4(), new_platform_id, platform_specific_album_id, albums_album_id)
         RETURNING id INTO platform_albums_album_id;
 
         RETURN QUERY SELECT albums_album_id, platform_albums_album_id;
@@ -292,7 +301,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP FUNCTION IF EXISTS insert_new_playlist;
-CREATE OR REPLACE FUNCTION insert_new_playlist(new_library_id UUID, platform_specific_id_input VARCHAR(1024), new_name VARCHAR(1024))
+CREATE OR REPLACE FUNCTION insert_new_playlist(new_platform_id VARCHAR(1024), platform_specific_id_input VARCHAR(1024), new_name VARCHAR(1024), new_media_url VARCHAR(1024))
 RETURNS TABLE (value1 UUID, value2 UUID) AS $$
 DECLARE
     playlists_playlist_id UUID;
@@ -301,12 +310,12 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM platform_playlists WHERE platform_specific_id = platform_specific_id_input
     ) THEN
-        INSERT INTO playlists (id, name)
-        VALUES (uuid_generate_v4(), new_name)
+        INSERT INTO playlists (id, name, media_url)
+        VALUES (uuid_generate_v4(), new_name, new_media_url)
         RETURNING id INTO playlists_playlist_id;
 
-        INSERT INTO platform_playlists (id, platform_specific_id, playlist_id)
-        VALUES (uuid_generate_v4(), platform_specific_id_input, playlists_playlist_id)
+        INSERT INTO platform_playlists (id, platform_id, platform_specific_id, playlist_id)
+        VALUES (uuid_generate_v4(), new_platform_id, platform_specific_id_input, playlists_playlist_id)
         RETURNING id INTO platform_playlists_playlist_id;
 
         RETURN QUERY SELECT playlists_playlist_id, platform_playlists_playlist_id;
@@ -324,7 +333,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP FUNCTION IF EXISTS insert_new_song;
-CREATE OR REPLACE FUNCTION insert_new_song(new_library_id UUID, album_id UUID, platform_specific_song_id VARCHAR(1024), new_name VARCHAR(1024))
+CREATE OR REPLACE FUNCTION insert_new_song(new_platform_id VARCHAR(1024), album_id UUID, platform_specific_song_id VARCHAR(1024), new_name VARCHAR(1024), new_media_url VARCHAR(1024), new_preview_url VARCHAR(1024))
 RETURNS TABLE (value1 UUID, value2 UUID) AS $$
 DECLARE
     songs_song_id UUID;
@@ -333,12 +342,12 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM platform_songs WHERE platform_specific_id = platform_specific_song_id
     ) THEN
-        INSERT INTO songs (id, name, album_id)
-        VALUES (uuid_generate_v4(), new_name, album_id)
+        INSERT INTO songs (id, name, album_id, media_url, preview_url)
+        VALUES (uuid_generate_v4(), new_name, album_id, new_media_url, new_preview_url)
         RETURNING id INTO songs_song_id;
 
-        INSERT INTO platform_songs (id, platform_specific_id, song_id)
-        VALUES (uuid_generate_v4(), platform_specific_song_id, songs_song_id)
+        INSERT INTO platform_songs (id, platform_id, platform_specific_id, song_id)
+        VALUES (uuid_generate_v4(), new_platform_id, platform_specific_song_id, songs_song_id)
         RETURNING id INTO platform_songs_song_id;
 
         RETURN QUERY SELECT songs_song_id, platform_songs_song_id;
@@ -370,57 +379,3 @@ INSERT INTO users (id, email, username, password_hash) VALUES
   ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', 'user1@example.com', 'user1', 'hash1'),
   ('aa0bfc16-a067-46f5-8821-839a9f01564c', 'user2@example.com', 'user2', 'hash2'),
   ('53336c2a-6985-430e-968d-fae2a921ba9f', 'user3@example.com', 'user3', 'hash3');
-
-INSERT INTO follows (id, followed_id, follower_id, date) VALUES
-  ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', '8303997f-b12c-4c2b-af9a-7ebe22d5c051', '6dc10487-60c6-41f8-a2fd-7a450bc3db2a', CURRENT_TIMESTAMP),
-  ('aa0bfc16-a067-46f5-8821-839a9f01564c', 'aa0bfc16-a067-46f5-8821-839a9f01564c', '6dc10487-60c6-41f8-a2fd-7a450bc3db2a', CURRENT_TIMESTAMP),
-  ('53336c2a-6985-430e-968d-fae2a921ba9f', '53336c2a-6985-430e-968d-fae2a921ba9f', '6dc10487-60c6-41f8-a2fd-7a450bc3db2a', CURRENT_TIMESTAMP);
-
-INSERT INTO posts (id, user_id, created_at, caption, type, type_specific_id) VALUES
-  ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', '8303997f-b12c-4c2b-af9a-7ebe22d5c051', CURRENT_TIMESTAMP, 'Post from user1', 'artist', '8303997f-b12c-4c2b-af9a-7ebe22d5c051'),
-  ('aa0bfc16-a067-46f5-8821-839a9f01564c', 'aa0bfc16-a067-46f5-8821-839a9f01564c', CURRENT_TIMESTAMP, 'Post from user2', 'album', 'aa0bfc16-a067-46f5-8821-839a9f01564c'),
-  ('53336c2a-6985-430e-968d-fae2a921ba9f', '53336c2a-6985-430e-968d-fae2a921ba9f', CURRENT_TIMESTAMP, 'Post from user3', 'playlist', '53336c2a-6985-430e-968d-fae2a921ba9f'),
-  ('53336c2a-5985-430e-968d-fae2a921ba9f', '53336c2a-6985-430e-968d-fae2a921ba9f', CURRENT_TIMESTAMP, 'Post from user3', 'song', '53336c2a-5985-430e-968d-fae2a921ba9f'),
-  ('53336c2a-5885-430e-968d-fae2a921ba9f', '6dc10487-60c6-41f8-a2fd-7a450bc3db2a', CURRENT_TIMESTAMP, 'Post from user3', 'song', '53336c2a-5985-430e-968d-fae2a921ba9f');
-
-INSERT INTO saved_posts (id, user_id, post_id) VALUES
-  ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', '6dc10487-60c6-41f8-a2fd-7a450bc3db2a', '8303997f-b12c-4c2b-af9a-7ebe22d5c051');
-
-INSERT INTO liked_posts (id, user_id, post_id) VALUES
-  ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', '6dc10487-60c6-41f8-a2fd-7a450bc3db2a', '8303997f-b12c-4c2b-af9a-7ebe22d5c051');
-
-INSERT INTO artists (id, name) VALUES
-  ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', 'Artist 1'),
-  ('aa0bfc16-a067-46f5-8821-839a9f01564c', 'Artist 2'),
-  ('53336c2a-6985-430e-968d-fae2a921ba9f', 'Artist 3'),
-  ('53336c2a-5985-430e-968d-fae2a921ba9f', 'Artist 4');
-
-INSERT INTO albums (id, name) VALUES
-  ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', 'Album 1'),
-  ('aa0bfc16-a067-46f5-8821-839a9f01564c', 'Album 2'),
-  ('53336c2a-6985-430e-968d-fae2a921ba9f', 'Album 3'),
-  ('53336c2a-5985-430e-968d-fae2a921ba9f', 'Album 4');
-
-INSERT INTO artists_album (id, album_id, artist_id) VALUES
-  ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', '8303997f-b12c-4c2b-af9a-7ebe22d5c051', '8303997f-b12c-4c2b-af9a-7ebe22d5c051'),
-  ('aa0bfc16-a067-46f5-8821-839a9f01564c', 'aa0bfc16-a067-46f5-8821-839a9f01564c', 'aa0bfc16-a067-46f5-8821-839a9f01564c'),
-  ('53336c2a-6985-430e-968d-fae2a921ba9f', '53336c2a-6985-430e-968d-fae2a921ba9f', '53336c2a-6985-430e-968d-fae2a921ba9f'),
-  ('53336c2a-5985-430e-968d-fae2a921ba9f', '53336c2a-5985-430e-968d-fae2a921ba9f', '53336c2a-5985-430e-968d-fae2a921ba9f');
-
-INSERT INTO songs (id, album_id, name) VALUES
-  ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', '8303997f-b12c-4c2b-af9a-7ebe22d5c051', 'Song 1'),
-  ('aa0bfc16-a067-46f5-8821-839a9f01564c', 'aa0bfc16-a067-46f5-8821-839a9f01564c', 'Song 2'),
-  ('53336c2a-6985-430e-968d-fae2a921ba9f', '53336c2a-6985-430e-968d-fae2a921ba9f', 'Song 3'),
-  ('53336c2a-5985-430e-968d-fae2a921ba9f', '53336c2a-5985-430e-968d-fae2a921ba9f', 'Song 4');
-
-INSERT INTO playlists (id, name) VALUES
-  ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', 'Playlist 1'),
-  ('aa0bfc16-a067-46f5-8821-839a9f01564c', 'Playlist 2'),
-  ('53336c2a-6985-430e-968d-fae2a921ba9f', 'Playlist 3'),
-  ('53336c2a-5985-430e-968d-fae2a921ba9f', 'Playlist 4');
-
-INSERT INTO playlist_songs (id, playlist_id, song_id) VALUES
-  ('8303997f-b12c-4c2b-af9a-7ebe22d5c051', '8303997f-b12c-4c2b-af9a-7ebe22d5c051', '8303997f-b12c-4c2b-af9a-7ebe22d5c051'),
-  ('aa0bfc16-a067-46f5-8821-839a9f01564c', 'aa0bfc16-a067-46f5-8821-839a9f01564c', 'aa0bfc16-a067-46f5-8821-839a9f01564c'),
-  ('53336c2a-6985-430e-968d-fae2a921ba9f', '53336c2a-6985-430e-968d-fae2a921ba9f', '53336c2a-6985-430e-968d-fae2a921ba9f'),
-  ('53336c2a-5985-430e-968d-fae2a921ba9f', '53336c2a-5985-430e-968d-fae2a921ba9f', '53336c2a-5985-430e-968d-fae2a921ba9f');
