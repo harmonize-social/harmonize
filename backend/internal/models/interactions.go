@@ -10,7 +10,7 @@ type NewPost struct {
     Caption string `json:"caption"`
     Platform string `json:"platform"`
     Type string `json:"type"`
-    PlatformSpecificId string `json:"platformSpecificId"`
+    PlatformSpecificId string `json:"id"`
 }
 
 type Post struct {
