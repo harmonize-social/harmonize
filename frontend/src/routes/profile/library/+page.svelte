@@ -121,57 +121,57 @@
                         </li>
 
                         <li>
-                            <button value="Albums" on:click={async () => await getLibrary('albums')}>
-                                <div class="library-albums-dropdown">
-                                    {#if albums.length > 0}
-                                        {#each albums as album}
-                                            <Album
-                                                content={{
-                                                    title: album.title,
-                                                    mediaUrl: album.mediaUrl,
-                                                    id: album.id,
-                                                    artists: album.artists,
-                                                    songs: album.songs
-                                                }}
-                                            />
-                                        {/each}
-                                    {:else}
-                                        <p>You haven't saved albums in this library</p>{/if}
-                                </div>
-                            </button>
+                            <button value="Albums" on:click={async () => await getLibrary('albums')} />
+                            <div class="library-albums-dropdown">
+                                {#if albums.length > 0}
+                                    {#each albums as album}
+                                        <Album
+                                            content={{
+                                                title: album.title,
+                                                mediaUrl: album.mediaUrl,
+                                                id: album.id,
+                                                artists: album.artists,
+                                                songs: album.songs
+                                            }}
+                                        />
+                                        <a href="/newpost?library={connection}&id={album.id}&type=album">+</a>
+                                    {/each}
+                                {:else}
+                                    <p>You haven't saved albums in this library</p>{/if}
+                            </div>
                         </li>
                         <li>
-                            <button value="Playlists">
-                                <div class="library-playlists-dropdown">
-                                    {#if playlists.length > 0}
-                                        {#each playlists as playlist}
-                                            <Playlist
-                                                content={{
-                                                    title: playlist.title,
-                                                    mediaUrl: playlist.mediaUrl,
-                                                    id: playlist.id,
-                                                    songs: playlist.songs
-                                                }}
-                                            />
-                                        {/each}
-                                    {:else}
-                                        <p>You haven't saved playlists in this library</p>{/if}
-                                </div>
-                            </button>
+                            <button value="Playlists" on:click={async () => await getLibrary('playlists')} />
+                            <div class="library-playlists-dropdown">
+                                {#if playlists.length > 0}
+                                    {#each playlists as playlist}
+                                        <Playlist
+                                            content={{
+                                                title: playlist.title,
+                                                mediaUrl: playlist.mediaUrl,
+                                                id: playlist.id,
+                                                songs: playlist.songs
+                                            }}
+                                        />
+                                        <a href="/newpost?library={connection}&id={playlist.id}&type=playlist">+</a>
+                                    {/each}
+                                {:else}
+                                    <p>You haven't saved playlists in this library</p>{/if}
+                            </div>
                         </li>
                         <li>
-                            <button value="Artists">
-                                <div class="library-artists-dropdown">
-                                    {#if artists.length > 0}
-                                        {#each artists as artist}
-                                            <Artist
-                                                content={{ name: artist.name, mediaUrl: artist.mediaUrl, id: artist.id }}
-                                            />
-                                        {/each}
-                                    {:else}
-                                        <p>You haven't saved artists in this library</p>{/if}
-                                </div>
-                            </button>
+                            <button value="Artists" on:click={async () => await getLibrary('artists')} />
+                            <div class="library-artists-dropdown">
+                                {#if artists.length > 0}
+                                    {#each artists as artist}
+                                        <Artist
+                                            content={{ name: artist.name, mediaUrl: artist.mediaUrl, id: artist.id }}
+                                        />
+                                        <a href="/newpost?library={connection}&id={artist.id}&type=artist">+</a>
+                                    {/each}
+                                {:else}
+                                    <p>You haven't saved artists in this library</p>{/if}
+                            </div>
                         </li>
                     </ul>
                 </div>
