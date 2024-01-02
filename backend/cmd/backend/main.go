@@ -1,32 +1,38 @@
 package main
 
 import (
-    "backend/internal/repositories"
-    "backend/internal/routers"
+	"backend/internal/repositories"
+	"backend/internal/routers"
 
-    "log"
-    "net/http"
+	"log"
+	"net/http"
 
-    "github.com/rs/cors"
+	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 )
 
 func main() {
-    err := repositories.CreateConnection()
-    if err != nil {
-        log.Fatal(err)
-    }
-    repositories.LoadEnv()
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-    router := routers.FullRouter()
+	err = repositories.CreateConnection()
+	if err != nil {
+		log.Fatal(err)
+	}
+	repositories.LoadEnv()
 
-    c := cors.New(cors.Options{
-        AllowedOrigins:   []string{"http://172.20.0.4:5173"},
-        AllowCredentials: true,
-        AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-    })
+	router := routers.FullRouter()
 
-    handler := c.Handler(router)
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://172.20.0.4:5173"},
+		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+	})
 
-    log.Fatal(http.ListenAndServe(":8080", handler))
+	handler := c.Handler(router)
+
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }

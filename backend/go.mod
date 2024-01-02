@@ -29,6 +29,7 @@ require (
 	github.com/jackc/puddle v1.3.0 // indirect
 	github.com/jmcvetta/napping v3.2.0+incompatible // indirect
 	github.com/jmcvetta/randutil v0.0.0-20150817122601-2bb1b664bcff // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/net v0.19.0 // indirect
