@@ -64,60 +64,6 @@ func SaveSongs(songs []models.PlatformSong) (error) {
     return nil
 }
 
-func SaveSpotifySongs(tracks *spotify.SavedTrackPage) ([]models.PlatformSong, error) {
-    independentTracks := make([]models.PlatformSong, len(tracks.Tracks))
-    insertAlbumStatment := `SELECT * FROM insert_new_album($1, $2, $3, $4);`
-    insertSongStatment := `SELECT * FROM insert_new_song($1, $2, $3, $4, $5, $6);`
-    insertArtistStatment := `SELECT * FROM insert_new_artist($1, $2, $3, $4);`
-    for i, track := range tracks.Tracks {
-        var albumId uuid.UUID
-        var albumPlatformId string
-        err := Pool.QueryRow(context.Background(), insertAlbumStatment, "spotify", track.Album.ID.String(), track.Album.Name, track.Album.Images[0].URL).Scan(&albumId, &albumPlatformId)
-        if err != nil {
-            return independentTracks, err
-        }
-        artists := make([]models.PlatformArtist, len(track.Artists))
-        for j, artist := range track.Artists {
-            artists[j] = models.PlatformArtist{
-                ID:   artist.ID.String(),
-                Name: artist.Name,
-            }
-            var artistID uuid.UUID
-            err := Pool.QueryRow(context.Background(), insertArtistStatment, "spotify", artist.ID.String(), artist.Name, "").Scan(&artistID, &artist.ID)
-
-            if err != nil {
-                return independentTracks, err
-            }
-
-            tag, err := Pool.Exec(context.Background(), "INSERT INTO artists_album (id, artist_id, album_id) VALUES (uuid_generate_v4(), $1, $2);", artistID, albumId)
-
-            if err != nil {
-                return independentTracks, err
-            }
-
-            if tag.RowsAffected() == 0 {
-                return independentTracks, errors.New("Error saving artist album")
-            }
-        }
-        independentTracks[i] = models.PlatformSong{
-            ID:         track.ID.String(),
-            Title:      track.Name,
-            Artists:    artists,
-            MediaURL:   track.Album.Images[0].URL,
-            PreviewURL: track.PreviewURL,
-        }
-
-        tag, err := Pool.Exec(context.Background(), insertSongStatment, "spotify", albumId, track.ID.String(), track.Name, track.Album.Images[0].URL, track.PreviewURL)
-        if err != nil {
-            return independentTracks, err
-        }
-        if tag.RowsAffected() == 0 {
-            return independentTracks, errors.New("Error saving song")
-        }
-    }
-    return independentTracks, nil
-}
-
 func SaveSpotifyAlbums(albums *spotify.SavedAlbumPage) ([]models.PlatformAlbum, error) {
     independentAlbums := make([]models.PlatformAlbum, len(albums.Albums))
     insertAlbumStatment := `SELECT * FROM insert_new_album($1, $2, $3, $4);`
