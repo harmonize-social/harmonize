@@ -164,13 +164,14 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
             fmt.Println("playlist1:", err.Error())
             return
         }
-        post, err := repositories.CreatePlaylistPost(playlist, user.ID, newPost.Caption)
+        post, err := repositories.CreatePost(user.ID, newPost.Caption, "playlist", playlist.ID)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
             fmt.Println(err.Error())
             fmt.Println("playlist2:", err.Error())
             return
         }
+        post.Content = playlist
         models.Result(w, post)
         break
     case "song":
@@ -181,12 +182,13 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
             fmt.Println("song1:", err.Error())
             return
         }
-        post, err := repositories.CreateSongPost(song, user.ID, newPost.Caption)
+        post, err := repositories.CreatePost(user.ID, newPost.Caption, "song", song.ID)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
             fmt.Println("song2:", err.Error())
             return
         }
+        post.Content = song
         models.Result(w, post)
         break
     case "album":
@@ -196,12 +198,13 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
             fmt.Println("album1:", err.Error())
             return
         }
-        post, err := repositories.CreateAlbumPost(album, user.ID, newPost.Caption)
+        post, err := repositories.CreatePost(user.ID, newPost.Caption, "album", album.ID)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
             fmt.Println("album2:", err.Error())
             return
         }
+        post.Content = album
         models.Result(w, post)
         break
     case "artist":
@@ -211,12 +214,13 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
             fmt.Println("artist1:", err.Error())
             return
         }
-        post, err := repositories.CreateArtistPost(artist, user.ID, newPost.Caption)
+        post, err := repositories.CreatePost(user.ID, newPost.Caption, "artist", artist.ID)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
             fmt.Println("artist2:", err.Error())
             return
         }
+        post.Content = artist
         models.Result(w, post)
         break
     }
