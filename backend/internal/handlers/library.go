@@ -292,7 +292,7 @@ func UnconnectedPlatformsHandler(w http.ResponseWriter, r *http.Request) {
         if platform == "spotify" {
             url, err = platforms.SpotifyURL(id.String())
         } else if platform == "deezer" {
-            url, err = DeezerURL(id.String())
+            url, err = platforms.DeezerURL(id.String())
         }
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
