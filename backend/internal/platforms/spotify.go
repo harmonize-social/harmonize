@@ -93,16 +93,17 @@ func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
     }
     sqlStatement := `INSERT INTO connections (id, user_id, access_token, refresh_token, expiry) VALUES ($1, $2, $3, $4, $5) RETURNING id`
     var connectionID uuid.UUID
-    err2 := repositories.Pool.QueryRow(context.Background(),
+    err = repositories.Pool.QueryRow(context.Background(),
         sqlStatement,
         connection.ID,
         connection.UserID,
         connection.AccessToken,
         connection.RefreshToken,
         connection.Expiry.Format(time.RFC3339)).Scan(&connectionID)
-    if err2 != nil {
-        fmt.Fprintf(w, "connection: %s\n\r", connection.UserID)
-        fmt.Fprintf(w, "Unable to execute the query. %s", err2)
+    if err != nil {
+        fmt.Println("Unable to execute the query: ", err)
+        models.Error(w, http.StatusInternalServerError, "Internal server error")
+        return
     }
     sqlStatement = `
     INSERT INTO libraries (platform_id, id, connection_id) VALUES ('spotify', uuid_generate_v4(), $1) RETURNING id;
@@ -110,12 +111,8 @@ func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
     tag, err := repositories.Pool.Exec(context.Background(),
         sqlStatement,
         connectionID)
-    if err != nil {
+    if err != nil || tag.RowsAffected() == 0 {
         fmt.Printf("error: %v", err)
-        models.Error(w, http.StatusInternalServerError, "Internal server error")
-    }
-
-    if tag.RowsAffected() == 0 {
         models.Error(w, http.StatusInternalServerError, "Internal server error")
         return
     }
