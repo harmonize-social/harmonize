@@ -30,15 +30,8 @@ func SongsHandler(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-    client, err := platforms.SpotifyClientId(&user.ID)
-    if err != nil {
-        fmt.Println(err)
-        models.Error(w, http.StatusInternalServerError, "Try logging into service again")
-        return
-    }
-    tracks, err := client.CurrentUsersTracks(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
 
-    independentTracks, err := repositories.SaveSpotifySongs(tracks)
+    platformSongs, err := platforms.GetSpotifySongs(&user.ID, limit, offset)
 
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
@@ -46,7 +39,15 @@ func SongsHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    models.Result(w, independentTracks)
+    err = repositories.SaveSongs(platformSongs)
+
+    if err != nil {
+        models.Error(w, http.StatusInternalServerError, "Internal server error")
+        fmt.Println(err)
+        return
+    }
+
+    models.Result(w, platformSongs)
 }
 
 func ArtistsHandler(w http.ResponseWriter, r *http.Request) {

@@ -91,3 +91,38 @@ func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
     }
     models.Result(w, "Ok")
 }
+
+func GetSpotifySongs(userId *uuid.UUID, limit int, offset int) ([]models.PlatformSong, error) {
+    client, err := SpotifyClientId(userId)
+    if err != nil {
+        return nil, err
+    }
+    tracks, err := client.CurrentUsersTracks(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
+    if err != nil {
+        return nil, err
+    }
+
+    songs := make([]models.PlatformSong, len(tracks.Tracks))
+    for i, track := range tracks.Tracks {
+        artists := make([]models.PlatformArtist, len(track.Artists))
+        for j, artist := range track.Artists {
+            artists[j] = models.PlatformArtist{
+                ID:       artist.ID.String(),
+                Name:     artist.Name,
+                MediaURL: "",
+            }
+        }
+        songs[i] = models.PlatformSong{
+            ID:    track.ID.String(),
+            Title: track.Name,
+            Album: models.PlatformAlbum{
+                ID:      track.Album.ID.String(),
+                Artists: artists,
+                MediaURL:track.Album.Images[0].URL,
+            },
+            MediaURL:   track.Album.Images[0].URL,
+            PreviewURL: track.PreviewURL,
+        }
+    }
+    return songs, nil
+}
