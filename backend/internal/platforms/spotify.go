@@ -1,9 +1,9 @@
 package platforms
 
 import (
+    "backend/internal/auth"
     "backend/internal/models"
     "backend/internal/repositories"
-    "backend/internal/auth"
     "context"
     "fmt"
     "net/http"
