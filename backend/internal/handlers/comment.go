@@ -1,6 +1,7 @@
 package handlers
 
 import (
+    "backend/internal/auth"
     "backend/internal/models"
     "backend/internal/repositories"
     "context"
@@ -85,7 +86,7 @@ func GetComments(w http.ResponseWriter, r *http.Request) {
 
 func CreateComment(w http.ResponseWriter, r *http.Request) {
     sessionId := r.Header.Get("id")
-    user, err := getUserFromSession(uuid.MustParse(sessionId))
+    user, err := auth.GetUserFromSession(uuid.MustParse(sessionId))
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Invalid session")
         fmt.Println("after session", err)
@@ -128,7 +129,7 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 
 func DeleteComment(w http.ResponseWriter, r *http.Request) {
     sessionId := r.Header.Get("id")
-    user, err := getUserFromSession(uuid.MustParse(sessionId))
+    user, err := auth.GetUserFromSession(uuid.MustParse(sessionId))
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Invalid session")
         return

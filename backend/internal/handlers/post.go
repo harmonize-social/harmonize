@@ -1,6 +1,7 @@
 package handlers
 
 import (
+    "backend/internal/auth"
     "backend/internal/models"
     "backend/internal/repositories"
     "context"
@@ -22,7 +23,7 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
         offset = 0
     }
     sessionId := r.Header.Get("id")
-    user, err := getUserFromSession(uuid.MustParse(sessionId))
+    user, err := auth.GetUserFromSession(uuid.MustParse(sessionId))
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Invalid session")
         return
@@ -126,7 +127,7 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 
 func NewPost(w http.ResponseWriter, r *http.Request) {
     sessionId := r.Header.Get("id")
-    user, err := getUserFromSession(uuid.MustParse(sessionId))
+    user, err := auth.GetUserFromSession(uuid.MustParse(sessionId))
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Invalid session")
         return
@@ -231,7 +232,7 @@ func GetUserPosts(w http.ResponseWriter, r *http.Request) {
         offset = 0
     }
     sessionId := r.Header.Get("id")
-    user, err := getUserFromSession(uuid.MustParse(sessionId))
+    user, err := auth.GetUserFromSession(uuid.MustParse(sessionId))
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Invalid session")
         return

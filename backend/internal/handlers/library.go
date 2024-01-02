@@ -1,6 +1,7 @@
 package handlers
 
 import (
+    "backend/internal/auth"
     "backend/internal/models"
     "backend/internal/platforms"
     "backend/internal/repositories"
@@ -24,7 +25,7 @@ func SongsHandler(w http.ResponseWriter, r *http.Request) {
         offset = 0
     }
     id := uuid.MustParse(r.Header.Get("id"))
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
@@ -58,7 +59,7 @@ func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
         offset = 0
     }
     id := uuid.MustParse(r.Header.Get("id"))
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
@@ -105,7 +106,7 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
         offset = 0
     }
     id := uuid.MustParse(r.Header.Get("id"))
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
@@ -148,7 +149,7 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
         offset = 0
     }
     id := uuid.MustParse(r.Header.Get("id"))
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
@@ -199,7 +200,7 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
 func DeleteConnectedPlatformHandler(w http.ResponseWriter, r *http.Request) {
     platform := r.URL.Query().Get("platform")
     id := uuid.MustParse(r.Header.Get("id"))
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
@@ -238,7 +239,7 @@ func DeleteConnectedPlatformHandler(w http.ResponseWriter, r *http.Request) {
 
 func ConnectedPlatforumsHandler(w http.ResponseWriter, r *http.Request) {
     id := uuid.MustParse(r.Header.Get("id"))
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
@@ -264,13 +265,13 @@ func ConnectedPlatforumsHandler(w http.ResponseWriter, r *http.Request) {
 
 func UnconnectedPlatformsHandler(w http.ResponseWriter, r *http.Request) {
     id := uuid.MustParse(r.Header.Get("id"))
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-    platforms := make([]string, 0)
-    rows, err := repositories.Pool.Query(r.Context(), "SELECT id FROM platforms WHERE id NOT IN (SELECT platform_id FROM libraries JOIN connections ON libraries.connection_id = connections.id WHERE user_id = $1)", user.ID)
+    platformNames := make([]string, 0)
+    rows, err := repositories.Pool.Query(r.Context(), "SELECT id FROM platformNames WHERE id NOT IN (SELECT platform_id FROM libraries JOIN connections ON libraries.connection_id = connections.id WHERE user_id = $1)", user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Internal server error")
         return
@@ -283,13 +284,13 @@ func UnconnectedPlatformsHandler(w http.ResponseWriter, r *http.Request) {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
             return
         }
-        platforms = append(platforms, platform)
+        platformNames = append(platformNames, platform)
     }
     platformOauths := make(map[string]string, 0)
-    for _, platform := range platforms {
+    for _, platform := range platformNames {
         url := ""
         if platform == "spotify" {
-            url, err = SpotifyURL(id.String())
+            url, err = platforms.SpotifyURL(id.String())
         } else if platform == "deezer" {
             url, err = DeezerURL(id.String())
         }

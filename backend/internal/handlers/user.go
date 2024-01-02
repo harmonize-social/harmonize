@@ -116,16 +116,6 @@ func insertSession(userId uuid.UUID) (uuid.UUID, error) {
     return sessionID, err
 }
 
-func getUserFromSession(sessionID uuid.UUID) (models.User, error) {
-    var user models.User
-
-    sqlStatement := `SELECT users.id, users.email, users.username, users.password_hash FROM sessions LEFT JOIN users ON users.id = sessions.user_id WHERE sessions.id = $1;`
-    row := repositories.Pool.QueryRow(context.Background(), sqlStatement, sessionID)
-    err := row.Scan(&user.ID, &user.Email, &user.Username, &user.Password)
-
-    return user, err
-}
-
 func generateJWT(sessionID uuid.UUID) (string, error) {
     t := jwt.NewWithClaims(jwt.SigningMethodHS256,
         jwt.MapClaims{

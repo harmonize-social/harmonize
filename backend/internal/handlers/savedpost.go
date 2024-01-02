@@ -1,6 +1,7 @@
 package handlers
 
 import (
+    "backend/internal/auth"
     "backend/internal/models"
     "backend/internal/repositories"
     "context"
@@ -22,7 +23,7 @@ func GetSavedPosts(w http.ResponseWriter, r *http.Request) {
 
     id := uuid.MustParse(r.Header.Get("id"))
 
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get session")
         return
@@ -98,7 +99,7 @@ func PostSavedPost(w http.ResponseWriter, r *http.Request) {
     id := r.Header.Get("id")
     postId := r.URL.Query().Get("id")
 
-    user, err := getUserFromSession(uuid.MustParse(id))
+    user, err := auth.GetUserFromSession(uuid.MustParse(id))
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get session")
         return
@@ -124,7 +125,7 @@ func DeleteSavedPost(w http.ResponseWriter, r *http.Request) {
     id := r.Header.Get("id")
     postId := r.URL.Query().Get("id")
 
-    user, err := getUserFromSession(uuid.MustParse(id))
+    user, err := auth.GetUserFromSession(uuid.MustParse(id))
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get session")
         return
