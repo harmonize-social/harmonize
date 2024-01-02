@@ -4,7 +4,6 @@ import (
     "backend/internal/auth"
     "backend/internal/models"
     "backend/internal/repositories"
-    "context"
     "encoding/json"
     "fmt"
     "io"
