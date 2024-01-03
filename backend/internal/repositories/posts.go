@@ -17,6 +17,7 @@ const (
     GetArtistByIDQuery        = "SELECT id, name, media_url FROM artists WHERE id = $1;"
     GetPlaylistByIDQuery      = "SELECT id, name, media_url FROM playlists WHERE id = $1;"
     GetPlaylistSongsByIDQuery = "SELECT id, name, album_id, media_url, preview_url FROM songs WHERE id IN (SELECT song_id FROM playlist_songs WHERE playlist_id = $1);"
+    GetCommentsByPostIDQuery  = "SELECT id, post_id, username, reply_to_id, created_at, message FROM comments WHERE post_id = $1;"
 )
 
 func CreatePost(userID uuid.UUID, caption string, postType string, typeSpecificID uuid.UUID) (models.Post, error) {
@@ -262,6 +263,63 @@ func GetFullPostPlaylist(typeSpecificID uuid.UUID) (models.Playlist, error) {
 }
 
 /*
+Get comments for post id
+*/
+func GetPostComments(postID uuid.UUID) ([]models.RootComment, error) {
+    comments := make([]models.Comment, 0)
+    processedComments := make([]models.RootComment, 0)
+    rows, err := Pool.Query(context.Background(), GetCommentsByPostIDQuery, postID)
+    defer rows.Close()
+
+    if err != nil {
+        return processedComments, err
+    }
+
+    for rows.Next() {
+        var comment models.Comment
+        err = rows.Scan(&comment.ID, &comment.PostId, &comment.Username, &comment.ReplyToId, &comment.CreatedAt, &comment.Message)
+
+        if err != nil {
+            return processedComments, err
+        }
+
+        comments = append(comments, comment)
+    }
+
+    for _, comment := range comments {
+        if comment.ReplyToId == uuid.Nil {
+            processedComments = append(processedComments, models.RootComment{
+                ID:        comment.ID,
+                Username:  comment.Username,
+                Message:   comment.Message,
+                CreatedAt: comment.CreatedAt,
+                Replies:   []models.Comment{},
+            })
+        }
+    }
+    for _, comment := range comments {
+        if comment.ReplyToId != uuid.Nil {
+            for i, rootComment := range processedComments {
+                if rootComment.ID == comment.ReplyToId {
+                    processedComments[i].Replies = append(processedComments[i].Replies, comment)
+                }
+            }
+        }
+    }
+
+    return processedComments, nil
+}
+
+/*
+CREATE TABLE IF NOT EXISTS posts(
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES users (id) NOT NULL,
+    created_at timestamptz NOT NULL,
+    caption VARCHAR(1024) NOT NULL,
+    type VARCHAR(1024) NOT NULL,
+    type_specific_id UUID
+);
+
 CREATE TABLE IF NOT EXISTS artists(
     id UUID PRIMARY KEY,
     name VARCHAR(1024) NOT NULL,
@@ -280,7 +338,6 @@ CREATE TABLE IF NOT EXISTS artists_album(
     album_id UUID REFERENCES albums (id) NOT NULL
 );
 
-
 CREATE TABLE IF NOT EXISTS songs(
     id UUID PRIMARY KEY,
     name VARCHAR(1024) NOT NULL,
@@ -295,10 +352,18 @@ CREATE TABLE IF NOT EXISTS playlists(
     media_url VARCHAR(1024) NOT NULL
 );
 
-
 CREATE TABLE IF NOT EXISTS playlist_songs(
     id UUID PRIMARY KEY,
     playlist_id UUID REFERENCES playlists (id) NOT NULL,
     song_id UUID REFERENCES songs (id) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS comments(
+    id UUID PRIMARY KEY,
+    post_id UUID REFERENCES posts (id) NOT NULL,
+    username varchar(1024) REFERENCES users (username) NOT NULL,
+    reply_to_id UUID,
+    created_at timestamptz NOT NULL DEFAULT NOW(),
+    message VARCHAR(1024) NOT NULL
 );
 */
