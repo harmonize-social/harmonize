@@ -28,7 +28,7 @@ func GetSong(platform string, id string) (models.Song, error) {
         return song, err
     }
 
-    // Get artists by song id
+    // Get artists for song id
     sqlStatement = "SELECT a.id, a.name FROM artists a JOIN artists_album aa ON a.id = aa.artist_id JOIN albums al ON aa.album_id = al.id JOIN songs s ON al.id = s.album_id WHERE s.id = $1 GROUP BY a.id;"
     rows, err := Pool.Query(context.Background(), sqlStatement, song.ID)
 
@@ -48,7 +48,16 @@ func GetSong(platform string, id string) (models.Song, error) {
         artists = append(artists, artist)
     }
 
-    song.Artists = artists
+    song.Album.Artists = artists
+    // Get album by song id
+
+    sqlStatement = "SELECT al.id, al.name, al.media_url FROM albums al JOIN songs s ON al.id = s.album_id WHERE s.id = $1;"
+    err = Pool.QueryRow(context.Background(), sqlStatement, song.ID).Scan(&song.Album.ID, &song.Album.Title, &song.Album.MediaURL)
+
+    if err != nil {
+        fmt.Println("2:", err)
+        return song, err
+    }
     return song, nil
 }
 
