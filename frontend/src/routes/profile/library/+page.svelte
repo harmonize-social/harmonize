@@ -92,14 +92,7 @@
                                 {#if songs.length > 0}
                                     {#each songs as song}
                                         <Song
-                                            content={{
-                                                title: song.title,
-                                                mediaUrl: song.mediaUrl,
-                                                id: song.id,
-                                                artists: song.artists,
-                                                previewUrl: song.previewUrl
-                                            }}
-                                        />
+                                            content={song}                                        />
                                         <a href="/newpost?library={connection}&id={song.id}&type=song">+</a>
                                     {/each}
                                 {:else}
