@@ -160,3 +160,50 @@ func GetSpotifyArtists(userId *uuid.UUID, limit int, offset int) ([]models.Platf
     }
     return artists, nil
 }
+
+func GetSpotifyAlbums(userId *uuid.UUID, limit int, offset int) ([]models.PlatformAlbum, error) {
+    client, err := SpotifyClientId(userId)
+    if err != nil {
+        return nil, err
+    }
+    albumsPage, err := client.CurrentUsersAlbums(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
+    if err != nil {
+        return nil, err
+    }
+
+    albums := make([]models.PlatformAlbum, len(albumsPage.Albums))
+    for i, album := range albumsPage.Albums {
+        fullAlbum, err := client.GetAlbum(context.Background(), album.ID)
+        if err != nil {
+            return nil, err
+        }
+        artists := make([]models.PlatformArtist, len(album.Artists))
+        for j, artist := range album.Artists {
+            artists[j] = models.PlatformArtist{
+                Platform: "spotify",
+                ID:       artist.ID.String(),
+                Name:     artist.Name,
+                MediaURL: "",
+            }
+        }
+        songs := make([]models.PlatformSong, len(fullAlbum.Tracks.Tracks))
+        for j, track := range fullAlbum.Tracks.Tracks {
+            songs[j] = models.PlatformSong{
+                Platform:   "spotify",
+                ID:         track.ID.String(),
+                Title:      track.Name,
+                PreviewURL: track.PreviewURL,
+            }
+        }
+
+        albums[i] = models.PlatformAlbum{
+            Platform: "spotify",
+            ID:       album.ID.String(),
+            Title:    album.Name,
+            Artists:  artists,
+            Songs:    songs,
+            MediaURL: album.Images[0].URL,
+        }
+    }
+    return albums, nil
+}

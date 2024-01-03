@@ -99,27 +99,19 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-    client, err := platforms.SpotifyClientId(&user.ID)
+
+    platformAlbums, err := platforms.GetSpotifyAlbums(&user.ID, limit, offset)
+
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
         fmt.Println(err)
         return
     }
 
-    rl := ratelimit.New(2)
-    rl.Take()
-
-    albums, err := client.CurrentUsersAlbums(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
-    if err != nil {
-        models.Error(w, http.StatusInternalServerError, "Try logging into service again")
-        fmt.Println(err)
-        return
-    }
-
-    independentAlbums, err := repositories.SaveSpotifyAlbums(albums)
+    independentAlbums, err := repositories.SaveFullAlbums(platformAlbums)
 
     if err != nil {
-        models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        models.Error(w, http.StatusInternalServerError, "Internal server error")
         fmt.Println(err)
         return
     }
