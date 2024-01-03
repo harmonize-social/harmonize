@@ -5,6 +5,7 @@ import (
     "backend/internal/models"
     "backend/internal/repositories"
     "context"
+    "fmt"
     "net/http"
     "strconv"
 
@@ -187,7 +188,7 @@ func getPlaylist(Id uuid.UUID) (models.Playlist, error) {
             if err != nil {
                 return playlist, err
             }
-            song.Artists = append(song.Artists, artist)
+            song.Album.Artists = append(song.Album.Artists, artist)
         }
         songs = append(songs, song)
     }
@@ -202,6 +203,15 @@ func getSong(Id uuid.UUID) (models.Song, error) {
     if err != nil {
         return song, err
     }
+    // Get album for song
+    err = repositories.Pool.QueryRow(context.Background(), `SELECT id, name, media_url FROM albums WHERE id = $1;`, &albumId).Scan(&song.Album.ID, &song.Album.Title, &song.Album.MediaURL)
+
+    if err != nil {
+        return song, err
+    }
+
+    fmt.Println(song.Album)
+
     rows, err := repositories.Pool.Query(context.Background(), `SELECT artists.id, artists.name FROM artists JOIN artists_album ON artists.id = artists_album.artist_id WHERE artists_album.album_id = $1 GROUP BY artists.id`, &albumId)
     artists := make([]models.Artist, 0)
     for rows.Next() {
@@ -212,7 +222,7 @@ func getSong(Id uuid.UUID) (models.Song, error) {
         }
         artists = append(artists, artist)
     }
-    song.Artists = artists
+    song.Album.Artists = artists
     return song, nil
 }
 
