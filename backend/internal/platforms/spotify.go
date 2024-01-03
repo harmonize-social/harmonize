@@ -107,18 +107,21 @@ func GetSpotifySongs(userId *uuid.UUID, limit int, offset int) ([]models.Platfor
         artists := make([]models.PlatformArtist, len(track.Artists))
         for j, artist := range track.Artists {
             artists[j] = models.PlatformArtist{
+                Platform: "spotify",
                 ID:       artist.ID.String(),
                 Name:     artist.Name,
                 MediaURL: "",
             }
         }
         songs[i] = models.PlatformSong{
-            ID:    track.ID.String(),
-            Title: track.Name,
+            Platform: "spotify",
+            ID:       track.ID.String(),
+            Title:    track.Name,
             Album: models.PlatformAlbum{
-                ID:      track.Album.ID.String(),
-                Artists: artists,
-                MediaURL:track.Album.Images[0].URL,
+                Platform: "spotify",
+                ID:       track.Album.ID.String(),
+                Artists:  artists,
+                MediaURL: track.Album.Images[0].URL,
             },
             MediaURL:   track.Album.Images[0].URL,
             PreviewURL: track.PreviewURL,
