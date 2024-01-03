@@ -28,7 +28,7 @@ type PlatformSong struct {
     Platform   string           `json:"platform,omitempty"`
     ID         string           `json:"id,omitempty"`
     Artists    []PlatformArtist `json:"artists,omitempty"`
-    Album      PlatformAlbum    `json:"albums,omitempty"`
+    Album      PlatformAlbum    `json:"album,omitempty"`
     Title      string           `json:"title,omitempty"`
     PreviewURL string           `json:"previewUrl,omitempty"`
     MediaURL   string           `json:"mediaUrl,omitempty"`
