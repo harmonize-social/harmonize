@@ -59,6 +59,8 @@ func SaveAlbum(platformAlbum models.PlatformAlbum) (uuid.UUID, models.Album, err
     if err != nil {
         return uuid.Nil, album, err
     }
+    album.Title = platformAlbum.Title
+    album.MediaURL = platformAlbum.MediaURL
     return albumPlatformId, album, nil
 }
 
@@ -72,6 +74,8 @@ func SavePlaylist(platformPlaylist models.PlatformPlaylist) (uuid.UUID, models.P
     if err != nil {
         return uuid.Nil, playlist, err
     }
+    playlist.Title = platformPlaylist.Title
+    playlist.MediaURL = platformPlaylist.MediaURL
     return playlistPlatformId, playlist, nil
 }
 
@@ -136,6 +140,7 @@ func SaveFullPlaylistAndSongs(platformPlaylist models.PlatformPlaylist) (models.
         if err != nil {
             return independentPlaylist, err
         }
+        independentPlaylist.Songs = append(independentPlaylist.Songs, independentSong)
     }
     return independentPlaylist, nil
 }
@@ -216,11 +221,13 @@ func SaveFullSong(platformSong models.PlatformSong) (models.Song, error) {
         if err != nil {
             return models.Song{}, err
         }
+        independentAlbum.Artists = append(independentAlbum.Artists, independentArtist)
     }
     independentSong, err := SaveSong(independentAlbum.ID, platformSong)
     if err != nil {
         return models.Song{}, err
     }
+    independentSong.Album = independentAlbum
     return independentSong, nil
 }
 

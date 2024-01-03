@@ -5,14 +5,11 @@ import (
     "backend/internal/models"
     "backend/internal/platforms"
     "backend/internal/repositories"
-    "context"
     "fmt"
     "net/http"
     "strconv"
 
     "github.com/google/uuid"
-    "github.com/zmb3/spotify/v2"
-    "go.uber.org/ratelimit"
 )
 
 func SongsHandler(w http.ResponseWriter, r *http.Request) {
@@ -74,14 +71,14 @@ func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    independentArtists, err := repositories.SaveArtists(platformArtists)
+    _, err = repositories.SaveArtists(platformArtists)
 
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Internal server error")
         return
     }
 
-    models.Result(w, independentArtists)
+    models.Result(w, platformArtists)
 }
 
 func AlbumHandler(w http.ResponseWriter, r *http.Request) {
@@ -108,7 +105,7 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    independentAlbums, err := repositories.SaveFullAlbums(platformAlbums)
+    _, err = repositories.SaveFullAlbums(platformAlbums)
 
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Internal server error")
@@ -116,7 +113,7 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    models.Result(w, independentAlbums)
+    models.Result(w, platformAlbums)
 }
 
 func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
@@ -134,39 +131,8 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-    client, err := platforms.SpotifyClientId(&user.ID)
-    if err != nil {
-        models.Error(w, http.StatusInternalServerError, "Try logging into service again")
-        return
-    }
 
-    rl := ratelimit.New(2)
-    rl.Take()
-    playlists, err := client.CurrentUsersPlaylists(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
-    if err != nil {
-        models.Error(w, http.StatusInternalServerError, "Try logging into service again")
-        return
-    }
-
-    playlistTracks := make(map[string][]spotify.FullTrack, 0)
-    for _, playlist := range playlists.Playlists {
-        rl.Take()
-        tracks, err := client.GetPlaylistItems(context.Background(), spotify.ID(playlist.ID), spotify.Limit(100))
-        if err != nil {
-            models.Error(w, http.StatusInternalServerError, "Try logging into service again")
-            fmt.Println(err)
-            return
-        }
-        playlistTracks[playlist.ID.String()] = make([]spotify.FullTrack, 0)
-        for _, track := range tracks.Items {
-            if track.Track.Track == nil {
-                continue
-            }
-            playlistTracks[playlist.ID.String()] = append(playlistTracks[playlist.ID.String()], *track.Track.Track)
-        }
-    }
-
-    independentPlaylists, err := repositories.SaveSpotifyPlaylists(playlists, playlistTracks)
+    platformPlaylists, err := platforms.GetSpotifyPlaylists(&user.ID, limit, offset)
 
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Try logging into service again")
@@ -174,7 +140,15 @@ func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    models.Result(w, independentPlaylists)
+    _, err = repositories.SaveFullPlaylists(platformPlaylists)
+
+    if err != nil {
+        models.Error(w, http.StatusInternalServerError, "Try logging into service again")
+        fmt.Println(err)
+        return
+    }
+
+    models.Result(w, platformPlaylists)
 }
 
 func DeleteConnectedPlatformHandler(w http.ResponseWriter, r *http.Request) {

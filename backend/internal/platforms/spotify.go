@@ -11,6 +11,7 @@ import (
     "github.com/google/uuid"
     spotify "github.com/zmb3/spotify/v2"
     spotifyauth "github.com/zmb3/spotify/v2/auth"
+    "go.uber.org/ratelimit"
     "golang.org/x/oauth2"
 )
 
@@ -113,6 +114,15 @@ func GetSpotifySongs(userId *uuid.UUID, limit int, offset int) ([]models.Platfor
                 MediaURL: "",
             }
         }
+        albumArtists := make([]models.PlatformArtist, len(track.Album.Artists))
+        for j, artist := range track.Album.Artists {
+            albumArtists[j] = models.PlatformArtist{
+                Platform: "spotify",
+                ID:       artist.ID.String(),
+                Name:     artist.Name,
+                MediaURL: "",
+            }
+        }
         songs[i] = models.PlatformSong{
             Platform: "spotify",
             ID:       track.ID.String(),
@@ -121,9 +131,10 @@ func GetSpotifySongs(userId *uuid.UUID, limit int, offset int) ([]models.Platfor
                 Platform: "spotify",
                 ID:       track.Album.ID.String(),
                 Title:    track.Album.Name,
-                Artists:  artists,
+                Artists:  albumArtists,
                 MediaURL: track.Album.Images[0].URL,
             },
+            Artists:   artists,
             MediaURL:   track.Album.Images[0].URL,
             PreviewURL: track.PreviewURL,
         }
@@ -206,4 +217,66 @@ func GetSpotifyAlbums(userId *uuid.UUID, limit int, offset int) ([]models.Platfo
         }
     }
     return albums, nil
+}
+
+func GetSpotifyPlaylists(userId *uuid.UUID, limit int, offset int) ([]models.PlatformPlaylist, error) {
+    rl := ratelimit.New(2)
+    rl.Take()
+    client, err := SpotifyClientId(userId)
+    if err != nil {
+        return nil, err
+    }
+    rl.Take()
+    playlistsPage, err := client.CurrentUsersPlaylists(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
+    if err != nil {
+        return nil, err
+    }
+
+    playlists := make([]models.PlatformPlaylist, len(playlistsPage.Playlists))
+    for i, playlist := range playlistsPage.Playlists {
+        rl.Take()
+        fullPlaylist, err := client.GetPlaylistItems(context.Background(), playlist.ID)
+        if err != nil {
+            return nil, err
+        }
+        songs := make([]models.PlatformSong, 0)
+        for _, track := range fullPlaylist.Items {
+            if track.Track.Track == nil {
+                continue
+            }
+            track := track.Track.Track
+            artists := make([]models.PlatformArtist, len(track.Artists))
+            for k, artist := range track.Artists {
+                artists[k] = models.PlatformArtist{
+                    Platform: "spotify",
+                    ID:       artist.ID.String(),
+                    Name:     artist.Name,
+                    MediaURL: "",
+                }
+            }
+            song := models.PlatformSong{
+                Platform:   "spotify",
+                ID:         track.ID.String(),
+                Album: models.PlatformAlbum{
+                    Platform: "spotify",
+                    ID:       track.Album.ID.String(),
+                    Title:    track.Album.Name,
+                    MediaURL: track.Album.Images[0].URL,
+                },
+                Artists:    artists,
+                Title:      track.Name,
+                PreviewURL: track.PreviewURL,
+            }
+            songs = append(songs, song)
+        }
+
+        playlists[i] = models.PlatformPlaylist{
+            Platform: "spotify",
+            ID:       playlist.ID.String(),
+            Title:    playlist.Name,
+            Songs:    songs,
+            MediaURL: playlist.Images[0].URL,
+        }
+    }
+    return playlists, nil
 }
