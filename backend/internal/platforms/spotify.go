@@ -120,6 +120,7 @@ func GetSpotifySongs(userId *uuid.UUID, limit int, offset int) ([]models.Platfor
             Album: models.PlatformAlbum{
                 Platform: "spotify",
                 ID:       track.Album.ID.String(),
+                Title:    track.Album.Name,
                 Artists:  artists,
                 MediaURL: track.Album.Images[0].URL,
             },

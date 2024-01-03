@@ -39,7 +39,7 @@ func SongsHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    err = repositories.SaveSongs(platformSongs)
+    err = repositories.SaveFullSongs(platformSongs)
 
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Internal server error")
