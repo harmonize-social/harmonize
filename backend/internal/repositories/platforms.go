@@ -30,10 +30,11 @@ func CreateConnectionAndLibrary(user_id uuid.UUID, platform string, access_token
         return err
     }
     sqlStatement = `
-    INSERT INTO libraries (platform_id, id, connection_id) VALUES (platform, uuid_generate_v4(), $1) RETURNING id;
+    INSERT INTO libraries (platform_id, id, connection_id) VALUES ($1, uuid_generate_v4(), $2) RETURNING id;
     `
     tag, err := Pool.Exec(context.Background(),
         sqlStatement,
+        platform,
         connectionID)
     if err != nil  {
         return err

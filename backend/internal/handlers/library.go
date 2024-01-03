@@ -272,9 +272,10 @@ func UnconnectedPlatformsHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
     platformNames := make([]string, 0)
-    rows, err := repositories.Pool.Query(r.Context(), "SELECT id FROM platformNames WHERE id NOT IN (SELECT platform_id FROM libraries JOIN connections ON libraries.connection_id = connections.id WHERE user_id = $1)", user.ID)
+    rows, err := repositories.Pool.Query(r.Context(), "SELECT id FROM platforms WHERE id NOT IN (SELECT platform_id FROM libraries JOIN connections ON libraries.connection_id = connections.id WHERE user_id = $1)", user.ID)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Internal server error")
+        fmt.Println(err)
         return
     }
     defer rows.Close()
@@ -282,6 +283,7 @@ func UnconnectedPlatformsHandler(w http.ResponseWriter, r *http.Request) {
         var platform string
         err := rows.Scan(&platform)
         if err != nil {
+            fmt.Println(err)
             models.Error(w, http.StatusInternalServerError, "Internal server error")
             return
         }
@@ -296,6 +298,7 @@ func UnconnectedPlatformsHandler(w http.ResponseWriter, r *http.Request) {
             url, err = platforms.DeezerURL(id.String())
         }
         if err != nil {
+            fmt.Println(err)
             models.Error(w, http.StatusInternalServerError, "Internal server error")
             return
         }
