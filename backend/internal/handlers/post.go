@@ -7,27 +7,13 @@ import (
     "context"
     "encoding/json"
     "fmt"
-    "net/http" // used to access the request and response object of the api
-    "strconv"
+    "net/http"
 
     "github.com/google/uuid"
 )
 
-func GetPosts(w http.ResponseWriter, r *http.Request) {
-    limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
-    if err != nil {
-        limit = 10
-    }
-    offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
-    if err != nil {
-        offset = 0
-    }
-    sessionId := r.Header.Get("id")
-    user, err := auth.GetUserFromSession(uuid.MustParse(sessionId))
-    if err != nil {
-        models.Error(w, http.StatusUnauthorized, "Invalid session")
-        return
-    }
+func GetMePosts(w http.ResponseWriter, r *http.Request) {
+    limit, offset, user, err := GetLimitOffsetSession(r)
 
     sqlStatement := `SELECT posts.id, posts.created_at, posts.caption, posts.type, posts.type_specific_id, users.username,
                          COUNT(liked_posts.post_id) AS like_count,
@@ -58,65 +44,22 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
             models.Error(w, http.StatusInternalServerError, "Error getting posts")
             return
         }
-        var content interface{}
-        if post.Type == "playlist" {
-            content, err = getPlaylist(typeSpecificId)
-            post.Content = content
-        } else if post.Type == "song" {
-            content, err = getSong(typeSpecificId)
-            post.Content = content
-        } else if post.Type == "album" {
-            content, err = getAlbum(typeSpecificId)
-            post.Content = content
-        } else if post.Type == "artist" {
-            content, err = getArtist(typeSpecificId)
-            post.Content = content
-        }
+        content, err := repositories.GetPostContent(post.Type, typeSpecificId)
+
         if err != nil {
-            println(err.Error())
             models.Error(w, http.StatusInternalServerError, "Error getting posts")
             return
         }
-        sqlStatement := `SELECT id, post_id, username, reply_to_id, message, created_at FROM comments WHERE post_id = $1 ORDER BY created_at DESC`
-        rows, err := repositories.Pool.Query(context.Background(), sqlStatement, post.ID)
+
+        post.Content = content
+
+        processedComments, err := repositories.GetPostComments(post.ID)
+
         if err != nil {
-            models.Error(w, http.StatusInternalServerError, "Failed to get comments")
+            models.Error(w, http.StatusInternalServerError, "Error getting posts")
             return
         }
-        defer rows.Close()
 
-        comments := make([]models.Comment, 0)
-        for rows.Next() {
-            var comment models.Comment
-            err = rows.Scan(&comment.ID, &comment.PostId, &comment.Username, &comment.ReplyToId, &comment.Message, &comment.CreatedAt)
-            if err != nil {
-                models.Error(w, http.StatusInternalServerError, "Failed to get comments")
-                return
-            }
-            comments = append(comments, comment)
-        }
-
-        processedComments := make([]models.RootComment, 0)
-        for _, comment := range comments {
-            if comment.ReplyToId == uuid.Nil {
-                processedComments = append(processedComments, models.RootComment{
-                    ID:        comment.ID,
-                    Username:  comment.Username,
-                    Message:   comment.Message,
-                    CreatedAt: comment.CreatedAt,
-                    Replies:   []models.Comment{},
-                })
-            }
-        }
-        for _, comment := range comments {
-            if comment.ReplyToId != uuid.Nil {
-                for i, rootComment := range processedComments {
-                    if rootComment.ID == comment.ReplyToId {
-                        processedComments[i].Replies = append(processedComments[i].Replies, comment)
-                    }
-                }
-            }
-        }
         post.Comments = processedComments
 
         posts = append(posts, post)
@@ -227,16 +170,7 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetUserPosts(w http.ResponseWriter, r *http.Request) {
-    limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
-    if err != nil {
-        limit = 10
-    }
-    offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
-    if err != nil {
-        offset = 0
-    }
-    sessionId := r.Header.Get("id")
-    user, err := auth.GetUserFromSession(uuid.MustParse(sessionId))
+    limit, offset, user, err := GetLimitOffsetSession(r)
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Invalid session")
         return
@@ -292,67 +226,24 @@ func GetUserPosts(w http.ResponseWriter, r *http.Request) {
             fmt.Println("here2: ", err.Error())
             return
         }
-        var content interface{}
-        if post.Type == "playlist" {
-            content, err = getPlaylist(typeSpecificId)
-            post.Content = content
-        } else if post.Type == "song" {
-            content, err = getSong(typeSpecificId)
-            post.Content = content
-        } else if post.Type == "album" {
-            content, err = getAlbum(typeSpecificId)
-            post.Content = content
-        } else if post.Type == "artist" {
-            content, err = getArtist(typeSpecificId)
-            post.Content = content
-        }
+
+        content, err := repositories.GetPostContent(post.Type, typeSpecificId)
+
         if err != nil {
-            println(err.Error())
+            models.Error(w, http.StatusInternalServerError, "Error getting posts")
+            fmt.Println("here3: ", err.Error())
+            return
+        }
+
+        post.Content = content
+
+        processedComments, err := repositories.GetPostComments(post.ID)
+
+        if err != nil {
             models.Error(w, http.StatusInternalServerError, "Error getting posts")
             return
         }
-        sqlStatement := `SELECT id, post_id, username, reply_to_id, message, created_at FROM comments WHERE post_id = $1 ORDER BY created_at DESC`
-        rows, err := repositories.Pool.Query(context.Background(), sqlStatement, post.ID)
-        if err != nil {
-            models.Error(w, http.StatusInternalServerError, "Failed to get comments")
-            fmt.Println(err.Error())
-            return
-        }
-        defer rows.Close()
 
-        comments := make([]models.Comment, 0)
-        for rows.Next() {
-            var comment models.Comment
-            err = rows.Scan(&comment.ID, &comment.PostId, &comment.Username, &comment.ReplyToId, &comment.Message, &comment.CreatedAt)
-            if err != nil {
-                models.Error(w, http.StatusInternalServerError, "Failed to get comments")
-                fmt.Println(err.Error())
-                return
-            }
-            comments = append(comments, comment)
-        }
-
-        processedComments := make([]models.RootComment, 0)
-        for _, comment := range comments {
-            if comment.ReplyToId == uuid.Nil {
-                processedComments = append(processedComments, models.RootComment{
-                    ID:        comment.ID,
-                    Username:  comment.Username,
-                    Message:   comment.Message,
-                    CreatedAt: comment.CreatedAt,
-                    Replies:   []models.Comment{},
-                })
-            }
-        }
-        for _, comment := range comments {
-            if comment.ReplyToId != uuid.Nil {
-                for i, rootComment := range processedComments {
-                    if rootComment.ID == comment.ReplyToId {
-                        processedComments[i].Replies = append(processedComments[i].Replies, comment)
-                    }
-                }
-            }
-        }
         post.Comments = processedComments
 
         posts = append(posts, post)
