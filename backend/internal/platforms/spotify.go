@@ -130,3 +130,33 @@ func GetSpotifySongs(userId *uuid.UUID, limit int, offset int) ([]models.Platfor
     }
     return songs, nil
 }
+
+func GetSpotifyArtists(userId *uuid.UUID, limit int, offset int) ([]models.PlatformArtist, error) {
+    client, err := SpotifyClientId(userId)
+    if err != nil {
+        return nil, err
+    }
+    artistsPage, err := client.CurrentUsersFollowedArtists(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
+    if err != nil {
+        return nil, err
+    }
+
+    artists := make([]models.PlatformArtist, 0)
+    for _, artist := range artistsPage.Artists {
+        fullArtist, err := client.GetArtist(context.Background(), artist.ID)
+
+        if err != nil {
+            return nil, err
+        }
+
+        platformArtist := models.PlatformArtist{
+            Platform: "spotify",
+            ID:       fullArtist.ID.String(),
+            Name:     fullArtist.Name,
+            MediaURL: fullArtist.Images[0].URL,
+        }
+
+        artists = append(artists, platformArtist)
+    }
+    return artists, nil
+}

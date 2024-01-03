@@ -29,6 +29,8 @@ func SaveArtist(platformArtist models.PlatformArtist) (uuid.UUID, models.Artist,
     if err != nil {
         return uuid.Nil, artist, err
     }
+    artist.Name = platformArtist.Name
+    artist.MediaURL = platformArtist.MediaURL
     return artistPlatformId, artist, nil
 }
 
