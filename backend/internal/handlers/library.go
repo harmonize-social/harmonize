@@ -7,33 +7,10 @@ import (
     "backend/internal/repositories"
     "fmt"
     "net/http"
-    "strconv"
 
     "github.com/google/uuid"
     "github.com/gorilla/mux"
 )
-
-func GetLimitOffsetSession(r *http.Request) (int, int, models.User, error) {
-    limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
-    if err != nil {
-        limit = 10
-    }
-    offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
-    if err != nil {
-        offset = 0
-    }
-    id := uuid.MustParse(r.Header.Get("id"))
-    _, err = auth.GetUserFromSession(id)
-    var user models.User
-    if err != nil {
-        return 0, 0, user, err
-    }
-    user, err = auth.GetUserFromSession(id)
-    if err != nil {
-        return 0, 0, user, err
-    }
-    return limit, offset, user, nil
-}
 
 func LibraryHandler(w http.ResponseWriter, r *http.Request) {
     limit, offset, user, err := GetLimitOffsetSession(r)
