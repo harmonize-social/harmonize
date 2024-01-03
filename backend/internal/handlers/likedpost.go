@@ -7,24 +7,12 @@ import (
     "context"
     "fmt"
     "net/http"
-    "strconv"
 
     "github.com/google/uuid"
 )
 
 func GetLikedPosts(w http.ResponseWriter, r *http.Request) {
-    limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
-    if err != nil {
-        limit = 10
-    }
-    offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
-    if err != nil {
-        offset = 0
-    }
-
-    id := uuid.MustParse(r.Header.Get("id"))
-
-    user, err := auth.GetUserFromSession(id)
+    limit, offset, user, err := GetLimitOffsetSession(r)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get session")
         return
@@ -76,25 +64,27 @@ func GetLikedPosts(w http.ResponseWriter, r *http.Request) {
             models.Error(w, http.StatusInternalServerError, "Error getting posts")
             return
         }
-        var content interface{}
-        if post.Type == "playlist" {
-            content, err = getPlaylist(typeSpecificId)
-            post.Content = content
-        } else if post.Type == "song" {
-            content, err = getSong(typeSpecificId)
-            post.Content = content
-        } else if post.Type == "album" {
-            content, err = getAlbum(typeSpecificId)
-            post.Content = content
-        } else if post.Type == "artist" {
-            content, err = getArtist(typeSpecificId)
-            post.Content = content
-        }
+
+        content,err := repositories.GetPostContent(post.Type, typeSpecificId)
+
         if err != nil {
             println(err.Error())
             models.Error(w, http.StatusInternalServerError, "Error getting posts")
             return
         }
+
+        post.Content = content
+
+        processedComments, err := repositories.GetPostComments(post.ID)
+
+        if err != nil {
+            println(err.Error())
+            models.Error(w, http.StatusInternalServerError, "Error getting posts")
+            return
+        }
+
+        post.Comments = processedComments
+
         posts = append(posts, post)
     }
     models.Result(w, posts)
