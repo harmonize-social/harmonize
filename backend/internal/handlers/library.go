@@ -12,7 +12,7 @@ import (
     "github.com/google/uuid"
 )
 
-func GetLimitOffsetSession(r *http.Request) (int, int, uuid.UUID, error) {
+func GetLimitOffsetSession(r *http.Request) (int, int, models.User, error) {
     limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
     if err != nil {
         limit = 10
@@ -23,24 +23,31 @@ func GetLimitOffsetSession(r *http.Request) (int, int, uuid.UUID, error) {
     }
     id := uuid.MustParse(r.Header.Get("id"))
     _, err = auth.GetUserFromSession(id)
+    var user models.User
     if err != nil {
-        return 0, 0, uuid.Nil, err
+        return 0, 0, user, err
     }
-    return limit, offset, id, nil
+    user, err = auth.GetUserFromSession(id)
+    if err != nil {
+        return 0, 0, user, err
+    }
+    return limit, offset, user, nil
+}
+
+func LibraryHandler(w http.ResponseWriter, r *http.Request) {
+    limit, offset, user, err := GetLimitOffsetSession(r)
+    if err != nil {
+        models.Error(w, http.StatusUnauthorized, "Malformed session")
+        return
+    }
 }
 
 func SongsHandler(w http.ResponseWriter, r *http.Request) {
-    limit, offset, id, err := GetLimitOffsetSession(r)
+    limit, offset, user, err := GetLimitOffsetSession(r)
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-    user, err := auth.GetUserFromSession(id)
-    if err != nil {
-        models.Error(w, http.StatusUnauthorized, "Malformed session")
-        return
-    }
-
     platformSongs, err := platforms.GetSpotifySongs(&user.ID, limit, offset)
 
     if err != nil {
@@ -61,17 +68,11 @@ func SongsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
-    limit, offset, id, err := GetLimitOffsetSession(r)
+    limit, offset, user, err := GetLimitOffsetSession(r)
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-    user, err := auth.GetUserFromSession(id)
-    if err != nil {
-        models.Error(w, http.StatusUnauthorized, "Malformed session")
-        return
-    }
-
     platformArtists, err := platforms.GetSpotifyArtists(&user.ID, limit, offset)
 
     if err != nil {
@@ -91,17 +92,11 @@ func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AlbumHandler(w http.ResponseWriter, r *http.Request) {
-    limit, offset, id, err := GetLimitOffsetSession(r)
+    limit, offset, user, err := GetLimitOffsetSession(r)
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-    user, err := auth.GetUserFromSession(id)
-    if err != nil {
-        models.Error(w, http.StatusUnauthorized, "Malformed session")
-        return
-    }
-
     platformAlbums, err := platforms.GetSpotifyAlbums(&user.ID, limit, offset)
 
     if err != nil {
@@ -122,17 +117,11 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
-    limit, offset, id, err := GetLimitOffsetSession(r)
+    limit, offset, user, err := GetLimitOffsetSession(r)
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-    user, err := auth.GetUserFromSession(id)
-    if err != nil {
-        models.Error(w, http.StatusUnauthorized, "Malformed session")
-        return
-    }
-
     platformPlaylists, err := platforms.GetSpotifyPlaylists(&user.ID, limit, offset)
 
     if err != nil {
