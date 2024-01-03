@@ -12,7 +12,7 @@ import (
     "github.com/google/uuid"
 )
 
-func SongsHandler(w http.ResponseWriter, r *http.Request) {
+func GetLimitOffsetSession(r *http.Request) (int, int, uuid.UUID, error) {
     limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
     if err != nil {
         limit = 10
@@ -22,6 +22,19 @@ func SongsHandler(w http.ResponseWriter, r *http.Request) {
         offset = 0
     }
     id := uuid.MustParse(r.Header.Get("id"))
+    _, err = auth.GetUserFromSession(id)
+    if err != nil {
+        return 0, 0, uuid.Nil, err
+    }
+    return limit, offset, id, nil
+}
+
+func SongsHandler(w http.ResponseWriter, r *http.Request) {
+    limit, offset, id, err := GetLimitOffsetSession(r)
+    if err != nil {
+        models.Error(w, http.StatusUnauthorized, "Malformed session")
+        return
+    }
     user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
@@ -48,15 +61,11 @@ func SongsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
-    limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+    limit, offset, id, err := GetLimitOffsetSession(r)
     if err != nil {
-        limit = 10
+        models.Error(w, http.StatusUnauthorized, "Malformed session")
+        return
     }
-    offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
-    if err != nil {
-        offset = 0
-    }
-    id := uuid.MustParse(r.Header.Get("id"))
     user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
@@ -82,15 +91,11 @@ func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AlbumHandler(w http.ResponseWriter, r *http.Request) {
-    limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+    limit, offset, id, err := GetLimitOffsetSession(r)
     if err != nil {
-        limit = 10
+        models.Error(w, http.StatusUnauthorized, "Malformed session")
+        return
     }
-    offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
-    if err != nil {
-        offset = 0
-    }
-    id := uuid.MustParse(r.Header.Get("id"))
     user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
@@ -117,15 +122,11 @@ func AlbumHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
-    limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+    limit, offset, id, err := GetLimitOffsetSession(r)
     if err != nil {
-        limit = 10
+        models.Error(w, http.StatusUnauthorized, "Malformed session")
+        return
     }
-    offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
-    if err != nil {
-        offset = 0
-    }
-    id := uuid.MustParse(r.Header.Get("id"))
     user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
