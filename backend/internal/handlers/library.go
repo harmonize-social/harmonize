@@ -10,6 +10,7 @@ import (
     "strconv"
 
     "github.com/google/uuid"
+    "github.com/gorilla/mux"
 )
 
 func GetLimitOffsetSession(r *http.Request) (int, int, models.User, error) {
@@ -40,105 +41,62 @@ func LibraryHandler(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusUnauthorized, "Malformed session")
         return
     }
-}
-
-func SongsHandler(w http.ResponseWriter, r *http.Request) {
-    limit, offset, user, err := GetLimitOffsetSession(r)
-    if err != nil {
-        models.Error(w, http.StatusUnauthorized, "Malformed session")
-        return
-    }
-    platformSongs, err := platforms.GetSpotifySongs(&user.ID, limit, offset)
-
-    if err != nil {
-        models.Error(w, http.StatusInternalServerError, "Try logging into service again")
-        fmt.Println(err)
-        return
-    }
-
-    err = repositories.SaveFullSongs(platformSongs)
-
-    if err != nil {
-        models.Error(w, http.StatusInternalServerError, "Internal server error")
-        fmt.Println(err)
-        return
-    }
-
-    models.Result(w, platformSongs)
-}
-
-func ArtistsHandler(w http.ResponseWriter, r *http.Request) {
-    limit, offset, user, err := GetLimitOffsetSession(r)
-    if err != nil {
-        models.Error(w, http.StatusUnauthorized, "Malformed session")
-        return
-    }
-    platformArtists, err := platforms.GetSpotifyArtists(&user.ID, limit, offset)
-
-    if err != nil {
-        models.Error(w, http.StatusInternalServerError, "Try logging into service again")
-        fmt.Println(err)
-        return
-    }
-
-    _, err = repositories.SaveArtists(platformArtists)
-
-    if err != nil {
-        models.Error(w, http.StatusInternalServerError, "Internal server error")
-        return
-    }
-
-    models.Result(w, platformArtists)
-}
-
-func AlbumHandler(w http.ResponseWriter, r *http.Request) {
-    limit, offset, user, err := GetLimitOffsetSession(r)
-    if err != nil {
-        models.Error(w, http.StatusUnauthorized, "Malformed session")
-        return
-    }
-    platformAlbums, err := platforms.GetSpotifyAlbums(&user.ID, limit, offset)
-
-    if err != nil {
-        models.Error(w, http.StatusInternalServerError, "Try logging into service again")
-        fmt.Println(err)
-        return
+    params := mux.Vars(r)
+    _ = params["platform"] // TODO: use this
+    itemType := params["type"]
+    switch itemType {
+    case "songs":
+        platformSongs, err := platforms.GetSpotifySongs(&user.ID, limit, offset)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            return
+        }
+        err = repositories.SaveFullSongs(platformSongs)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            return
+        }
+        models.Result(w, platformSongs)
+    case "artists":
+        platformArtists, err := platforms.GetSpotifyArtists(&user.ID, limit, offset)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            return
+        }
+        _, err = repositories.SaveArtists(platformArtists)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            return
+        }
+        models.Result(w, platformArtists)
+    case "albums":
+        platformAlbums, err := platforms.GetSpotifyAlbums(&user.ID, limit, offset)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            return
+        }
+        _, err = repositories.SaveFullAlbums(platformAlbums)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            return
+        }
+        models.Result(w, platformAlbums)
+    case "playlists":
+        platformPlaylists, err := platforms.GetSpotifyPlaylists(&user.ID, limit, offset)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            return
+        }
+        _, err = repositories.SaveFullPlaylists(platformPlaylists)
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Internal server error")
+            return
+        }
+        models.Result(w, platformPlaylists)
+    default:
+        models.Error(w, http.StatusBadRequest, "Invalid type")
     }
 
-    _, err = repositories.SaveFullAlbums(platformAlbums)
-
-    if err != nil {
-        models.Error(w, http.StatusInternalServerError, "Internal server error")
-        fmt.Println(err)
-        return
-    }
-
-    models.Result(w, platformAlbums)
-}
-
-func PlaylistHandler(w http.ResponseWriter, r *http.Request) {
-    limit, offset, user, err := GetLimitOffsetSession(r)
-    if err != nil {
-        models.Error(w, http.StatusUnauthorized, "Malformed session")
-        return
-    }
-    platformPlaylists, err := platforms.GetSpotifyPlaylists(&user.ID, limit, offset)
-
-    if err != nil {
-        models.Error(w, http.StatusInternalServerError, "Try logging into service again")
-        fmt.Println(err)
-        return
-    }
-
-    _, err = repositories.SaveFullPlaylists(platformPlaylists)
-
-    if err != nil {
-        models.Error(w, http.StatusInternalServerError, "Try logging into service again")
-        fmt.Println(err)
-        return
-    }
-
-    models.Result(w, platformPlaylists)
 }
 
 func DeleteConnectedPlatformHandler(w http.ResponseWriter, r *http.Request) {
