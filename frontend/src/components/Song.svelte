@@ -3,7 +3,6 @@
     import Preview from './Preview.svelte';
     import Artist from './Artist.svelte';
     export let content: SongModel;
-    console.log(content);
 </script>
 
 <div class="content">
