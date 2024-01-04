@@ -12,16 +12,16 @@
 	let email: string = '';
 	let username: string = '';
 	let error: string = '';
-    errorMessage.subscribe((value) => {
-        error = value;
-    }); 
+	errorMessage.subscribe((value) => {
+		error = value;
+	});
 	const handleRegister = async () => {
 		if (password !== confirmPassword) {
 			throwError('Passwords do not match');
 			return;
 		}
 		try {
-			const response = await loginpost<{ token: string }>('/api/register', {
+			const response = await loginpost<{ token: string }>('/users/register', {
 				email,
 				password,
 				username

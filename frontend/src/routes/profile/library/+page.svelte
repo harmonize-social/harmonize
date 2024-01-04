@@ -143,7 +143,6 @@
 								</div>
 							{/if}
 						</div>
-
 						<div class="dropdown">
 							<button
 								value="Albums"
