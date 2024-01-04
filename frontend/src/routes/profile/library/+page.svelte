@@ -37,8 +37,12 @@
     });
 
     async function updateRenderedContent() {
+        songs = [];
+        albums = [];
+        playlists = [];
+        artists = [];
         try {
-            let response: any = await get(`/me/library/${selectedLibrary}/${selectedContentType}`)
+            let response: any = await get(`/me/library/${selectedLibrary}/${selectedContentType}`);
             if (selectedContentType == 'songs') {
                 songs = response;
             } else if (selectedContentType == 'albums') {
@@ -80,66 +84,79 @@
         event.target.classList.add('selected');
         updateRenderedContent();
     }
-
-
-    function __sveltets_2_any() {
-        throw new Error('Function not implemented.');
-    }
 </script>
 
 <NavBar current_page="/profile/library"></NavBar>
 <Panel title="Libraries">
     <div class="library-names">
-    {#each libraries as library, i}
-        {#if i == 0}
-            <a class="selected" on:click={selectLibrary} href="#" id={library}>{library}</a>
-        {:else}
-            <a on:click={selectLibrary} href="#" id={library}>{library}</a>
-        {/if}
-    {/each}
+        {#each libraries as library, i}
+            {#if i == 0}
+                <a class="selected" on:click={selectLibrary} href="#" id={library}>{library}</a>
+            {:else}
+                <a on:click={selectLibrary} href="#" id={library}>{library}</a>
+            {/if}
+        {/each}
     </div>
 
     <div class="content-types">
-    {#each contentTypeOptions as contentTypeOption, i}
-        {#if i == 0}
-            <a on:click={selectContentType} href="#" id={contentTypeOption} class="selected">{contentTypeOption}</a>
-        {:else}
-            <a on:click={selectContentType} href="#" id={contentTypeOption}>{contentTypeOption}</a>
-        {/if}
-    {/each}
+        {#each contentTypeOptions as contentTypeOption, i}
+            {#if i == 0}
+                <a on:click={selectContentType} href="#" id={contentTypeOption} class="selected"
+                    >{contentTypeOption}</a
+                >
+            {:else}
+                <a on:click={selectContentType} href="#" id={contentTypeOption}>{contentTypeOption}</a>
+            {/if}
+        {/each}
     </div>
 
-    <div class="library-content">
-        {#each songs as song}
-            <!--<a href="/me/newpost?library={selectedLibrary}&id={song.id}&type={selectedContentType}">-->
-            {#if selectedContentType == 'songs'}
+    <div class="library-content-types">
+        <div class="library-album-content">
+            {#each albums as album}
+                <Album content={album} />
+            {/each}
+        </div>
+        <div class="library-song-content">
+            {#each songs as song}
+                <!--<a href="/me/newpost?library={selectedLibrary}&id={song.id}&type={selectedContentType}">-->
                 <Song content={song} />
-            {/if}
-            <!--<!--</a>-->
-        {/each}
+                <!--<!--</a>-->
+            {/each}
+        </div>
     </div>
 </Panel>
 
+<!-- Albums don't have an even width -->
 <style>
-    .library-names, .content-types {
+    .library-names,
+    .content-types {
         display: flex;
         flex-direction: row;
         justify-content: space-evenly;
         width: 100%;
     }
 
-    .library-names a, .content-types a {
+    .library-names a,
+    .content-types a {
         margin: 0.5rem;
         text-decoration: none;
         text-transform: uppercase;
         color: black;
     }
 
-    .library-names a.selected, .content-types a.selected {
+    .library-names a.selected,
+    .content-types a.selected {
         border-bottom: 0.2rem solid rebeccapurple;
     }
 
-    .library-content {
+    .library-song-content {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+    }
+
+    .library-album-content {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;

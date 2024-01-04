@@ -10,15 +10,19 @@
         <h3>{content.title}</h3>
     </div>
     <div class="preview">
-        <img src={content.album.mediaUrl} alt="Album Cover" />
+        {#if content.album && content.album.title}
+            <img src={content.album.mediaUrl} alt="Album Cover" />
+        {/if}
         <Preview previewUrl={content.previewUrl} />
     </div>
     <div class="artists">
-        {#each content.album.artists as artist}
-            <div class="artist">
-                <Artist content={artist} />
-            </div>
-        {/each}
+        {#if content.album && content.album.artists}
+            {#each content.album.artists as artist}
+                <div class="artist">
+                    <Artist content={artist} />
+                </div>
+            {/each}
+        {/if}
     </div>
 </div>
 
