@@ -311,22 +311,3 @@ func GetUserPosts(w http.ResponseWriter, r *http.Request) {
 
     models.Result(w, posts)
 }
-
-/*
-
-CREATE TABLE IF NOT EXISTS follows(
-    id UUID PRIMARY KEY,
-    followed_id UUID REFERENCES users (id) NOT NULL,
-    follower_id UUID REFERENCES users (id) NOT NULL,
-    CONSTRAINT follows_unique_user_combo UNIQUE (followed_id, follower_id),
-    date timestamptz NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY,
-    email VARCHAR(1024) unique NOT NULL,
-    username VARCHAR(1024) unique NOT NULL,
-    password_hash VARCHAR(1024) NOT NULL
-);
-
-*/
