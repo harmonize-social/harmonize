@@ -144,7 +144,7 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
     }
     fmt.Println(newPost)
 
-    if newPost.Type != "playlist" && newPost.Type != "song" && newPost.Type != "album" && newPost.Type != "artist" {
+    if newPost.Type != "playlists" && newPost.Type != "songs" && newPost.Type != "albums" && newPost.Type != "artists" {
         models.Error(w, http.StatusBadRequest, "Invalid post type")
         return
     }
@@ -160,7 +160,7 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
     }
 
     switch newPost.Type {
-    case "playlist":
+    case "playlists":
         playlist, err := repositories.GetPlaylist("spotify", newPost.PlatformSpecificId)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
@@ -177,7 +177,7 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
         post.Content = playlist
         models.Result(w, post)
         break
-    case "song":
+    case "songs":
         fmt.Println(newPost.PlatformSpecificId)
         song, err := repositories.GetSong("spotify", newPost.PlatformSpecificId)
         if err != nil {
@@ -194,7 +194,7 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
         post.Content = song
         models.Result(w, post)
         break
-    case "album":
+    case "albums":
         album, err := repositories.GetAlbum("spotify", newPost.PlatformSpecificId)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
@@ -210,7 +210,7 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
         post.Content = album
         models.Result(w, post)
         break
-    case "artist":
+    case "artists":
         artist, err := repositories.GetArtist("spotify", newPost.PlatformSpecificId)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
