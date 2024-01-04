@@ -1,6 +1,7 @@
 <script lang="ts">
     import type SongModel from '../models/song';
     import Preview from './Preview.svelte';
+    import Artist from './Artist.svelte';
     export let content: SongModel;
     console.log(content);
 </script>
@@ -10,19 +11,19 @@
         <h3>{content.title}</h3>
     </div>
     <div class="preview">
-        <img class="preview-img" src={content.album.mediaUrl} alt="Album Image" />
+        <img src={content.album.mediaUrl} alt="Album Cover" />
         <Preview previewUrl={content.previewUrl} />
     </div>
     <div class="artists">
         {#each content.album.artists as artist}
             <div class="artist">
-                <h4>Artist: {artist.name}</h4>
+                <Artist content={artist} />
             </div>
         {/each}
     </div>
 </div>
 
-<!-- We are making a card style item: image and preview of song on different lines-->
+<!-- We are making a card style item -->
 <style>
     .content {
         display: flex;
@@ -53,7 +54,7 @@
         flex-direction: column;
     }
 
-    .preview-img {
+    .preview img {
         width: 100px;
         height: 100px;
     }
