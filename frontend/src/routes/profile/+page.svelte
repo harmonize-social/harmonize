@@ -29,22 +29,40 @@
             loading = false;
         }
     }
-    async function getFollowers() {
-        try {
-            followers = await get('/me/followers');
-            console.log(followers);
-        } catch (e) {
-            throwError('Internal server error');
+
+    async function getFollowersOrFollowing(item: string): Promise<void> {
+        try{
+            if(item == 'following'){
+                following = await get(`me/${item}`);
+                console.log(following)
+            }
+            else if(item == 'followers'){
+                followers = await get(`me/${item}`);
+                console.log(followers)
+            }
+        }catch(e){
+            throwError('Could not get followers/following');
         }
     }
 
-    async function getFollowing() {
-        try {
-            following = await get('/me/following');
-        } catch (e) {
-            throwError('Internal server error');
+    let isFollowersOpen = false;
+    let isFollowingOpen = false;
+    const handleFollowers = async (): Promise<void> => {
+        if(!isFollowersOpen){
+            await getFollowersOrFollowing('followers');
         }
+        isFollowersOpen != isFollowersOpen;
+        isFollowingOpen = false;
     }
+
+    const handleFollowing = async (): Promise<void> => {
+        if(!isFollowingOpen){
+            await getFollowersOrFollowing('following');
+        }
+        isFollowingOpen != isFollowingOpen;
+        isFollowersOpen = false;
+    }
+
     function onScroll(event: Event) {
         const target = event.target as HTMLElement;
         if (target.scrollHeight - target.scrollTop === target.clientHeight) {
@@ -72,8 +90,11 @@
     <div class="user-container">
         <div class="user">
             <h2 class="username">Username</h2>
-            <div class="following" on:click={getFollowing}>
-                <Button buttonText="Following"></Button>
+                <button class="button" on:click={async () => await handleFollowing()}>
+                    FOLLOWING
+                </button>
+                {#if isFollowingOpen}
+                <div class="following">
                 {#each following as item}
                     <p>
                         <a href="/user/{item}">{item}</a>
@@ -86,8 +107,9 @@
                     <ErrorPopup message = {error}/>
                 {/if}
             </div>
-            <div class="followers" on:click={getFollowers}>
-                <Button buttonText="Followers"></Button>
+            {/if}
+            <div class="followers">
+                <button class="button" on:click={async () => await handleFollowers()}></button>
                 {#each followers as item}
                 <p>
                     <a href="/user/{item}">{item}</a>
@@ -196,5 +218,8 @@
         height: calc(100vh - var(--navbar-height));
         overflow-y: auto;
         padding: 1rem;
+    }
+    .button{
+        width: 7rem;
     }
 </style>
