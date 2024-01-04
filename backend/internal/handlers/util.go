@@ -18,15 +18,18 @@ func GetLimitOffsetSession(r *http.Request) (int, int, models.User, error) {
     if err != nil {
         offset = 0
     }
-    id := uuid.MustParse(r.Header.Get("id"))
-    _, err = auth.GetUserFromSession(id)
-    var user models.User
-    if err != nil {
-        return 0, 0, user, err
-    }
-    user, err = auth.GetUserFromSession(id)
+    user, err := GetUserFromSession(r)
     if err != nil {
         return 0, 0, user, err
     }
     return limit, offset, user, nil
+}
+
+func GetUserFromSession(r *http.Request) (models.User, error) {
+    id := uuid.MustParse(r.Header.Get("id"))
+    user, err := auth.GetUserFromSession(id)
+    if err != nil {
+        return user, err
+    }
+    return user, nil
 }
