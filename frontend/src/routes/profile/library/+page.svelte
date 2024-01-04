@@ -111,11 +111,6 @@
     </div>
 
     <div class="library-content-types">
-        <div class="library-album-content">
-            {#each albums as album}
-                <Album content={album} />
-            {/each}
-        </div>
         <div class="library-song-content">
             {#each songs as song}
                 <!--<a href="/me/newpost?library={selectedLibrary}&id={song.id}&type={selectedContentType}">-->
@@ -123,10 +118,14 @@
                 <!--<!--</a>-->
             {/each}
         </div>
+        <div class="library-album-content">
+            {#each albums as album}
+                <Album content={album} />
+            {/each}
+        </div>
     </div>
 </Panel>
 
-<!-- Albums don't have an even width -->
 <style>
     .library-names,
     .content-types {
