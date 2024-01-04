@@ -8,6 +8,9 @@
     .artist {
         position: relative;
         text-align: center;
+        border: 1px solid black;
+        width: 200px;
+        margin: 10px;
     }
 
     .artist img {

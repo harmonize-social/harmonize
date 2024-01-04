@@ -128,6 +128,11 @@
                 <Playlist content={playlist} />
             {/each}
         </div>
+        <div class="library-artist-content">
+            {#each artists as artist}
+                <Artist content={artist} />
+            {/each}
+        </div>
     </div>
 </Panel>
 
@@ -168,6 +173,13 @@
     }
 
     .library-playlist-content {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+    }
+
+    .library-artist-content {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
