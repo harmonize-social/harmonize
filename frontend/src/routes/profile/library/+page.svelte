@@ -123,6 +123,11 @@
                 <Album content={album} />
             {/each}
         </div>
+        <div class="library-playlist-content">
+            {#each playlists as playlist}
+                <Playlist content={playlist} />
+            {/each}
+        </div>
     </div>
 </Panel>
 
@@ -156,6 +161,13 @@
     }
 
     .library-album-content {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+    }
+
+    .library-playlist-content {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
