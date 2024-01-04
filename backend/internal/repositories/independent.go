@@ -8,56 +8,28 @@ import (
     "github.com/google/uuid"
 )
 
+const (
+    GetSongByPlatformSpecificId = "SELECT ps.id, ps.platform_specific_id, ps.platform_id, ps.song_id FROM platform_songs ps WHERE ps.platform_id = $1 AND ps.platform_specific_id = $2;"
+)
+
 func GetSong(platform string, id string) (models.Song, error) {
     var song models.Song
     // Check if there is a song with the give platoform and platform_specific_id
-    sqlStatement := "SELECT ps.id AS platform_song_id, ps.platform_specific_id, ps.platform_id, ps.song_id FROM platform_songs ps WHERE ps.platform_id = $1 AND ps.platform_specific_id = $2;"
     var platformSongId uuid.UUID
-    err := Pool.QueryRow(context.Background(), sqlStatement, platform, id).Scan(&platformSongId, &id, &platform, &song.ID)
+    err := Pool.QueryRow(context.Background(), GetSongByPlatformSpecificId, platform, id).Scan(&platformSongId, &id, &platform, &song.ID)
 
     if err != nil {
         fmt.Println("1:", err)
         return song, err
     }
 
-    sqlStatement = "SELECT name, media_url, preview_url FROM songs WHERE id = $1;"
-    err = Pool.QueryRow(context.Background(), sqlStatement, song.ID).Scan(&song.Title, &song.MediaURL, &song.PreviewURL)
+    song, err = GetFullPostSong(song.ID)
 
     if err != nil {
         fmt.Println("2:", err)
         return song, err
     }
 
-    // Get artists for song id
-    sqlStatement = "SELECT a.id, a.name FROM artists a JOIN artists_album aa ON a.id = aa.artist_id JOIN albums al ON aa.album_id = al.id JOIN songs s ON al.id = s.album_id WHERE s.id = $1 GROUP BY a.id;"
-    rows, err := Pool.Query(context.Background(), sqlStatement, song.ID)
-
-    if err != nil {
-        fmt.Println("3:", err)
-        return song, err
-    }
-
-    artists := make([]models.Artist, 0)
-    for rows.Next() {
-        var artist models.Artist
-        err = rows.Scan(&artist.ID, &artist.Name)
-        if err != nil {
-            fmt.Println("4:", err)
-            return song, err
-        }
-        artists = append(artists, artist)
-    }
-
-    song.Album.Artists = artists
-    // Get album by song id
-
-    sqlStatement = "SELECT al.id, al.name, al.media_url FROM albums al JOIN songs s ON al.id = s.album_id WHERE s.id = $1;"
-    err = Pool.QueryRow(context.Background(), sqlStatement, song.ID).Scan(&song.Album.ID, &song.Album.Title, &song.Album.MediaURL)
-
-    if err != nil {
-        fmt.Println("2:", err)
-        return song, err
-    }
     return song, nil
 }
 
@@ -72,56 +44,11 @@ func GetAlbum(platform string, id string) (models.Album, error) {
         return album, err
     }
 
-    sqlStatement = "SELECT name, media_url FROM albums WHERE id = $1;"
-    err = Pool.QueryRow(context.Background(), sqlStatement, album.ID).Scan(&album.Title, &album.MediaURL)
+    album, err = GetFullPostAlbum(album.ID)
 
     if err != nil {
         return album, err
     }
-
-    // Get artists by album id
-    sqlStatement = "SELECT a.id, a.name FROM artists a JOIN artists_album aa ON a.id = aa.artist_id JOIN albums al ON aa.album_id = al.id WHERE al.id = $1 GROUP BY a.id;"
-    rows, err := Pool.Query(context.Background(), sqlStatement, album.ID)
-
-    if err != nil {
-        return album, err
-    }
-
-    artists := make([]models.Artist, 0)
-    for rows.Next() {
-        var artist models.Artist
-        err = rows.Scan(&artist.ID, &artist.Name)
-        if err != nil {
-            return album, err
-        }
-        artists = append(artists, artist)
-    }
-
-    album.Artists = artists
-
-    // Get songs by album id
-
-    //sqlStatement = "SELECT s.id, s.name FROM songs s JOIN albums al ON s.album_id = al.id WHERE al.id = $1;"
-    sqlStatement = "SELECT s.id, s.name, s.media_url, s.preview_url FROM songs s JOIN albums al ON s.album_id = al.id WHERE al.id = $1;"
-
-    rows, err = Pool.Query(context.Background(), sqlStatement, album.ID)
-
-    if err != nil {
-        return album, err
-    }
-
-    songs := make([]models.Song, 0)
-    for rows.Next() {
-        var song models.Song
-        err = rows.Scan(&song.ID, &song.Title, &song.MediaURL, &song.PreviewURL)
-
-        if err != nil {
-            return album, err
-        }
-        songs = append(songs, song)
-    }
-
-    album.Songs = songs
 
     return album, nil
 }
@@ -137,33 +64,12 @@ func GetPlaylist(platform string, id string) (models.Playlist, error) {
         return playlist, err
     }
 
-    sqlStatement = "SELECT name, media_url FROM playlists WHERE id = $1;"
-    err = Pool.QueryRow(context.Background(), sqlStatement, playlist.ID).Scan(&playlist.Title, &playlist.MediaURL)
+    playlist, err = GetFullPostPlaylist(playlist.ID)
 
     if err != nil {
         return playlist, err
     }
 
-    // Get songs by playlist id
-    // sqlStatement = "SELECT s.id, s.name FROM songs s JOIN playlist_songs ps ON s.id = ps.song_id JOIN playlists p ON ps.playlist_id = p.id WHERE p.id = $1;"
-    sqlStatement = "SELECT s.id, s.name, s.media_url, s.preview_url FROM songs s JOIN playlist_songs ps ON s.id = ps.song_id JOIN playlists p ON ps.playlist_id = p.id WHERE p.id = $1;"
-    rows, err := Pool.Query(context.Background(), sqlStatement, playlist.ID)
-
-    if err != nil {
-        return playlist, err
-    }
-
-    songs := make([]models.Song, 0)
-    for rows.Next() {
-        var song models.Song
-        err = rows.Scan(&song.ID, &song.Title, &song.MediaURL, &song.PreviewURL)
-        if err != nil {
-            return playlist, err
-        }
-        songs = append(songs, song)
-    }
-
-    playlist.Songs = songs
     return playlist, nil
 }
 
@@ -178,8 +84,7 @@ func GetArtist(platform string, id string) (models.Artist, error) {
         return artist, err
     }
 
-    sqlStatement = "SELECT name, media_url FROM artists WHERE id = $1;"
-    err = Pool.QueryRow(context.Background(), sqlStatement, artist.ID).Scan(&artist.Name, &artist.MediaURL)
+    artist, err = GetFullPostArtist(artist.ID)
 
     if err != nil {
         return artist, err
@@ -187,3 +92,95 @@ func GetArtist(platform string, id string) (models.Artist, error) {
 
     return artist, nil
 }
+
+/*
+
+CREATE TABLE IF NOT EXISTS platforms(
+    id VARCHAR(1024) PRIMARY KEY,
+    name VARCHAR(1024) NOT NULL,
+    icon_id UUID REFERENCES images (id) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS artists(
+    id UUID PRIMARY KEY,
+    name VARCHAR(1024) NOT NULL,
+    media_url VARCHAR(1024) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS albums(
+    id UUID PRIMARY KEY,
+    name VARCHAR(1024) NOT NULL,
+    media_url VARCHAR(1024) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS artists_album(
+    id UUID PRIMARY KEY,
+    artist_id UUID REFERENCES artists (id) NOT NULL,
+    album_id UUID REFERENCES albums (id) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS songs(
+    id UUID PRIMARY KEY,
+    name VARCHAR(1024) NOT NULL,
+    album_id UUID REFERENCES albums (id) NOT NULL,
+    media_url VARCHAR(1024) NOT NULL,
+    preview_url VARCHAR(1024) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS playlists(
+    id UUID PRIMARY KEY,
+    name VARCHAR(1024) NOT NULL,
+    media_url VARCHAR(1024) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS playlist_songs(
+    id UUID PRIMARY KEY,
+    playlist_id UUID REFERENCES playlists (id) NOT NULL,
+    song_id UUID REFERENCES songs (id) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS platform_artists(
+    id UUID PRIMARY KEY,
+    platform_specific_id VARCHAR(1024) NOT NULL,
+    platform_id VARCHAR(1024) REFERENCES platforms(id) NOT NULL,
+    artist_id UUID REFERENCES artists (id) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS platform_albums(
+    id UUID PRIMARY KEY,
+    platform_specific_id VARCHAR(1024) NOT NULL,
+    platform_id VARCHAR(1024) REFERENCES platforms(id) NOT NULL,
+    album_id UUID REFERENCES albums (id) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS platform_songs(
+    id UUID PRIMARY KEY,
+    platform_specific_id VARCHAR(1024) NOT NULL,
+    platform_id VARCHAR(1024) REFERENCES platforms(id) NOT NULL,
+    song_id UUID REFERENCES songs (id) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS platform_playlists(
+    id UUID PRIMARY KEY,
+    platform_specific_id VARCHAR(1024) NOT NULL,
+    platform_id VARCHAR(1024) REFERENCES platforms(id) NOT NULL,
+    playlist_id UUID REFERENCES playlists (id) NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS posts(
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES users (id) NOT NULL,
+    created_at timestamptz NOT NULL,
+    caption VARCHAR(1024) NOT NULL,
+    type VARCHAR(1024) NOT NULL,
+    type_specific_id UUID
+);
+*/
