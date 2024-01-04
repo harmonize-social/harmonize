@@ -1,6 +1,7 @@
 package handlers
 
 import (
+    "backend/internal/auth"
     "backend/internal/models"
     "backend/internal/repositories"
     "context"
@@ -18,74 +19,20 @@ func GetComments(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    sqlStatement := `SELECT id, post_id, username, reply_to_id, message, created_at FROM comments WHERE post_id = $1 ORDER BY created_at DESC`
-    rows, err := repositories.Pool.Query(context.Background(), sqlStatement, postId)
+    comments, err := repositories.GetPostComments(postId)
+
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "Failed to get comments")
-        fmt.Println(err)
+        fmt.Println("after get comments", err)
         return
     }
-    defer rows.Close()
 
-    comments := make([]models.Comment, 0)
-    for rows.Next() {
-        var comment models.Comment
-        err = rows.Scan(&comment.ID, &comment.PostId, &comment.Username, &comment.ReplyToId, &comment.Message, &comment.CreatedAt)
-        if err != nil {
-            models.Error(w, http.StatusInternalServerError, "Failed to get comments")
-            return
-        }
-        comments = append(comments, comment)
-    }
-
-    /* Have a root comment with no reply_to_id which has a list replies with reply_to_id = root comment id, only one level deep
-       {
-           {
-               id: 1,
-               username: "user1",
-               message: "message1",
-               replies: [
-                   {
-                       id: 2,
-                       username: "user2",
-                       message: "message2",
-                   },
-                   {
-                       id: 3,
-                       username: "user3",
-                       message: "message3",
-                   }
-               ]
-           }
-       }
-    */
-    processedComments := make([]models.RootComment, 0)
-    for _, comment := range comments {
-        if comment.ReplyToId == uuid.Nil {
-            processedComments = append(processedComments, models.RootComment{
-                ID:        comment.ID,
-                Username:  comment.Username,
-                Message:   comment.Message,
-                CreatedAt: comment.CreatedAt,
-                Replies:   []models.Comment{},
-            })
-        }
-    }
-    for _, comment := range comments {
-        if comment.ReplyToId != uuid.Nil {
-            for i, rootComment := range processedComments {
-                if rootComment.ID == comment.ReplyToId {
-                    processedComments[i].Replies = append(processedComments[i].Replies, comment)
-                }
-            }
-        }
-    }
-    models.Result(w, processedComments)
+    models.Result(w, comments)
 }
 
 func CreateComment(w http.ResponseWriter, r *http.Request) {
     sessionId := r.Header.Get("id")
-    user, err := getUserFromSession(uuid.MustParse(sessionId))
+    user, err := auth.GetUserFromSession(uuid.MustParse(sessionId))
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Invalid session")
         fmt.Println("after session", err)
@@ -128,7 +75,7 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 
 func DeleteComment(w http.ResponseWriter, r *http.Request) {
     sessionId := r.Header.Get("id")
-    user, err := getUserFromSession(uuid.MustParse(sessionId))
+    user, err := auth.GetUserFromSession(uuid.MustParse(sessionId))
     if err != nil {
         models.Error(w, http.StatusUnauthorized, "Invalid session")
         return

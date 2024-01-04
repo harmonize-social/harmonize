@@ -4,6 +4,7 @@ import (
     "backend/internal/models" // models package where User schema is defined
     "backend/internal/repositories"
     "context"
+    "fmt"
     "time"
 
     "encoding/json" // package to encode and decode the json into struct and vice versa
@@ -68,16 +69,27 @@ func Login(w http.ResponseWriter, r *http.Request) {
     })
 }
 
+type RegisterRequest struct {
+    Email    string `json:"email"`
+    Username string `json:"username"`
+    Password string `json:"password"`
+}
+
 func Register(w http.ResponseWriter, r *http.Request) {
     // create an empty user of type models.User
-    var user models.User
+    var registerRequest RegisterRequest
 
     // decode the json request to user
-    err := json.NewDecoder(r.Body).Decode(&user)
+    err := json.NewDecoder(r.Body).Decode(&registerRequest)
 
     if err != nil {
         models.Error(w, http.StatusBadRequest, "Invalid request payload")
     }
+
+    var user models.User
+
+    user.Email = registerRequest.Email
+    user.Username = registerRequest.Username
 
     user.Password, err = argon2id.CreateHash(user.Password, argon2id.DefaultParams)
     if err != nil {
@@ -90,6 +102,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
     err = repositories.Pool.QueryRow(context.Background(), sqlStatement, userId, user.Email, user.Username, user.Password).Scan(&userId)
 
     if err != nil {
+        fmt.Println(err)
         models.Error(w, http.StatusInternalServerError, "Username or Email already exists")
         return
     }
@@ -114,16 +127,6 @@ func insertSession(userId uuid.UUID) (uuid.UUID, error) {
     err := repositories.Pool.QueryRow(context.Background(), sqlStatement, sessionID, userId, time.Now().AddDate(0, 0, 7)).Scan(&sessionID)
 
     return sessionID, err
-}
-
-func getUserFromSession(sessionID uuid.UUID) (models.User, error) {
-    var user models.User
-
-    sqlStatement := `SELECT users.id, users.email, users.username, users.password_hash FROM sessions LEFT JOIN users ON users.id = sessions.user_id WHERE sessions.id = $1;`
-    row := repositories.Pool.QueryRow(context.Background(), sqlStatement, sessionID)
-    err := row.Scan(&user.ID, &user.Email, &user.Username, &user.Password)
-
-    return user, err
 }
 
 func generateJWT(sessionID uuid.UUID) (string, error) {

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+    "backend/internal/auth"
     "backend/internal/models"
     "backend/internal/repositories"
     "context"
@@ -14,7 +15,7 @@ import (
 func PostFollow(w http.ResponseWriter, r *http.Request) {
     id := uuid.MustParse(r.Header.Get("id"))
 
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get session")
         return
@@ -48,7 +49,7 @@ func PostFollow(w http.ResponseWriter, r *http.Request) {
 func DeleteFollow(w http.ResponseWriter, r *http.Request) {
     id := uuid.MustParse(r.Header.Get("id"))
 
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get session")
         return
@@ -88,7 +89,7 @@ func GetFollowers(w http.ResponseWriter, r *http.Request) {
 
     id := uuid.MustParse(r.Header.Get("id"))
 
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
 
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get session")
@@ -135,7 +136,7 @@ func GetFollowing(w http.ResponseWriter, r *http.Request) {
 
     id := uuid.MustParse(r.Header.Get("id"))
 
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
 
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get session")
