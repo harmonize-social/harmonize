@@ -5,11 +5,73 @@
     console.log(content);
 </script>
 
-<h3>{content.title}</h3>
-<Preview previewUrl={content.previewUrl} />
-{#each content.album.artists as artist}
-    <h4>Artist: {artist.name}</h4>
-{/each}
+<div class="content">
+    <div class="title">
+        <h3>{content.title}</h3>
+    </div>
+    <div class="preview">
+        <img class="preview-img" src={content.album.mediaUrl} alt="Album Image" />
+        <Preview previewUrl={content.previewUrl} />
+    </div>
+    <div class="artists">
+        {#each content.album.artists as artist}
+            <div class="artist">
+                <h4>Artist: {artist.name}</h4>
+            </div>
+        {/each}
+    </div>
+</div>
 
+<!-- We are making a card style item: image and preview of song on different lines-->
 <style>
+    .content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 300px;
+        height: 300px;
+        border: 1px solid black;
+        border-radius: 5px;
+        margin: 10px;
+    }
+
+    .title {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 50px;
+    }
+
+    .preview {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 150px;
+        flex-direction: column;
+    }
+
+    .preview-img {
+        width: 100px;
+        height: 100px;
+    }
+
+    .artists {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100px;
+    }
+
+    .artist {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 50px;
+    }
 </style>
