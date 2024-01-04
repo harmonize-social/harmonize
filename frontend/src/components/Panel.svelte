@@ -1,8 +1,8 @@
 <script>
     export let title = 'Panel';
-    
+
   </script>
-  
+
   <style>
     .panel {
       background-color: #B931FC;
@@ -13,19 +13,18 @@
       flex-direction: column;
       flex-wrap: wrap;
       align-items: center;
-      height: 92vh;
     }
-  
+
     .panel h2 {
       flex: 0 0 auto;
     }
-  
+
     .panel slot {
       flex: 1 1 auto;
       overflow: auto;
     }
   </style>
-  
+
   <div class="panel">
     <h2>{title}</h2>
     <slot></slot>
