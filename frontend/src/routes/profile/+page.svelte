@@ -81,7 +81,7 @@
         });
     });
 </script>
-
+<link rel="stylesheet" href="../../style.css">
 <div class="nav">
     <NavBar current_page="/profile"></NavBar>
 </div>

@@ -64,11 +64,12 @@
 
     let isClicked = false;
     const handleButtonClick = async () => {
-        isClicked = !isClicked;
         if(follows){
             await deleteFollow(name);
+            isClicked = !isClicked;
         }else{
             await postFollow(name);
+            isClicked = !isClicked;
         }
         follows = !follows;
     };
