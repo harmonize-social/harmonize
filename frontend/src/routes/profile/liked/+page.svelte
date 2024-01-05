@@ -50,7 +50,7 @@
     <div class="liked-container" on:scroll={onScroll} >
         {#each liked_posts as post}
             <div class="post">
-                <Post content={post.content} caption={post.caption} likes={post.likeCount} id={post.id} typez={post.type}></Post>
+                <Post content={post.content} caption={post.caption} likes={post.likeCount} id={post.id} typez={post.type} isLiked={true} isSaved={false}></Post>
             </div>
         {/each}
         {#if loading}

@@ -1,200 +1,227 @@
 <script lang="ts">
-    import Panel from '../../components/Panel.svelte';
-    import NavBar from '../../components/NavBar.svelte';
-    import Button from '../../components/Button.svelte';
-    import { get, throwError } from '../../fetch';
-    import type PostModel from '../../models/post';
-    import Post from '../../components/Post.svelte';
-    import { errorMessage } from '../../store';
-    import { onMount } from 'svelte';
-    import ErrorPopup from '../../components/ErrorPopup.svelte';
+	import Panel from '../../components/Panel.svelte';
+	import NavBar from '../../components/NavBar.svelte';
+	import Button from '../../components/Button.svelte';
+	import { get, throwError } from '../../fetch';
+	import type PostModel from '../../models/post';
+	import Post from '../../components/Post.svelte';
+	import { errorMessage } from '../../store';
+	import { onMount } from 'svelte';
+	import ErrorPopup from '../../components/ErrorPopup.svelte';
 
-    let posts: PostModel[] = [];
-    let followers: string[] = [];
-    let following: string[] = [];
-    let loading = false;
-    let error = '';
-    errorMessage.subscribe((value) => {
-        error = value;
-    });
+	let posts: PostModel[] = [];
+	let followers: string[] = [];
+	let following: string[] = [];
+	let selectedList: string = '';
+	let loading = false;
+	let error = '';
+	errorMessage.subscribe((value) => {
+		error = value;
+	});
 
-    async function fetchPosts(): Promise<PostModel[]> {
-        try {
-            const response: PostModel[] = await get<PostModel[]>('/me/posts');
-            return response;
-        } catch (e) {
-            throwError('Error fetching posts');
-            return [];
-        } finally {
-            loading = false;
-        }
-    }
-    async function getFollowers() {
-        try {
-            followers = await get('/me/followers');
-            console.log(followers);
-        } catch (e) {
-            throwError('Internal server error');
-        }
-    }
+	async function fetchPosts(): Promise<PostModel[]> {
+		try {
+			const response: PostModel[] = await get<PostModel[]>('/me/posts');
+			return response;
+		} catch (e) {
+			throwError('Error fetching posts');
+			return [];
+		} finally {
+			loading = false;
+		}
+	}
 
-    async function getFollowing() {
-        try {
-            following = await get('/me/following');
-        } catch (e) {
-            throwError('Internal server error');
-        }
-    }
-    function onScroll(event: Event) {
-        const target = event.target as HTMLElement;
-        if (target.scrollHeight - target.scrollTop === target.clientHeight) {
-            loadMorePosts();
-        }
-    }
-    async function loadMorePosts() {
-        if (loading) return;
-        const morePosts = await fetchPosts();
-        posts = [...posts, ...morePosts];
-    }
+	async function getFollowers(): Promise<string[]> {
+		try {
+			const response: string[] = await get<string[]>('/me/followers');
+			return response;
+		} catch (e) {
+			throwError('Error fetching followers');
+			return [];
+		}
+	}
 
-    onMount(() => {
-        fetchPosts().then((fetchedPosts) => {
-            posts = fetchedPosts;
-        });
-    });
+	async function getFollowing(): Promise<string[]> {
+		try {
+			const response: string[] = await get<string[]>('/me/following');
+			return response;
+		} catch (e) {
+			throwError('Error fetching following');
+			return [];
+		}
+	}
+	function selectUserList(event: any) {
+		let selection = event.target.innerHTML;
+		if (selection == selectedList) {
+			return;
+		}
+		selectedList = selection;
+		document.querySelectorAll('.user-list a').forEach((element) => {
+			element.classList.remove('selected');
+		});
+		event.target.classList.add('selected');
+		updateContent();
+	}
+
+	async function updateContent() {
+		try {
+			if (selectedList == 'Followers') {
+				followers = await getFollowers();
+			} else if (selectedList == 'Following') {
+				following = await getFollowing();
+			}
+		} catch (e) {
+			console.log('error: ', e);
+		}
+	}
+
+	function onScroll(event: Event) {
+		const target = event.target as HTMLElement;
+		if (target.scrollHeight - target.scrollTop === target.clientHeight) {
+			loadMorePosts();
+		}
+	}
+	async function loadMorePosts() {
+		if (loading) return;
+		const morePosts = await fetchPosts();
+		posts = [...posts, ...morePosts];
+	}
+
+	onMount(async () => {
+		try {
+			fetchPosts().then((fetchedPosts) => {
+				posts = fetchedPosts;
+			});
+		} catch (e) {
+			throwError('Could not get profile information');
+		}
+	});
 </script>
 
 <div class="nav">
-    <NavBar current_page="/profile"></NavBar>
-</div>
+	<NavBar current_page="/profile"></NavBar>
 
-<div class="profile-container">
-    <div class="user-container">
-        <div class="user">
-            <h2 class="username">Username</h2>
-            <div class="following" on:click={getFollowing}>
-                <Button buttonText="Following"></Button>
-                {#each following as item}
-                    <p>
-                        <a href="/user/{item}">{item}</a>
-                    </p>
-                {/each}
-                {#if following.length == 0}
-                    <p>Not following anyone</p>
-                {/if}
-                {#if error}
-                    <ErrorPopup message = {error}/>
-                {/if}
-            </div>
-            <div class="followers" on:click={getFollowers}>
-                <Button buttonText="Followers"></Button>
-                {#each followers as item}
-                <p>
-                    <a href="/user/{item}">{item}</a>
-                </p>
-                {/each}
-                {#if followers.length == 0}
-                    <p>No followers</p>
-                {/if}
-                {#if error}
-                    <ErrorPopup message = {error}/>
-                {/if}
-            </div>
-
-            <div class="library">
-                <Button buttonText="Library" link="/profile/library"></Button>
-            </div>
-            <div class="liked">
-                <Button buttonText="Liked" link="/profile/liked"></Button>
-            </div>
-            <div class="bio">
-                <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
-                    ut labore et dolore magna aliqua.
-                </p>
-            </div>
+    <div class="buttons">
+        <div class="library">
+            <Button buttonText="Library" link="/profile/library"></Button>
+        </div>
+        <div class="liked">
+            <Button buttonText="Liked" link="/profile/liked"></Button>
         </div>
     </div>
 </div>
 
+
+<div class="profile-container">
+	<div class="user-container">
+		<h2 class="username">My Profile</h2>
+		<div class="user-list">
+			<a class="selected" on:click={selectUserList} href="#">Followers: {followers.length}</a>
+			<a on:click={selectUserList} href="#">Following: {following.length}</a>
+		</div>
+		<div class="bio">
+			<p>
+				Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+				labore et dolore magna aliqua.
+			</p>
+		</div>
+	</div>
+</div>
+
 <!-- personal feed -->
 <div class="feed-container">
-    <Panel title="Your feed">
-        <div class="feed" on:scroll={onScroll}>
-            {#each posts as post}
-                <div class="post">
-                    <Post
-                        content={post.content}
-                        caption={post.caption}
-                        likes={post.likeCount}
-                        id={post.id}
-                        typez={post.type}
-                        isLiked={post.hasLiked}
-                        isSaved={post.hasSaved}
-                    />
-                </div>
-            {/each}
-            {#if loading}
-                <p>Loading more posts...</p>
-            {/if}
-            {#if error}
-                <ErrorPopup message = {error}/>
-            {/if}
-        </div>
-    </Panel>
+	<Panel title="My feed">
+		<div class="feed" on:scroll={onScroll}>
+			{#each posts as post}
+				<div class="post">
+					<Post
+						content={post.content}
+						caption={post.caption}
+						likes={post.likeCount}
+						id={post.id}
+						typez={post.type}
+						isLiked={post.hasLiked}
+						isSaved={post.hasSaved}
+					/>
+				</div>
+			{/each}
+			{#if loading}
+				<p>Loading more posts...</p>
+			{/if}
+			{#if error}
+				<ErrorPopup message={error} />
+			{/if}
+		</div>
+	</Panel>
 </div>
 
 <style>
-    .profile-container {
+	.profile-container {
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+	}
+	.user-container {
+		display: flex;
+		flex-wrap: wrap;
+		flex-direction: row;
+		justify-content: flex-start;
+		height: 10rem;
+	}
+
+    .username{
+        padding: 0;
+        margin-left: 0rem;
+        margin-right: 10rem;
+    }
+
+    .user-list{
+        margin-left: 5rem;
+        margin-top: 1.8rem;
+    }
+
+    .user-list a{
+        margin-right: 10rem;
+        text-decoration: none;
+        color: black;
+        text-transform: uppercase;
+;
+    }
+
+    .user-list a:hover{
+        color: rebeccapurple;
+        text-decoration: underline;
+        font-weight: bold;
+        
+    }
+    .nav{
         display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
+        flex-direction: row;
+        align-items: flex-start;
     }
-    .user-container {
+
+    .buttons{
+        margin-left: 25rem;
         display: flex;
-        flex-wrap: wrap-reverse;
-        flex-direction: row-reverse;
-        justify-content: center;
-        height: 10rem;
+        flex-direction: row;
+        align-items: center;
     }
-    .user {
-        display: grid;
-        grid-template-rows: repeat(3, 2rem);
-        grid-template-columns: repeat(5, 20rem);
-        grid-template-areas:
-            'username followers following library liked'
-            'bio bio bio bio bio';
-        width: 100rem;
-        gap: 2rem 1rem;
-        padding-top: 0;
-    }
-    .username {
-        grid-area: username;
-    }
-    .following {
-        grid-area: following;
-        margin-top: 0.5rem;
-    }
-    .followers {
-        grid-area: followers;
-        margin-top: 0.5rem;
-    }
-    .library {
-        grid-area: library;
-        margin-top: 1rem;
-    }
-    .liked {
-        grid-area: liked;
-        margin-top: 1rem;
-    }
-    .bio {
-        margin-top: 2rem;
-        grid-area: bio;
-        width: 100rem;
-    }
-    .feed {
-        height: calc(100vh - var(--navbar-height));
-        overflow-y: auto;
-        padding: 1rem;
-    }
+
+	.library {
+        margin-left: 1rem;
+		margin-top: 1rem;
+	}
+	.liked {
+        margin-left: 8rem;
+		margin-top: 1rem;
+	}
+	.bio {
+		margin-top: 2rem;
+		width: 100rem;
+	}
+	.feed {
+		height: calc(100vh - var(--navbar-height));
+		overflow-y: auto;
+		padding: 1rem;
+	}
 </style>
