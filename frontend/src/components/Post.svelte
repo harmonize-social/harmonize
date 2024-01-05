@@ -23,6 +23,7 @@
     async function postLike(): Promise<string> {
         try {
             const response: string = await post<string, string>(`/me/liked?id=${id}`, id);
+            likes++;
             return response;
         } catch (e) {
             throwError('Error posting like');
@@ -42,6 +43,7 @@
     async function deleteLike(): Promise<string> {
         try {
             const response: string = await delete_<string>(`/me/liked?id=${id}`);
+                likes--;
             return response;
         } catch (e) {
             throwError('Error deleting like');
@@ -79,7 +81,6 @@
         }
     }
 
-    console.log(isSaved);
 </script>
 
 <div class="post">
@@ -117,7 +118,6 @@
         padding: 50px;
         margin: 50px;
         border-radius: 10px;
-        background-color: grey;
         color: black;
         text-align: center;
     }

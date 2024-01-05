@@ -49,4 +49,8 @@
 		background-color: grey;
 		border-radius: 0 100px 100px 0;
 	}
+
+	.logo{
+		cursor: pointer;
+	}
 </style>
