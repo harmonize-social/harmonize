@@ -9,6 +9,8 @@ import (
 
 var Secret []byte
 
+var FrontendUrl string
+
 var SpotifySecret string
 var SpotifyClientId string
 var SpotifyRedirect string
@@ -81,5 +83,9 @@ func LoadEnv() {
     err = LoadCallbackURLs()
     if err != nil {
         fmt.Println("Warning: Callback URLs not set")
+    }
+    FrontendUrl = os.Getenv("FRONTEND_URL")
+    if FrontendUrl == "" {
+        fmt.Println("Warning: FRONTEND_URL not set (required for CORS)")
     }
 }
