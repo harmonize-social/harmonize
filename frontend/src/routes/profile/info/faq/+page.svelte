@@ -31,12 +31,12 @@
     <div class="faq-item">
         {#if visible['q1']}
             <div class="answer visible" id="q1">
-                Om muziek te delen vanuit Deezer, volg deze stappen:
+                To share music via Deezer, follow these steps:
                 <ol>
-                    <li>Open de Deezer-app op je mobiele apparaat of browser.</li>
-                    <li>Zoek het nummer dat je wilt delen.</li>
-                    <li>Klik op de deelknop naast het nummer.</li>
-                    <li>Kies "Harmonize" als optie om het nummer te delen.</li>
+                    <li>Go to your profile page</li>
+                    <li>Click on the library tab</li>
+                    <li>Click on the musical item you want to share</li>
+                    <li>Choose a caption and share!</li>
                 </ol>
             </div>
         {/if}

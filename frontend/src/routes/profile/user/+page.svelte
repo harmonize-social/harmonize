@@ -99,9 +99,9 @@
             </div>
             <div class="follow_button">
                 {#if follows}
-                    <Button buttonText="Unfollow" on:click={handleButtonClick}></Button>
+                    <Button buttonText="Unfollow" action={handleButtonClick}></Button>
                 {:else}
-                    <Button buttonText="Follow" on:click={handleButtonClick}></Button>
+                    <Button buttonText="Follow" action={handleButtonClick}></Button>
                 {/if}
             </div>
         </div>

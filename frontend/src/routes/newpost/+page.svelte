@@ -38,8 +38,8 @@
         <div class="caption">
             <TextInput placeholder="Insert a caption" bind:value={caption}></TextInput>
         </div>
-        <div class="submit" on:click={handleInput}>
-            <Button buttonText="Upload your post!" />
+        <div class="submit">
+            <Button buttonText="Upload your post!" action={handleInput}/>
         </div>
         {#if error}
             <ErrorPopup message={error}></ErrorPopup>

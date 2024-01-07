@@ -1,6 +1,7 @@
-<script>
+<script lang="ts">
     export let buttonText = 'Click me';
     export let link = '#';
+    export let action= () => {};
   </script>
 
   <style>
@@ -16,5 +17,5 @@
   </style>
 
   <a href={link}>
-    <button>{buttonText}</button>
+    <button on:click={action}>{buttonText}</button>
   </a>

@@ -36,7 +36,7 @@
 	<Panel title="">
 		<h2>Login</h2>
 		{#if error}
-			<ErrorPopup message={error} />
+		<ErrorPopup message={error} />
 		{/if}
 		<div class="text-input">
 			<TextInput placeholder="Username/Email" bind:value={username} />
@@ -44,10 +44,10 @@
 		<div class="text-input">
 			<TextInput placeholder="Password" type="password" bind:value={password} />
 		</div>
-		<div class="buttonlogin" on:click={handleLogin}>
-			<Button buttonText="Login" />
+		<div class="buttonlogin">
+			<Button buttonText="Login" action={handleLogin}/>
 		</div>
-		<a class="forgot-password" href="/forget-password">Forgot Password?</a>
+		<a class="forgot-password" href="/auth/forgot-password">Forgot Password?</a>
 		<a class="not-registered" href="/auth/register">Not registred yet?</a>
 	</Panel>
 </div>

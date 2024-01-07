@@ -12,7 +12,6 @@
     import type AlbumModel from '../../../models/album';
     import type PlaylistModel from '../../../models/playlist';
     import type ArtistModel from '../../../models/artist';
-	import Button from '../../../components/Button.svelte';
 
     let contentTypeOptions: string[] = ['songs', 'albums', 'playlists', 'artists'];
     let selectedContentType: string = contentTypeOptions[0];
