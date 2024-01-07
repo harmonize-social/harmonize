@@ -8,7 +8,7 @@
     import ErrorPopup from '../../components/ErrorPopup.svelte';
     import { goto } from '$app/navigation';
     let data: {};
-    let caption = 'Caption';
+    let caption = '';
     let error = '';
     errorMessage.subscribe((value) => {
         error = value;
@@ -25,21 +25,21 @@
                 id,
                 type
             });
-            goto('/feed');
+            goto('/profile');
         } catch (e) {
             throwError('Failed to post item');
         }
     }
 </script>
 
-<NavBar current_page="/newpost"></NavBar>
+<NavBar current_page='/newpost'></NavBar>
 <Panel title="New Post">
     <div class="form">
         <div class="caption">
             <TextInput placeholder="Insert a caption" bind:value={caption}></TextInput>
         </div>
-        <div on:click={handleInput}>
-            <Button buttonText="Get the music on your platform!" />
+        <div class="submit" on:click={handleInput}>
+            <Button buttonText="Upload your post!" />
         </div>
         {#if error}
             <ErrorPopup message={error}></ErrorPopup>
