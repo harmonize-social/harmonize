@@ -23,7 +23,7 @@
     async function postLike(): Promise<string> {
         try {
             const response: string = await post<string, string>(`/me/liked?id=${id}`, id);
-            likes++;
+            
             return response;
         } catch (e) {
             throwError('Error posting like');
@@ -43,7 +43,7 @@
     async function deleteLike(): Promise<string> {
         try {
             const response: string = await delete_<string>(`/me/liked?id=${id}`);
-                likes--;
+                
             return response;
         } catch (e) {
             throwError('Error deleting like');
@@ -64,9 +64,11 @@
     async function toggleLikeButton() {
         if (isLiked) {
             await deleteLike();
+            likes--;
             isLiked = !isLiked;
         } else {
             await postLike();
+            likes++;
             isLiked = !isLiked;
         }
     }
@@ -80,7 +82,7 @@
             isSaved = !isSaved;
         }
     }
-
+//TODO: fix the like and save count 
 </script>
 
 <div class="post">
@@ -101,11 +103,11 @@
         <Comment {content} />
     {/each}
     <h4>Likes: {likes}</h4>
-    <div on:click={async () => await toggleLikeButton()} >
-        <ActionButton state={isLiked} type="like" />
+    <div>
+        <ActionButton state={isLiked} type="like" action={async () => await toggleLikeButton()}/>
     </div>
-    <div on:click={async () => await toggleSaveButton()} >
-        <ActionButton state={isSaved} type="save" />
+    <div>
+        <ActionButton state={isSaved} type="save" action={async () => await toggleSaveButton()} />
     </div>
     {#if error}
         <ErrorPopup message={error}></ErrorPopup>
