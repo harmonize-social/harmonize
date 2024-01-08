@@ -3,37 +3,27 @@
     import Button from '../../../components/Button.svelte';
     import Panel from '../../../components/Panel.svelte';
     import NavBar from '../../../components/NavBar.svelte';
-    import { delete_, get, post, throwError } from '../../../fetch';
+    import { delete_, post, throwError } from '../../../fetch';
     import type PostModel from '../../../models/post';
     import Post from '../../../components/Post.svelte';
-    import { onMount } from 'svelte';
     import { errorMessage } from '../../../store';
+    import { _fetchUserData } from './+page';
+	import type { PageData } from '../user/$types';
 
-    let posts: PostModel[] = [];
-    let name: string = '';
-    let follows: boolean = true;
+    let follows: boolean = false;
     let loading = false;
     let error = '';
+    export let data: PageData;
+    export let posts: PostModel[] = data.user.posts;
+    export let name: string = data.user.username;
 
     errorMessage.subscribe((value) => {
         error = value;
     });
 
-    async function fetchPosts(username: string | null): Promise<PostModel[]> {
-        try {
-            const response: PostModel[] = await get<PostModel[]>(`/posts?username=${username}`);
-            return response;
-        } catch (e) {
-            throwError('Error fetching posts');
-            return [];
-        } finally {
-            loading = false;
-        }
-    }
-
     async function deleteFollow(name: string){
         try{
-            const response: string = await delete_<string>(`/follow?username=${name}`);
+            const response: string = await delete_<string>(`/me/follow?username=${name}`);
             return response;
         }catch(e){
             throwError('Error deleting follow');
@@ -42,11 +32,10 @@
     }
     async function postFollow(name: string){
         try{
-            const response: string = await post<string, string>(`/follow?username=${name}`, name);
+            const response: string = await post<string, string>(`/me/follow?username=${name}`, name);
             return response;
         }catch(e){
             throwError('Error posting follow');
-            return 0;
         }
     }
 
@@ -58,7 +47,7 @@
     }
     async function loadMorePosts(name: string) {
         if (loading) return;
-        const morePosts = await fetchPosts(name);
+        const morePosts = await _fetchUserData(name);
         posts = [...posts, ...morePosts];
     }
 
@@ -73,30 +62,19 @@
         }
         follows = !follows;
     };
-    onMount(() => {
-        const params = new URLSearchParams(window.location.search);
-        let username = params.get('username');
-        fetchPosts(username).then((fetchedPosts) => {
-            posts = fetchedPosts;
-        });
-    });
+
+
 </script>
 
 <!-- navbar -->
 <div class="nav">
-    <NavBar current_page={`/user/${name}`}></NavBar>
+    <NavBar current_page={`/profile/${name}`}></NavBar>
 </div>
 <!-- profile -->
 <div class="profile-container">
     <div class="user-container">
         <div class="user">
             <h2 class="username">{name}</h2>
-            <div class="bio">
-                <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
-                    ut labore et dolore magna aliqua.
-                </p>
-            </div>
             <div class="follow_button">
                 {#if follows}
                     <Button buttonText="Unfollow" action={handleButtonClick}></Button>
@@ -163,11 +141,6 @@
     }
     .username {
         grid-area: username;
-    }
-    .bio {
-        margin-top: 2rem;
-        grid-area: bio;
-        width: 100rem;
     }
     .feed {
         display: flex;
