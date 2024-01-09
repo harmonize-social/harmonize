@@ -19,11 +19,33 @@ func LibraryHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
     params := mux.Vars(r)
-    _ = params["platform"] // TODO: use this
+    platform := params["service"]
+
+    if platform == "" {
+        models.Error(w, http.StatusBadRequest, "Missing platform")
+        return
+    }
+
+    var provider models.Platform
+
+    switch platform {
+    case "spotify":
+        provider = platforms.SpotifyProvider{
+            UserID: user.ID,
+        }
+    case "deezer":
+        provider = platforms.DeezerProvider{
+            UserID: user.ID,
+        }
+    default:
+        models.Error(w, http.StatusBadRequest, "Invalid platform")
+        return
+    }
+
     itemType := params["type"]
     switch itemType {
     case "songs":
-        platformSongs, err := platforms.GetSpotifySongs(&user.ID, limit, offset)
+        platformSongs, err := provider.GetSongs(limit, offset)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
             return
@@ -35,7 +57,7 @@ func LibraryHandler(w http.ResponseWriter, r *http.Request) {
         }
         models.Result(w, platformSongs)
     case "artists":
-        platformArtists, err := platforms.GetSpotifyArtists(&user.ID, limit, offset)
+        platformArtists, err := provider.GetArtists(limit, offset)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
             return
@@ -47,7 +69,7 @@ func LibraryHandler(w http.ResponseWriter, r *http.Request) {
         }
         models.Result(w, platformArtists)
     case "albums":
-        platformAlbums, err := platforms.GetSpotifyAlbums(&user.ID, limit, offset)
+        platformAlbums, err := provider.GetAlbums(limit, offset)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
             return
@@ -59,7 +81,7 @@ func LibraryHandler(w http.ResponseWriter, r *http.Request) {
         }
         models.Result(w, platformAlbums)
     case "playlists":
-        platformPlaylists, err := platforms.GetSpotifyPlaylists(&user.ID, limit, offset)
+        platformPlaylists, err := provider.GetPlaylists(limit, offset)
         if err != nil {
             models.Error(w, http.StatusInternalServerError, "Internal server error")
             return
