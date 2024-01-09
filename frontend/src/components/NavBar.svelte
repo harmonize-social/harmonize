@@ -16,7 +16,9 @@
 </script>
 
 <nav class="navbar">
-    <div class="logo" on:click={() => goto('/feed')}><Logo /></div>
+    <div class="logo" on:click={() => goto('/feed')}>
+        <Logo />
+    </div>
     {#each Object.entries(pages) as [k, v]}
         <div class="nav-element">
             {#if currentPage === v}
@@ -26,23 +28,24 @@
             {/if}
         </div>
     {/each}
-    <TextInputNav placeholder="Search" />
+    <div class="search">
+        <TextInputNav placeholder="Search" />
+    </div>
 </nav>
 
 <style>
-    div {
+    .logo {
         display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100%;
-        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .search {
+        margin-right: 7px;
     }
 
     a {
         text-decoration: none;
         color: black;
-        font-size: 1.5rem;
-        font-weight: bold;
         height: 100%;
         width: 100%;
         display: flex;
@@ -51,22 +54,29 @@
     }
 
     a:hover {
-        background-color: #e6e6e6;
+        text-transform: uppercase;
     }
 
-    .active {
-        background-color: #e6e6e6;
-        text-transform: uppercase;
+    .active p {
+        border-bottom: 2px solid black;
+    }
+
+    .nav-element {
+        width: 100%;
+        text-transform: capitalize;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     .navbar {
         display: flex;
+        align-items: center;
+        justify-content: center;
         flex-direction: row;
         width: 45%;
         height: 70px;
-        border: 1px solid black;
-        background-color: grey;
-        border-radius: 0 100px 100px 0;
     }
 
     .logo {

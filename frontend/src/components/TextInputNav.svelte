@@ -49,8 +49,8 @@
 
     .textInputNav {
         grid-area: searchbox;
-        margin-top: 6px;
-        margin-right: 8px;
+
+
         width: 200px;
         height: 55px;
         border-radius: 50px;
@@ -74,7 +74,6 @@
     }
 
     .list a {
-        margin: 10px;
         cursor: pointer;
         text-decoration: none;
     }
