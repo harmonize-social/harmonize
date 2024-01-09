@@ -46,10 +46,10 @@ func CreateConnectionAndLibrary(user_id uuid.UUID, platform string, access_token
 	return nil
 }
 
-func GetTokens(platform string, user_id uuid.UUID) (models.Tokens, error) {
+func GetTokens(platform string, userId uuid.UUID) (models.Tokens, error) {
 	var tokens models.Tokens
 	sqlStatement := `SELECT c.access_token, c.refresh_token, c.expiry FROM connections c INNER JOIN libraries l ON c.id = l.connection_id WHERE l.platform_id = $1 AND c.user_id = $2`
-	err := Pool.QueryRow(context.Background(), sqlStatement, user_id).Scan(&tokens.AccessToken, &tokens.RefreshToken, &tokens.Expiry)
+	err := Pool.QueryRow(context.Background(), sqlStatement, platform, userId).Scan(&tokens.AccessToken, &tokens.RefreshToken, &tokens.Expiry)
 	if err != nil {
 		return tokens, err
 	}
