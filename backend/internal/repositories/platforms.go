@@ -36,7 +36,7 @@ func CreateConnectionAndLibrary(user_id uuid.UUID, platform string, access_token
 		sqlStatement,
 		platform,
 		connectionID)
-	if err != nil  {
+	if err != nil {
 		return err
 	}
 
