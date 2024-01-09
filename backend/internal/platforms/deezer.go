@@ -80,17 +80,12 @@ func DeezerCallback(w http.ResponseWriter, r *http.Request) {
 
 func DeezerClientId(userId uuid.UUID) (*deezus.Client, error) {
     var client *deezus.Client
-    accessToken := ""
-    err := repositories.Pool.QueryRow(context.Background(), "SELECT access_token FROM connections JOIN libraries ON connections.id = libraries.connection_id WHERE user_id = $1 AND platform_id = $2", userId, "deezer").Scan(&accessToken)
+    tokens, err := repositories.GetTokens("deezer", userId)
     if err != nil {
         return client, err
     }
 
-    if accessToken == "" {
-        return client, errors.New("Access token not found")
-    }
-
-    client, err = deezus.New(accessToken)
+    client, err = deezus.New(tokens.AccessToken)
 
     if err != nil {
         return client, err
