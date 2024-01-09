@@ -19,7 +19,7 @@
         {#if content.album && content.album.artists}
             {#each content.album.artists as artist}
                 <div class="artist">
-                    <Artist content={artist} />
+                    <Artist content={artist} showImage={false} />
                 </div>
             {/each}
         {/if}

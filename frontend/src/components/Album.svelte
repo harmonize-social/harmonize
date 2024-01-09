@@ -8,7 +8,7 @@
 <div class="content">
     <h3 class="title">{content.title}</h3>
     {#each content.artists as artist}
-        <Artist content={artist} />
+        <Artist content={artist} showImage={false}/>
     {/each}
     <img class="cover" src={content.mediaUrl} alt="Album Cover" />
     <div class="songs">

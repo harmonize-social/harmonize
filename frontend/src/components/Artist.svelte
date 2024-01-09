@@ -2,6 +2,7 @@
     import type ArtistModel from '../models/artist';
 
     export let content: ArtistModel;
+    export let showImage: boolean = true;
   </script>
 
   <style>
@@ -22,7 +23,7 @@
 
 <div class="artist">
     <h2>{content.name}</h2>
-    {#if content.mediaUrl}
+    {#if content.mediaUrl && showImage}
         <img src={content.mediaUrl} alt="Artist"/>
     {/if}
 </div>
