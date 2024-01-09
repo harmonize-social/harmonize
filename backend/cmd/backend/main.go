@@ -11,6 +11,9 @@ import (
     "github.com/rs/cors"
 )
 
+/*
+Main entry point for the backend server.
+*/
 func main() {
     err := godotenv.Load()
     if err != nil {
