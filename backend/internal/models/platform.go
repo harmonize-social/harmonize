@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type PlatformArtist struct {
     Platform string `json:"platform,omitempty"`
     ID       string `json:"id,omitempty"`
@@ -32,4 +34,17 @@ type PlatformSong struct {
     Title      string           `json:"title,omitempty"`
     PreviewURL string           `json:"previewUrl,omitempty"`
     MediaURL   string           `json:"mediaUrl,omitempty"`
+}
+
+type Platform interface {
+    GetSongs(limit int, offset int) ([]PlatformSong, error)
+    GetAlbums(limit int, offset int) ([]PlatformAlbum, error)
+    GetPlaylists(limit int, offset int) ([]PlatformPlaylist, error)
+    GetArtists(limit int, offset int) ([]PlatformArtist, error)
+}
+
+type Tokens struct {
+    AccessToken string
+    RefreshToken string
+    Expiry time.Time
 }

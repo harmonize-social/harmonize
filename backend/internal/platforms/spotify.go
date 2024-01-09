@@ -16,10 +16,14 @@ import (
 )
 
 func SpotifyClientId(userId *uuid.UUID) (*spotify.Client, error) {
-    var token oauth2.Token
-    err := repositories.Pool.QueryRow(context.Background(), "SELECT access_token, refresh_token, expiry FROM connections JOIN libraries ON connections.id = libraries.connection_id WHERE user_id = $1 AND platform_id = $2", userId, "spotify").Scan(&token.AccessToken, &token.RefreshToken, &token.Expiry)
+    tokens, err := repositories.GetTokens("spotify", *userId)
     if err != nil {
         return nil, err
+    }
+    token := oauth2.Token{
+        AccessToken:  tokens.AccessToken,
+        RefreshToken: tokens.RefreshToken,
+        Expiry:       tokens.Expiry,
     }
     auth := spotifyauth.New(
         spotifyauth.WithClientID(repositories.SpotifyClientId),
@@ -93,8 +97,12 @@ func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
     models.Result(w, "Ok")
 }
 
-func GetSpotifySongs(userId *uuid.UUID, limit int, offset int) ([]models.PlatformSong, error) {
-    client, err := SpotifyClientId(userId)
+type SpotifyProvider struct {
+    UserID uuid.UUID
+}
+
+func (provider SpotifyProvider) GetSongs(limit int, offset int) ([]models.PlatformSong, error) {
+    client, err := SpotifyClientId(&provider.UserID)
     if err != nil {
         return nil, err
     }
@@ -142,8 +150,8 @@ func GetSpotifySongs(userId *uuid.UUID, limit int, offset int) ([]models.Platfor
     return songs, nil
 }
 
-func GetSpotifyArtists(userId *uuid.UUID, limit int, offset int) ([]models.PlatformArtist, error) {
-    client, err := SpotifyClientId(userId)
+func (provider SpotifyProvider) GetArtists(limit int, offset int) ([]models.PlatformArtist, error) {
+    client, err := SpotifyClientId(&provider.UserID)
     if err != nil {
         return nil, err
     }
@@ -172,8 +180,8 @@ func GetSpotifyArtists(userId *uuid.UUID, limit int, offset int) ([]models.Platf
     return artists, nil
 }
 
-func GetSpotifyAlbums(userId *uuid.UUID, limit int, offset int) ([]models.PlatformAlbum, error) {
-    client, err := SpotifyClientId(userId)
+func (provider SpotifyProvider) GetAlbums(limit int, offset int) ([]models.PlatformAlbum, error) {
+    client, err := SpotifyClientId(&provider.UserID)
     if err != nil {
         return nil, err
     }
@@ -219,10 +227,10 @@ func GetSpotifyAlbums(userId *uuid.UUID, limit int, offset int) ([]models.Platfo
     return albums, nil
 }
 
-func GetSpotifyPlaylists(userId *uuid.UUID, limit int, offset int) ([]models.PlatformPlaylist, error) {
+func (provider SpotifyProvider) GetPlaylists(limit int, offset int) ([]models.PlatformPlaylist, error) {
     rl := ratelimit.New(2)
     rl.Take()
-    client, err := SpotifyClientId(userId)
+    client, err := SpotifyClientId(&provider.UserID)
     if err != nil {
         return nil, err
     }
