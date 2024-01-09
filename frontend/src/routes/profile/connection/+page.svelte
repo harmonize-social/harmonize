@@ -47,6 +47,7 @@
     }
 
     onMount(async () => {
+        errorMessage.set('');
         await getConnected();
         await getUnconnected();
     });

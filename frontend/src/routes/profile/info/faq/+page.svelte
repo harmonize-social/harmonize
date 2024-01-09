@@ -1,4 +1,6 @@
 <script>
+	import { onMount } from 'svelte';
+
 // @ts-nocheck
 
     import NavBar from '../../../../components/NavBar.svelte';
@@ -9,6 +11,7 @@
     function toggleAnswer(id) {
         visible[id] = !visible[id];
     }
+
 </script>
 
 <style>

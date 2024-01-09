@@ -8,6 +8,7 @@
 	import { loginpost, throwError } from '../../../fetch';
 	import { errorMessage } from '../../../store';
 	import ErrorPopup from '../../../components/ErrorPopup.svelte';
+	import { onMount } from 'svelte';
 
 	let username = '';
 	let password = '';
@@ -29,13 +30,16 @@
 			throwError('Login failed');
 		}
 	};
+	onMount(async () => {
+		errorMessage.set('');
+	});
 </script>
 
 <div class="panel-container">
 	<Panel title="">
 		<h2>Login</h2>
 		{#if error}
-		<ErrorPopup message={error} />
+			<ErrorPopup message={error} />
 		{/if}
 		<div class="text-input">
 			<TextInput placeholder="Username/Email" bind:value={username} />
@@ -44,7 +48,7 @@
 			<TextInput placeholder="Password" type="password" bind:value={password} />
 		</div>
 		<div class="buttonlogin">
-			<Button buttonText="Login" action={handleLogin}/>
+			<Button buttonText="Login" action={handleLogin} />
 		</div>
 		<a class="forgot-password" href="/auth/forgot-password">Forgot Password?</a>
 		<a class="not-registered" href="/auth/register">Not registred yet?</a>
@@ -83,5 +87,4 @@
 		justify-content: center;
 		margin-top: 10px;
 	}
-
 </style>

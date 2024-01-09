@@ -1,6 +1,8 @@
 <script>
     import { onMount } from 'svelte';
+	import { errorMessage } from '../store';
     onMount(() => {
+        errorMessage.set('');
         const url = window.location.href;
         const host = url.match(/^https?:\/\/[^/]+/, '')[0];
         const route = url.match(/^https?:\/\/[^/]+(.+)/)[1];
@@ -15,6 +17,7 @@
             window.location.replace(host + '/auth/login');
             return;
         }
+
     });
 </script>
 

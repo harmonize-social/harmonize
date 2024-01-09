@@ -29,6 +29,9 @@
     }
 
     onMount(() => {
+        
+        errorMessage.set('');
+
         fetchPosts().then((fetchedPosts) => {
             posts = fetchedPosts;
         });
@@ -47,7 +50,7 @@
     }
 </script>
 
-<NavBar current_page="/me/feed"></NavBar>
+<NavBar></NavBar>
 <div class="container">
     <div class="feed-container" on:scroll={onScroll}>
         {#each posts as post}

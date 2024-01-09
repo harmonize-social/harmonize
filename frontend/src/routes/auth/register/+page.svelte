@@ -6,6 +6,7 @@
     import { goto } from '$app/navigation';
     import ErrorPopup from '../../../components/ErrorPopup.svelte';
     import { errorMessage } from '../../../store';
+	import { onMount } from 'svelte';
 
     let confirmPassword: string = '';
     let password: string = '';
@@ -32,6 +33,9 @@
             throwError(e as string) || 'Register failed. Please try again.';
         }
     };
+    onMount(async () => {
+        errorMessage.set('');
+    });
 </script>
 
 <Panel title="Register">

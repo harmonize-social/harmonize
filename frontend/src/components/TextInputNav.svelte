@@ -4,11 +4,17 @@
     export let placeholder = '';
     let input: string = '';
     let list: string[] = [];
+    let showList = false;
 
     function handleTextInput(event: KeyboardEvent) {
         if (event.key === 'Enter') {
             handleInput();
+            showList = true;
         }
+    }
+
+    function toggleList() {
+        showList = !showList;
     }
 
     async function handleInput() {
@@ -32,10 +38,10 @@
         on:keydown={handleTextInput}
         bind:value={input}
     />
-    {#if list.length > 0}
+    {#if list.length > 0 && showList}
         <div class="list">
             {#each list as item}
-                <a href="/profile/{item}">{item}</a>
+                <a href="/profile/{item}" on:click={toggleList}>{item}</a>
             {/each}
         </div>
     {/if}

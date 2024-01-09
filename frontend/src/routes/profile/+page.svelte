@@ -74,6 +74,7 @@
     }
 
     onMount(async () => {
+        errorMessage.set('');
         try {
             fetchPosts().then((fetchedPosts) => {
                 posts = fetchedPosts;

@@ -28,6 +28,7 @@
     }
 
     onMount(() => {
+        errorMessage.set('');
         getLikedPosts().then((fetchedPosts) => {
             liked_posts = fetchedPosts;
         });

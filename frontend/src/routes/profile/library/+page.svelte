@@ -28,6 +28,7 @@
     });
 
     onMount(async () => {
+        errorMessage.set('');
         try {
             libraries = await get('/me/library/connected');
             if (libraries.length == 0) {
@@ -91,7 +92,7 @@
     }
 </script>
 
-<NavBar current_page="/profile/library"></NavBar>
+<NavBar></NavBar>
 <Panel title="Libraries">
     <div class="library-names">
         {#each libraries as library, i}

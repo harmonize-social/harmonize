@@ -10,6 +10,7 @@
 	import Post from '../../../components/Post.svelte';
 	import type { PageData } from '../user/$types';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 
 	let followers: string[] = [];
 	let following: string[] = [];
@@ -25,7 +26,10 @@
 	errorMessage.subscribe((value) => {
 		error = value;
 	});
- 
+	
+	onMount(async () => {
+		errorMessage.set('');
+	});
 	$: if(username != old) {
 		refresh();
 	}
