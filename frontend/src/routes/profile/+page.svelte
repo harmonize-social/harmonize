@@ -142,13 +142,7 @@
             {#each posts as post}
                 <div class="post">
                     <Post
-                        content={post.content}
-                        caption={post.caption}
-                        likes={post.likeCount}
-                        id={post.id}
-                        typez={post.type}
-                        isLiked={post.hasLiked}
-                        isSaved={post.hasSaved}
+                        content={post}
                     />
                 </div>
             {/each}
