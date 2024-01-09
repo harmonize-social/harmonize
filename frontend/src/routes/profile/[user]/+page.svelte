@@ -1,69 +1,106 @@
 <script lang="ts">
-    import ErrorPopup from '../../../components/ErrorPopup.svelte';
-    import Button from '../../../components/Button.svelte';
-    import Panel from '../../../components/Panel.svelte';
-    import NavBar from '../../../components/NavBar.svelte';
-    import { delete_, post, throwError } from '../../../fetch';
-    import type PostModel from '../../../models/post';
-    import Post from '../../../components/Post.svelte';
-    import { errorMessage } from '../../../store';
-    import { _fetchUserData } from './+page';
-	import type { PageData } from '../user/$types';
+import ErrorPopup from '../../../components/ErrorPopup.svelte';
+import Button from '../../../components/Button.svelte';
+import Panel from '../../../components/Panel.svelte';
+import NavBar from '../../../components/NavBar.svelte';
+import {
+    delete_,
+    get,
+    post,
+    throwError
+} from '../../../fetch';
+import type PostModel from '../../../models/post';
+import Post from '../../../components/Post.svelte';
+import {
+    errorMessage
+} from '../../../store';
+import {
+    _fetchUserPosts
+} from './+page';
+import type {
+    PageData
+} from '../user/$types';
+import {
+    onMount
+} from 'svelte';
 
-    let follows: boolean = false;
-    let loading = false;
-    let error = '';
-    export let data: PageData;
-    export let posts: PostModel[] = data.user.posts;
-    export let name: string = data.user.username;
+let follows: boolean;
+let loading = false;
+let error = '';
+let text = '';
+export let data: PageData;
+export let posts: PostModel[] = data.user.posts;
+export let name: string = data.user.username;
 
-    errorMessage.subscribe((value) => {
-        error = value;
-    });
+errorMessage.subscribe((value) => {
+    error = value;
+});
 
-    async function deleteFollow(name: string){
-        try{
-            const response: string = await delete_<string>(`/me/follow?username=${name}`);
-            return response;
-        }catch(e){
-            throwError('Error deleting follow');
-            return 0;
+async function isFollowing(username: string){
+    try {
+        const response = await get < any > (`/me/following?username=${username}`);
+        if(response.includes(username)){
+            follows = true;
+            text = 'Unfollow';
+        } else {
+            follows = false;
+            text = 'Follow';
         }
-    }
-    async function postFollow(name: string){
-        try{
-            const response: string = await post<string, string>(`/me/follow?username=${name}`, name);
-            return response;
-        }catch(e){
-            throwError('Error posting follow');
-        }
-    }
 
-    function onScroll(event: Event) {
-        const target = event.target as HTMLElement;
-        if (target.scrollHeight - target.scrollTop === target.clientHeight) {
-            loadMorePosts(name);
-        }
+    } catch (e) {
+        throwError('Error fetching user posts');
+        follows = false;
     }
-    async function loadMorePosts(name: string) {
-        if (loading) return;
-        const morePosts = await _fetchUserData(name);
-        posts = [...posts, ...morePosts];
+    return follows;
+}
+async function deleteFollow(username: string) {
+    try {
+        const response: string = await delete_ < string > (`/me/follow?username=${username}`);
+        return response;
+    } catch (e) {
+        throwError('Error deleting follow');
+        follows = true;
     }
+}
+async function postFollow(username: string) {
+    try {
+        const response: string = await post < string, string > (`/me/follow?username=${username}`, username);
+        return response;
+    } catch (e) {
+        throwError('Error posting follow');
+        follows = false;
+    }
+}
 
-    let isClicked = false;
-    const handleButtonClick = async () => {
-        if(follows){
-            await deleteFollow(name);
-            isClicked = !isClicked;
-        }else{
-            await postFollow(name);
-            isClicked = !isClicked;
-        }
-        follows = !follows;
-    };
+// function onScroll(event: Event) {
+//     const target = event.target as HTMLElement;
+//     if (target.scrollHeight - target.scrollTop === target.clientHeight) {
+//         loadMorePosts(name);
+//     }
+// }
+// async function loadMorePosts(name: string) {
+//     if (loading) return;
+//     const morePosts = await _fetchUserData(name);
+//     posts = [...posts, ...morePosts];
+// }
 
+let isClicked = false;
+const handleButtonClick = async () => {
+    if (follows) {
+        await deleteFollow(name);
+        text = 'Follow';
+        follows = false;
+    } else {
+        await postFollow(name);
+        text = 'Unfollow';
+        follows = true;
+    }
+    isClicked = !isClicked;
 
+};
+onMount(async () => {
+    await isFollowing(name);
+});
 </script>
 
 <!-- navbar -->
@@ -72,77 +109,55 @@
 </div>
 <!-- profile -->
 <div class="profile-container">
-    <div class="user-container">
-        <div class="user">
-            <h2 class="username">{name}</h2>
-            <div class="follow_button">
-                {#if follows}
-                    <Button buttonText="Unfollow" action={handleButtonClick}></Button>
-                {:else}
-                    <Button buttonText="Follow" action={handleButtonClick}></Button>
-                {/if}
-            </div>
-        </div>
-    </div>
+    <h2 class="username">{name}</h2>
+
     <!-- personal feed -->
-    <div class="feed-container" on:scroll={onScroll}>
+    <div class="feed-container">
         <Panel title={`${name}'s posts`}>
             <div class="feed">
                 {#if posts.length === 0}
-                    <p>{name} did not post yet!</p>
+                <p>{name} did not post yet!</p>
                 {/if}
                 {#each posts as post}
-                    <div class="post">
-                        <Post
-                            content={post.content}
-                            caption={post.caption}
-                            likes={post.likeCount}
-                            id={post.id}
-                            typez={post.type}
-                            isLiked={post.hasLiked}
-                            isSaved={post.hasSaved}
+                <div class="post">
+                    <Post
+                        content={post.content}
+                        caption={post.caption}
+                        likes={post.likeCount}
+                        id={post.id}
+                        typez={post.type}
+                        isLiked={post.hasLiked}
+                        isSaved={post.hasSaved}
                         />
-                    </div>
-                {/each}
-                {#if loading}
-                    <p>Loading more posts...</p>
-                {/if}
-                {#if error}
-                    <ErrorPopup message={error}></ErrorPopup>
-                {/if}
-            </div>
-        </Panel>
-    </div>
-</div>
+                        </div>
+                        {/each}
+                        {#if loading}
+                        <p>Loading more posts...</p>
+                        {/if}
+                        {#if error}
+                        <ErrorPopup message={error}></ErrorPopup>
+                        {/if}
+                        </div>
+                        <div class="follow_button">
+                            <Button buttonText={text} action={handleButtonClick}></Button>
+                        </div>
+                        </Panel>
+                        </div>
+                        </div>
 
 <style>
-    .profile-container {
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-    }
-    .user-container {
-        display: flex;
-        flex-wrap: wrap-reverse;
-        flex-direction: row-reverse;
-        justify-content: center;
-        height: 10rem;
-    }
-    .user {
-        display: grid;
-        grid-template-rows: repeat(3, 2rem);
-        grid-template-columns: repeat(5, 20rem);
-        grid-template-areas:
-            'username followers following library liked'
-            'bio bio bio bio bio';
-        width: 100rem;
-        gap: 2rem 1rem;
-        padding-top: 0;
-    }
-    .username {
-        grid-area: username;
-    }
-    .feed {
-        display: flex;
-    }
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.username {
+    grid-area: username;
+}
+
+.feed {
+    display: flex;
+}
 </style>
+
