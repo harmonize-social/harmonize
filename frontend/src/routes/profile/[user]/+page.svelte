@@ -2,35 +2,49 @@
 	import ErrorPopup from '../../../components/ErrorPopup.svelte';
 	import Button from '../../../components/Button.svelte';
 	import NavBar from '../../../components/NavBar.svelte';
-	import { delete_, get, post, throwError } from '../../../fetch';
+	import { delete_, get, post , throwError} from '../../../fetch';
 	import type PostModel from '../../../models/post';
+	import { errorMessage } from '../../../store';
+
 
 	import Post from '../../../components/Post.svelte';
-	import { errorMessage } from '../../../store';
 	import type { PageData } from '../user/$types';
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 
 	let followers: string[] = [];
 	let following: string[] = [];
 	let posts: PostModel[] = [];
-	let follows: boolean;
+	let follows = false;
 	let loading = false;
 	let error = '';
-	$: text = follows ? 'Unfollow' : 'Follow';
+	$: text = following.includes(username) ? 'Unfollow' : 'Follow';
 	export let data: PageData;
-	let username: any = data.user;
+	$: username = data.user;
+	let old = username;
 	let me = '';
-
 	errorMessage.subscribe((value) => {
 		error = value;
 	});
+ 
+	$: if(username != old) {
+		refresh();
+	}
+	
+
+	async function refresh() {
+		posts = [];
+		await getInfo();
+		await getFollowing();
+		if (follows) await getPosts();
+		old = username;
+	}
 
 	async function getPosts() {
 		try {
 			posts = await get<PostModel[]>(`/posts?username=${username}`);
-		} catch (error) {
+		} catch (e) {
 			throwError('Error fetching user posts');
+
 		}
 	}
 
@@ -40,16 +54,18 @@
 			me = info.username;
 		} catch (e) {
 			throwError('Error fetching user info');
+
 		}
 	}
 
 	async function getFollowing() {
 		try {
-			followers = await get<string[]>(`/me/following`);
-			following = await get<string[]>(`/me/followers`);
+			following = await get<string[]>(`/me/following`);
+			followers = await get<string[]>(`/me/followers`);
 			follows = followers.includes(username);
 		} catch (e) {
-			throwError('Error fetching user posts');
+			throwError('Error fetching user lists');
+
 		}
 	}
 
@@ -57,19 +73,19 @@
 		try {
 			await delete_<string>(`/me/follow?username=${username}`);
 			following = following.filter((user) => user !== username);
-			follows = false;
 		} catch (e) {
-			throwError('Error deleting follow');
+			throwError('Error deleting user follow');
+
 		}
 	}
 
 	async function postFollow(username: string) {
 		try {
 			await post<any, string>(`/me/follow?username=${username}`, {});
-			following = following.filter((user) => user !== username);
-			follows = true;
+			following = following.concat(username);
 		} catch (e) {
-			throwError('Error posting follow');
+			throwError('Error posting user follow');
+
 		}
 	}
 
@@ -87,20 +103,14 @@
 
 	let isClicked = false;
 	const handleButtonClick = async () => {
-		if (follows) {
+		if (following.includes(username)) {
 			await deleteFollow(username);
 		} else {
 			await postFollow(username);
 		}
 		isClicked = !isClicked;
 	};
-	onMount(async () => {
-		await getInfo();
-		await getFollowing();
-		if (follows) {
-			await getPosts();
-		}
-	});
+
 	let selectedList: string = '';
 </script>
 
@@ -163,7 +173,9 @@
 			{#if username !== me}
 				<h2 class="username">{username}</h2>
 			{/if}
-			{#if posts.length === 0}
+			{#if !follows}
+				<p>Get followed by {username} to see their posts!</p>
+			{:else if posts.length === 0}
 				<p>{username} did not post yet!</p>
 			{/if}
 			{#each posts as post}
@@ -174,7 +186,7 @@
 			{#if loading}
 				<p>Loading more posts...</p>
 			{/if}
-			{#if error}
+			{#if er}
 				<ErrorPopup message={error}></ErrorPopup>
 			{/if}
 		</div>
@@ -243,12 +255,12 @@
 			rgba(248, 231, 231, 1) 100%
 		);
 	}
+
 	.followers-list-content a,
 	.following-list-content a {
 		display: block;
 		padding: 0.2rem;
 		margin: 0.5rem;
-		background-color: white;
 		border-radius: 5px;
 		text-decoration: none;
 	}
