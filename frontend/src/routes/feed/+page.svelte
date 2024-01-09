@@ -16,56 +16,63 @@
     });
 
     async function fetchPosts(): Promise<PostModel[]> {
-      try {
-        loading = true;
-        const response: PostModel[] = await get<PostModel[]>(`/me/feed?offset=${posts.length}`);
-        return response;
-      } catch (error) {
-        throwError('Error fetching posts');
-        return [];
-      } finally {
-        loading = false;
-      }
+        try {
+            loading = true;
+            const response: PostModel[] = await get<PostModel[]>(`/me/feed?offset=${posts.length}`);
+            return response;
+        } catch (error) {
+            throwError('Error fetching posts');
+            return [];
+        } finally {
+            loading = false;
+        }
     }
 
     onMount(() => {
-
-      fetchPosts().then(fetchedPosts => {
-        posts = fetchedPosts;
-      });
+        fetchPosts().then((fetchedPosts) => {
+            posts = fetchedPosts;
+        });
     });
 
     function onScroll(event: Event) {
-      const target = event.target as HTMLElement;
-      if (target.scrollHeight - target.scrollTop === target.clientHeight) {
-        loadMorePosts();
-      }
+        const target = event.target as HTMLElement;
+        if (target.scrollHeight - target.scrollTop === target.clientHeight) {
+            loadMorePosts();
+        }
     }
     async function loadMorePosts() {
-      if (loading) return;
-      const morePosts = await fetchPosts();
-      posts = [...posts, ...morePosts];
+        if (loading) return;
+        const morePosts = await fetchPosts();
+        posts = [...posts, ...morePosts];
     }
-  </script>
+</script>
 
-  <NavBar current_page='/me/feed'></NavBar>
-  <Panel title="">
+<NavBar current_page="/me/feed"></NavBar>
+<div class="container">
     <div class="feed-container" on:scroll={onScroll}>
-      {#each posts as post}
-        <Post content={post}/>
-      {/each}
-      {#if loading}
-        <p>Loading more posts...</p>
-      {/if}
-      {#if error}
-        <ErrorPopup message={error}></ErrorPopup>
-      {/if}
+        {#each posts as post}
+            <Post content={post} />
+        {/each}
+        {#if loading}
+            <p>Loading more posts...</p>
+        {/if}
+        {#if error}
+            <ErrorPopup message={error}></ErrorPopup>
+        {/if}
     </div>
-  </Panel>
-  <style>
-    .feed-container {
-      height: calc(100vh - var(--navbar-height));
-      overflow-y: auto;
-      padding: 1rem;
+</div>
+
+<!-- center feed-container -->
+<style>
+    .container {
+        display: flex;
+        justify-content: center;
     }
-  </style>
+
+    .feed-container {
+        height: calc(100vh - var(--navbar-height));
+        overflow-y: auto;
+        padding: 1rem;
+        width: 100%;
+    }
+</style>

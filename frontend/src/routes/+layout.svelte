@@ -18,17 +18,13 @@
     });
 </script>
 
-<slot />
+<slot>
+</slot>
 
 <style lang="postcss">
     :global(body) {
-        background: rgb(201, 0, 255);
-        background: radial-gradient(
-            circle,
-            rgba(201, 0, 255, 1) 0%,
-            rgba(255, 0, 219, 1) 50%,
-            rgba(105, 9, 121, 1) 100%
-        );
+        background: rgb(155,70,252);
+background: radial-gradient(circle, rgba(155,70,252,1) 50%, rgba(97,70,252,1) 100%);
         font-family: 'Roboto', sans-serif;
         margin: 0;
         padding: 0;

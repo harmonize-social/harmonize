@@ -10,8 +10,9 @@
     import { errorMessage } from '../../../store';
     import type { PageData } from '../user/$types';
     import { onMount } from 'svelte';
+    import { goto } from '$app/navigation';
 
-    let followed: string[] = [];
+    let followers: string[] = [];
     let following: string[] = [];
     let posts: PostModel[] = [];
     let follows: boolean;
@@ -20,6 +21,7 @@
     $: text = follows ? 'Unfollow' : 'Follow';
     export let data: PageData;
     let username: any = data.user;
+    let me = '';
 
     errorMessage.subscribe((value) => {
         error = value;
@@ -33,11 +35,20 @@
         }
     }
 
+    async function getInfo() {
+        try {
+            const info = await get<any>(`/me/info`);
+            me = info.username;
+        } catch (e) {
+            throwError('Error fetching user info');
+        }
+    }
+
     async function getFollowing() {
         try {
-            followed = await get<string[]>(`/me/following`);
+            followers = await get<string[]>(`/me/following`);
             following = await get<string[]>(`/me/followers`);
-            follows = followed.includes(username);
+            follows = followers.includes(username);
         } catch (e) {
             throwError('Error fetching user posts');
         }
@@ -85,46 +96,87 @@
         isClicked = !isClicked;
     };
     onMount(async () => {
+        await getInfo();
         await getFollowing();
         if (follows) {
             await getPosts();
         }
     });
+    let selectedList: string = '';
 </script>
 
-<!-- navbar -->
-<div class="nav">
-    <NavBar current_page={`/profile/${username}`}></NavBar>
-</div>
+<NavBar/>
+
+{#if username === me}
+    <div class="profile-container">
+        <div class="user-container">
+                <Button
+                    action={() => (selectedList = selectedList === 'Followers' ? '' : 'Followers')}
+                    buttonText="Followers: {followers.length}"
+                />
+                {#if selectedList == 'Followers'}
+                    <div class="followers-list-content">
+                        <h4>Users who follow you:</h4>
+                        {#if followers.length == 0}
+                            <p>No followers</p>
+                        {/if}
+                        {#if followers.length > 0}
+                            {#each followers as follower}
+                                <a href="/profile/{follower}">{follower}</a>
+                            {/each}
+                        {/if}
+                    </div>
+                {/if}
+                <Button
+                    action={() => (selectedList = selectedList === 'Following' ? '' : 'Following')}
+                    buttonText="Following: {following.length}"
+                />
+
+                {#if selectedList == 'Following'}
+                    <div class="following-list-content">
+                        <h4>Users you follow:</h4>
+                        {#if following.length == 0}
+                            <p class="following-list">Not following anyone</p>
+                        {/if}
+                        {#if following.length > 0}
+                            {#each following as follow}
+                                <a href="/profile/{follow}">{follow}</a>
+                            {/each}
+                        {/if}
+                    </div>
+                {/if}
+        </div>
+    </div>
+{/if}
+
 <!-- profile -->
 <div class="profile-container">
-    <h2 class="username">{username}</h2>
-
     <!-- personal feed -->
     <div class="feed-container">
-        <div class="follow_button">
-            <Button buttonText={text} action={handleButtonClick}></Button>
-        </div>
-        <Panel title={`${username}'s posts`}>
-            <div class="feed">
-                {#if posts.length === 0}
-                    <p>{username} did not post yet!</p>
-                {/if}
-                {#each posts as post}
-                    <div class="post">
-                        <Post
-                            content={post}
-                        />
-                    </div>
-                {/each}
-                {#if loading}
-                    <p>Loading more posts...</p>
-                {/if}
-                {#if error}
-                    <ErrorPopup message={error}></ErrorPopup>
-                {/if}
+        {#if me !== username}
+            <div class="follow_button">
+                <Button buttonText={text} action={handleButtonClick}></Button>
             </div>
-        </Panel>
+        {/if}
+        <div class="feed">
+        {#if username !== me}
+            <h2 class="username">{username}</h2>
+        {/if}
+            {#if posts.length === 0}
+                <p>{username} did not post yet!</p>
+            {/if}
+            {#each posts as post}
+                <div class="post">
+                    <Post content={post} />
+                </div>
+            {/each}
+            {#if loading}
+                <p>Loading more posts...</p>
+            {/if}
+            {#if error}
+                <ErrorPopup message={error}></ErrorPopup>
+            {/if}
+        </div>
     </div>
 </div>
 
@@ -135,11 +187,73 @@
         justify-content: flex-start;
     }
 
+    .user-container {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        justify-content: space-evenly;
+        margin: 20px;
+    }
+
+    .username {
+        padding: 0;
+        margin-left: 0rem;
+        margin-right: 10rem;
+    }
+
+    .profile-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+    }
+
     .username {
         grid-area: username;
     }
 
-    .feed {
+    .feed-container {
         display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .feed {
+        margin: 0 auto;
+    }
+
+    .following-list-content,
+    .followers-list-content {
+        position: absolute;
+        z-index: 1000;
+        border: black solid 1px;
+        border-radius: 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        margin-top: 0.5rem;
+        margin-left: 0rem;
+        background: rgb(234, 185, 255);
+    background: linear-gradient(
+      0deg,
+      rgba(234, 185, 255, 1) 24%,
+      rgba(241, 207, 243, 1) 41%,
+      rgba(248, 231, 231, 1) 100%
+    );
+    }
+    .followers-list-content a,
+    .following-list-content a {
+        display: block;
+        padding: 0.2rem;
+        margin: 0.5rem;
+        background-color: white;
+        border-radius: 5px;
+        text-decoration: none;
+    }
+
+    .followers-list-content a:hover,
+    .following-list-content a:hover {
+        text-transform: uppercase;
     }
 </style>

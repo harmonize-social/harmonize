@@ -19,9 +19,7 @@
 
 <style>
     .playlist {
-        border: 1px solid #ccc;
         border-radius: 10px;
-        width: 300px;
         margin: 10px;
         text-align: center;
     }
@@ -31,11 +29,15 @@
         height: 100px;
     }
 
+    .playlist h3 {
+        margin: 0 0 10px 0;
+    }
+
     .songs {
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        height: 200px;
+        height: 350px;
         overflow-y: scroll;
         -webkit-scrollbar: none;
         mask-image: linear-gradient(to bottom, transparent 0%, black 48px, black calc(100% - 48px), transparent 100%);

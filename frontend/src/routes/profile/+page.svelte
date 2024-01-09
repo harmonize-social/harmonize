@@ -19,6 +19,15 @@
         error = value;
     });
 
+    async function getInfo() {
+        try {
+            const info = await get('/me/info');
+            username = info.username;
+        } catch (e) {
+            throwError('Error fetching profile information');
+        }
+    }
+
     async function fetchPosts(): Promise<PostModel[]> {
         try {
             const response: PostModel[] = await get<PostModel[]>('/me/posts');
@@ -86,51 +95,6 @@
         </div>
         <div class="liked">
             <Button buttonText="Liked" link="/profile/liked"></Button>
-        </div>
-    </div>
-</div>
-
-<div class="profile-container">
-    <div class="user-container">
-        <h2 class="username">My Profile</h2>
-        <div class="followers-list-container">
-            <Button
-                action={() => (selectedList = selectedList === 'Followers' ? '' : 'Followers')}
-                buttonText="Followers: {followers.length}"
-            />
-            {#if selectedList == 'Followers'}
-                <div class="followers-list-content">
-                    <h4>Users who follow you:</h4>
-                    {#if followers.length == 0}
-                        <p>No followers</p>
-                    {/if}
-                    {#if followers.length > 0}
-                        {#each followers as follower}
-                            <a href="/profile/{follower}">{follower}</a>
-                        {/each}
-                    {/if}
-                </div>
-            {/if}
-        </div>
-        <div class="following-list-container">
-            <Button
-                action={() => (selectedList = selectedList === 'Following' ? '' : 'Following')}
-                buttonText="Following: {following.length}"
-            />
-
-            {#if selectedList == 'Following'}
-                <div class="following-list-content">
-                    <h4>Users you follow:</h4>
-                    {#if following.length == 0}
-                        <p class="following-list">Not following anyone</p>
-                    {/if}
-                    {#if following.length > 0}
-                        {#each following as follow}
-                            <a href="/profile/{follow}">{follow}</a>
-                        {/each}
-                    {/if}
-                </div>
-            {/if}
         </div>
     </div>
 </div>

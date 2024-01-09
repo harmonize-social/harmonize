@@ -1,17 +1,30 @@
 <script lang="ts">
     import TextInputNav from './TextInputNav.svelte';
-    import NavLink from './NavLink.svelte';
     import Logo from './Logo.svelte';
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
-    let pages = {
-        feed: '/feed',
-        profile: '/profile',
-        settings: '/profile/settings'
-    };
+    import { get, throwError } from '../fetch';
+    let pages = {};
     let currentPage: string;
-    onMount(() => {
+
+    async function getInfo() {
+        try {
+            const info = await get<{
+                    username: string;
+                }>('/me/info');
+            pages = {
+                feed: '/feed',
+                profile: '/profile/' + info.username,
+                settings: '/profile/settings'
+            };
+        } catch (e) {
+            throwError('Error fetching profile information');
+        }
+    }
+
+    onMount(async () => {
         currentPage = window.location.pathname;
+        await getInfo();
     });
 </script>
 
@@ -45,7 +58,7 @@
 
     a {
         text-decoration: none;
-        color:  #f8e7e7;
+        color: #f8e7e7;
         height: 100%;
         width: 100%;
         display: flex;

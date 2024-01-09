@@ -1,7 +1,5 @@
 <script lang="ts">
-    import type CommentModel from '../models/comment';
     import type PostModel from '../models/post';
-    import Comment from './Comment.svelte';
     import Song from './Song.svelte';
     import Album from './Album.svelte';
     import Playlist from './Playlist.svelte';
@@ -12,7 +10,6 @@
     import { errorMessage } from '../store';
 
     export let content: PostModel;
-    let comments: CommentModel[] = [];
     let error = '';
     errorMessage.subscribe((value) => {
         error = value;
@@ -79,7 +76,9 @@
 </script>
 
 <div class="post">
-    <p>{content.username}</p>
+    <div class="username">
+        <a href={`/profile/${content.username}`}>{content.username}</a>
+    </div>
     {#if content.type == 'song'}
         <Song content={content.content} />
     {:else if content.type == 'album'}
@@ -120,8 +119,9 @@
 <style>
     .post {
         border: 1px solid black;
+        width: 400px;
         padding: 0px;
-        margin: 50px;
+        margin: 0 auto 20px auto;
         border-radius: 10px;
         color: black;
         text-align: center;
@@ -129,6 +129,27 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        background: rgb(234, 185, 255);
+        background: linear-gradient(
+            0deg,
+            rgba(234, 185, 255, 1) 24%,
+            rgba(241, 207, 243, 1) 41%,
+            rgba(248, 231, 231, 1) 100%
+        );
+    }
+
+    .username {
+        display: flex;
+        width: 100%;
+        padding: 10px;
+        margin-left: 3rem;
+    }
+
+    .post .username a {
+        margin: 10px 0px 0px 0px;
+        text-decoration: none;
+        color: black;
+        text-align: left;
     }
 
     .likes {
