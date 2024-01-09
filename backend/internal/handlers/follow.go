@@ -179,7 +179,7 @@ func GetFollowing(w http.ResponseWriter, r *http.Request) {
 
     defer rows.Close()
 
-    var users []string
+    users := make([]string, 0)
 
     for rows.Next() {
         var username string
