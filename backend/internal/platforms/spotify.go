@@ -15,6 +15,22 @@ import (
 	"golang.org/x/oauth2"
 )
 
+func GetPlatform(platform string, userId uuid.UUID) models.Platform {
+	var provider models.Platform
+
+	switch platform {
+	case "spotify":
+		provider = SpotifyProvider {
+			UserID: userId,
+		}
+	case "deezer":
+		provider = DeezerProvider {
+			UserID: userId,
+		}
+	}
+	return provider
+}
+
 func SpotifyClientId(userId *uuid.UUID) (*spotify.Client, error) {
 	tokens, err := repositories.GetTokens("spotify", *userId)
 	if err != nil {

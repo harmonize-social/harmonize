@@ -3,8 +3,10 @@ package handlers
 import (
     "backend/internal/auth"
     "backend/internal/models"
+    "backend/internal/platforms"
     "backend/internal/repositories"
     "context"
+    "fmt"
     "net/http"
     "strconv"
 
@@ -115,6 +117,35 @@ func PostSavedPost(w http.ResponseWriter, r *http.Request) {
     err = repositories.Pool.QueryRow(context.Background(), sqlStatement, user.ID, postId).Scan(&savedPostId)
 
     if err != nil {
+        models.Error(w, http.StatusInternalServerError, "Error saving post")
+        return
+    }
+
+    platformItems, err := repositories.GetPostPlatform(uuid.MustParse(postId))
+
+    if err != nil {
+        fmt.Println(err.Error())
+        models.Error(w, http.StatusInternalServerError, "Error saving post")
+    }
+
+    if len(platformItems) == 0 {
+        fmt.Println("No platforms")
+        models.Error(w, http.StatusInternalServerError, "Error saving post")
+        return
+    }
+
+    platform := platforms.GetPlatform(platformItems[0].Platform, user.ID)
+
+    result, err := platform.Save(platformItems[0].Type, platformItems[0].ID)
+
+    if err != nil {
+        fmt.Println(err.Error())
+        models.Error(w, http.StatusInternalServerError, "Error saving post")
+        return
+    }
+
+    if !result {
+        fmt.Println("Failed to save")
         models.Error(w, http.StatusInternalServerError, "Error saving post")
         return
     }
