@@ -1,6 +1,7 @@
 <script lang="ts">
     import { get, delete_, throwError } from '../../../fetch';
     import Panel from '../../../components/Panel.svelte';
+    import NavBar from '../../../components/NavBar.svelte';
     import deezerIcon from '../../../lib/assets/deezer.png';
     import spotifyIcon from '../../../lib/assets/Spotify_App_Logo.svg.png';
     import { onMount } from 'svelte';
@@ -51,6 +52,7 @@
     });
 </script>
 
+<NavBar />
 <Panel title="Choose the platform to connect:">
     <div class="container">
         <div class="platforms unconnected-platforms">
