@@ -3,29 +3,65 @@
     import NavLink from './NavLink.svelte';
     import Logo from './Logo.svelte';
     import { goto } from '$app/navigation';
-    let all_pages = ['/feed', '/profile', '/profile/settings'];
-    let all_texts = ['Feed', 'Profile', 'Settings'];
-    let current_page = window.location.pathname;
-    let current_index = all_pages.indexOf(current_page);
+    import { onMount } from 'svelte';
+    let pages = {
+        feed: '/feed',
+        profile: '/profile',
+        settings: '/profile/settings'
+    };
+    let currentPage: string;
+    onMount(() => {
+        currentPage = window.location.pathname;
+    });
 </script>
 
 <nav class="navbar">
-    <div class="logo" on:click={() => goto('/feed')}><Logo/></div>
-    {#each all_pages as _, i}
-        {#if i == current_index}
-            <NavLink text={all_texts[i].toUpperCase()} url={all_pages[i]}/>
-        {:else}
-            <NavLink text={all_texts[i]} url={all_pages[i]}/>
-        {/if}
+    <div class="logo" on:click={() => goto('/feed')}><Logo /></div>
+    {#each Object.entries(pages) as [k, v]}
+        <div class="nav-element">
+            {#if currentPage === v}
+                <a href={v} class="active"><p>{k}</p></a>
+            {:else}
+                <a href={v}><p>{k}</p></a>
+            {/if}
+        </div>
     {/each}
-    <TextInputNav placeholder="Search"/>
+    <TextInputNav placeholder="Search" />
 </nav>
 
 <style>
+    div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        width: 100%;
+    }
+
+    a {
+        text-decoration: none;
+        color: black;
+        font-size: 1.5rem;
+        font-weight: bold;
+        height: 100%;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    a:hover {
+        background-color: #e6e6e6;
+    }
+
+    .active {
+        background-color: #e6e6e6;
+        text-transform: uppercase;
+    }
+
     .navbar {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-areas: 'logo navlink1 navlink2 searchbox';
+        display: flex;
+        flex-direction: row;
         width: 45%;
         height: 70px;
         border: 1px solid black;
@@ -33,7 +69,7 @@
         border-radius: 0 100px 100px 0;
     }
 
-    .logo{
+    .logo {
         cursor: pointer;
     }
 </style>

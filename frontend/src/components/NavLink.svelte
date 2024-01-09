@@ -1,10 +1,5 @@
-<script>
-  export let url = '#';
-  export let text = 'NavLink';
+<script lang="ts">
+    export let url = '#';
+    export let text = 'NavLink';
+    export let active: boolean;
 </script>
-<style>
-</style>
-
-<div>
-<a href={url}><p>{text}</p></a>
-</div>
