@@ -24,9 +24,7 @@ func GetLikedPosts(w http.ResponseWriter, r *http.Request) {
     }
 
     sqlStatement := `SELECT
-    lp.id AS liked_post_id,
     p.id AS post_id,
-    p.user_id AS post_owner_id,
     u.username AS post_username,
     p.created_at AS post_created_at,
     p.caption AS post_caption,
@@ -63,7 +61,7 @@ func GetLikedPosts(w http.ResponseWriter, r *http.Request) {
     for rows.Next() {
         var post models.Post
         var typeSpecificId uuid.UUID
-        err = rows.Scan(&post.ID, &post.CreatedAt, &post.Caption, &post.Type, &typeSpecificId, &post.Username, &post.LikeCount, &post.HasLiked, &post.HasLiked)
+        err = rows.Scan(&post.ID, &post.Username, &post.CreatedAt, &post.Caption, &post.Type, &typeSpecificId, &post.LikeCount, &post.HasLiked, &post.HasSaved)
         if err != nil {
             fmt.Println(err.Error())
             models.Error(w, http.StatusInternalServerError, "Error getting posts")
