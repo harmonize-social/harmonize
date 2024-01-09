@@ -16,15 +16,31 @@ import (
     "github.com/jackc/pgx/v4"
 )
 
+/*
+Returned when a user logs in or registers
+*/
 type TokenResponse struct {
     Token string `json:"token"`
 }
 
+/*
+Representation of a user's login request
+*/
 type LoginRequest struct {
     Username string `json:"username"`
     Password string `json:"password"`
 }
 
+/*
+Login handler
+
+POST /users/login
+
+{
+    "username": <username|email>,
+    "password": "password"
+}
+*/
 func Login(w http.ResponseWriter, r *http.Request) {
     var loginRequest LoginRequest
     err := json.NewDecoder(r.Body).Decode(&loginRequest)
@@ -69,12 +85,26 @@ func Login(w http.ResponseWriter, r *http.Request) {
     })
 }
 
+/*
+Representation of a user's registration request
+*/
 type RegisterRequest struct {
     Email    string `json:"email"`
     Username string `json:"username"`
     Password string `json:"password"`
 }
 
+/*
+Register handler
+
+POST /users/register
+
+{
+    "email": "email",
+    "username": "username",
+    "password": "password"
+}
+*/
 func Register(w http.ResponseWriter, r *http.Request) {
     // create an empty user of type models.User
     var registerRequest RegisterRequest
@@ -120,6 +150,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
     })
 }
 
+/*
+Create a session for a user in the database
+*/
 func insertSession(userId uuid.UUID) (uuid.UUID, error) {
 
     sqlStatement := `INSERT INTO sessions (id, user_id, expiry) VALUES ($1, $2, $3) RETURNING id`
@@ -129,6 +162,9 @@ func insertSession(userId uuid.UUID) (uuid.UUID, error) {
     return sessionID, err
 }
 
+/*
+Generate a JWT for a session
+*/
 func generateJWT(sessionID uuid.UUID) (string, error) {
     t := jwt.NewWithClaims(jwt.SigningMethodHS256,
         jwt.MapClaims{
