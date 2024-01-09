@@ -15,6 +15,9 @@ import (
 	"golang.org/x/oauth2"
 )
 
+/*
+Gets the platform provider for a user based on the platform name and the user id
+*/
 func GetPlatform(platform string, userId uuid.UUID) models.Platform {
 	var provider models.Platform
 
@@ -31,6 +34,9 @@ func GetPlatform(platform string, userId uuid.UUID) models.Platform {
 	return provider
 }
 
+/*
+Get a spotify client for a user's id
+*/
 func SpotifyClientId(userId *uuid.UUID) (*spotify.Client, error) {
 	tokens, err := repositories.GetTokens("spotify", *userId)
 	if err != nil {
@@ -56,11 +62,17 @@ func SpotifyClientId(userId *uuid.UUID) (*spotify.Client, error) {
 	return client, nil
 }
 
+/*
+Generate a spotify oauth url for a user to authenticate with
+*/
 func SpotifyURL(csrf string) (string, error) {
 	url := GetSpotifyAuthenticator(csrf).AuthURL(csrf)
 	return url, nil
 }
 
+/*
+Generate a spotify authenticator which has the scopes and redirect url set
+*/
 func GetSpotifyAuthenticator(csrf string) spotifyauth.Authenticator {
 	auth := spotifyauth.New(
 		spotifyauth.WithRedirectURL(repositories.SpotifyRedirect),
@@ -89,6 +101,9 @@ func GetSpotifyAuthenticator(csrf string) spotifyauth.Authenticator {
 	return *auth
 }
 
+/*
+Callback handler for spotify oauth
+*/
 func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
 	session := r.URL.Query().Get("state")
 	user, err := auth.GetUserFromSession(uuid.MustParse(session))
@@ -113,6 +128,9 @@ func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
 	models.Result(w, "Ok")
 }
 
+/*
+A spotify provider which implements the Platform interface
+*/
 type SpotifyProvider struct {
 	UserID uuid.UUID
 }
