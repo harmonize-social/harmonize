@@ -129,6 +129,7 @@ func (provider DeezerProvider) GetSongs(limit int, offset int) ([]models.Platfor
             Platform: "deezer",
             ID:       song.Artist.ID.String(),
             Name:     song.Artist.Name,
+            MediaURL: *song.Artist.PictureBig,
         }
 
         album := models.PlatformAlbum{
@@ -190,6 +191,7 @@ func (provider DeezerProvider) GetAlbums(limit int, offset int) ([]models.Platfo
             Platform: "deezer",
             ID:       fullAlbum.Artist.ID.String(),
             Name:     fullAlbum.Artist.Name,
+            MediaURL: *fullAlbum.Artist.PictureBig,
         })
 
         album := models.PlatformAlbum{
@@ -208,11 +210,20 @@ func (provider DeezerProvider) GetAlbums(limit int, offset int) ([]models.Platfo
                 return nil, err
             }
 
+            artists := []models.PlatformArtist {
+                {
+                    Platform: "deezer",
+                    ID:       fullTrack.Artist.ID.String(),
+                    Name:     fullTrack.Artist.Name,
+                    MediaURL: *fullTrack.Artist.PictureBig,
+                },
+            }
+
             song := models.PlatformSong{
                 Platform: "deezer",
                 ID:       track.ID.String(),
                 Title:    track.Title,
-                Artists:  nil, // TODO: Add artists
+                Artists:  artists,
                 Album:    album,
                 MediaURL: track.Album.Cover,
                 PreviewURL: fullTrack.Preview,
@@ -268,11 +279,19 @@ func (provider DeezerProvider) GetPlaylists(limit int, offset int) ([]models.Pla
             if err != nil {
                 return nil, err
             }
+            artists := []models.PlatformArtist {
+                {
+                    Platform: "deezer",
+                    ID:       fullTrack.Artist.ID.String(),
+                    Name:     fullTrack.Artist.Name,
+                    MediaURL: *fullTrack.Artist.PictureBig,
+                },
+            }
             song := models.PlatformSong{
                 Platform: "deezer",
                 ID:       track.ID.String(),
                 Title:    track.Title,
-                Artists:  nil, // TODO: Add artists
+                Artists:  artists,
                 Album:    models.PlatformAlbum{},
                 MediaURL: track.Album.Cover,
                 PreviewURL: fullTrack.Preview,
