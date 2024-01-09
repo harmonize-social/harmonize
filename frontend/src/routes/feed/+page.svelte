@@ -5,7 +5,6 @@
     import Panel from '../../components/Panel.svelte';
     import NavBar from '../../components/NavBar.svelte';
     import { get, throwError } from '../../fetch';
-    import Button from '../../components/Button.svelte';
     import { errorMessage } from '../../store';
     import ErrorPopup from '../../components/ErrorPopup.svelte';
 
@@ -53,7 +52,7 @@
   <Panel title="">
     <div class="feed-container" on:scroll={onScroll}>
       {#each posts as post}
-        <Post content={post.content} caption={post.caption} likes={post.likeCount} id={post.id} typez={post.type} isSaved={post.hasSaved} isLiked={post.hasLiked}/>
+        <Post content={post}/>
       {/each}
       {#if loading}
         <p>Loading more posts...</p>
