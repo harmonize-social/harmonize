@@ -49,7 +49,7 @@
 
             const response = await post('/me/update', updatedInfo); 
 
-            console.log('Gebruikersinformatie succesvol bijgewerkt:', response);
+            console.log('Profile data succesfully edited', response);
         } catch (e) {
             throwError('Failed to update user information');        }
     }
@@ -84,13 +84,13 @@
             <h2>Change user details</h2>
 
             <!-- Username input -->
-            <TextInput bind:value={newUsername} placeholder="Nieuwe gebruikersnaam" type="gebruikersnaam"/>
+            <TextInput bind:value={newUsername} placeholder="New username" type="username"/>
 
             <!-- Email input -->
-            <TextInput bind:value={newEmail} placeholder="Nieuw e-mailadres" type="email" />
+            <TextInput bind:value={newEmail} placeholder="New email" type="email" />
 
             <!-- Password input -->
-            <TextInput bind:value={newPassword} placeholder="Nieuw wachtwoord" type="password" />
+            <TextInput bind:value={newPassword} placeholder="New password" type="password" />
 
             <button type="submit">Update</button>
         </div>

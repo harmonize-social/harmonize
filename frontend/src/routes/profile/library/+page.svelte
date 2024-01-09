@@ -113,28 +113,28 @@
     <div class="library-content-types">
         <div class="library-song-content">
             {#each songs as song}
-                <a href="/me/newpost?library={selectedLibrary}&id={song.id}&type={selectedContentType}">
+                <a href="/newpost?library={selectedLibrary}&id={song.id}&type={selectedContentType}">
                 <Song content={song} />
                 </a>
             {/each}
         </div>
         <div class="library-album-content">
             {#each albums as album}
-                <a href="/me/newpost?library={selectedLibrary}&id={album.id}&type={selectedContentType}">
+                <a href="/newpost?library={selectedLibrary}&id={album.id}&type={selectedContentType}">
                 <Album content={album} />
                 </a>
             {/each}
         </div>
         <div class="library-playlist-content">
             {#each playlists as playlist}
-                <a href="/me/newpost?library={selectedLibrary}&id={playlist.id}&type={selectedContentType}">
+                <a href="/newpost?library={selectedLibrary}&id={playlist.id}&type={selectedContentType}">
                 <Playlist content={playlist} />
                 </a>
             {/each}
         </div>
         <div class="library-artist-content">
             {#each artists as artist}
-                <a href="/me/newpost?library={selectedLibrary}&id={artist.id}&type={selectedContentType}">
+                <a href="/newpost?library={selectedLibrary}&id={artist.id}&type={selectedContentType}">
                 <Artist content={artist} />
                 </a>
             {/each}
@@ -191,4 +191,5 @@
         flex-wrap: wrap;
         justify-content: space-evenly;
     }
+
 </style>

@@ -10,7 +10,7 @@
   
     const timeout = setTimeout(() => {
       closePopup();
-    }, 5000);
+    }, 3000);
   
     onDestroy(() => {
       clearTimeout(timeout);
@@ -42,9 +42,11 @@
       background-color: transparent;
       border: none;
       cursor: pointer;
+      color: red;
     }
   
     .popup p {
       margin: 0;
+      color: red;
     }
   </style>

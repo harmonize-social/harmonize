@@ -1,7 +1,6 @@
 //https://eckertalex.dev/blog/typescript-fetch-wrapper
 //https://github.com/EHB-TI/programming-project-groep-3_brussel-student-guide/blob/main/frontend/src/fetch.ts
 
-import ErrorPopup from './components/ErrorPopup.svelte';
 import { errorMessage } from './store';
 
 const API_URL = process.env.API_URL;

@@ -62,9 +62,6 @@
         <ErrorPopup message={error}></ErrorPopup>
       {/if}
     </div>
-    <div  class="new-post-button">
-        <Button buttonText="New Post" link='/newpost'></Button>
-    </div>
   </Panel>
   <style>
     .feed-container {
@@ -72,23 +69,4 @@
       overflow-y: auto;
       padding: 1rem;
     }
-    .new-post-button {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-
-    color: white;
-    border: none;
-    font-size: 2rem;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    z-index: 1000; /* Ensure it's above other elements */
-  }
   </style>

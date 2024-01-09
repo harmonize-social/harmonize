@@ -51,8 +51,8 @@
 
 	<a class="forgot-password" href="./login">Already have an account?</a>
 
-	<div class="buttonlogin" on:click={handleRegister}>
-		<Button buttonText="Register" />
+	<div class="buttonlogin">
+		<Button buttonText="Register" action={handleRegister} />
 	</div>
 </Panel>
 
@@ -65,9 +65,5 @@
 	.forgot-password {
 		display: flex;
 		justify-content: center;
-	}
-	.error-message {
-		color: red;
-		text-align: center;
 	}
 </style>

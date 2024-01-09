@@ -4,9 +4,29 @@
     import Button from "../../../components/Button.svelte";
 
     import { goto } from '$app/navigation';
-    import { delete_, throwError } from "../../../fetch";
+    import { delete_, get, throwError } from "../../../fetch";
     import { errorMessage } from "../../../store";
     import ErrorPopup from "../../../components/ErrorPopup.svelte";
+    import deezerIcon from "../../../lib/assets/deezer-logo-coeur.jpg";
+    import spotifyIcon from "../../../lib/assets/Spotify_App_Logo.svg.png";
+	import { onMount } from "svelte";
+
+    let spotify = false;
+    let deezer = false;
+   
+    async function getConnected() {
+        try {
+            const data = await get('/me/library/connected');
+            spotify = data.includes('spotify');
+            deezer = data.includes('deezer');
+        } catch (e) {
+            throwError('Internal server error');
+        }
+    }
+
+    onMount(async () => {
+        await getConnected();
+    });
 
     let error = '';
     errorMessage.subscribe((value) => {
@@ -14,11 +34,11 @@
     });
 
     async function handleDeleteAccount() {
-    const confirmation = confirm('Weet je zeker dat je je account wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.');
+    const confirmation = confirm('Are you sure you want to delete your account? This action is irreversible.');
 
     if (confirmation) {
         try {
-            await delete_('/auth/delete');
+            await delete_('/me/delete');
             localStorage.removeItem('token');
             goto('/auth/login');       
         } catch (e) {
@@ -32,71 +52,96 @@ async function handleLogout() {
             localStorage.removeItem('token');
             goto('/auth/login');
 }
-    const goToAccountSettings = () => {
-        goto('/profile/edit'); 
-    }
-   
+
 
 
 </script>
 
 <style>
+    .container{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    align-self: center;
+    margin: 1rem;
+    margin-left: 0;
+
+    }
 .buttons{
     display: flex;
     flex-direction:column;
+    justify-content: center;
     margin: 1rem;
     margin-left: 0;
-    align-items: start;
+    align-items: center;
     align-self: start;
 }
 .notifications, .privacy, .help, .delete, .logout, .myaccount {
     margin: 1rem;
+    margin-left: 15rem;
     padding: 0.5rem;
 }
 .connection{
     margin: 1rem;
     display:flex;
-    align-items: end;
+    align-items: flex-start;
     justify-content: end;
-    align-self:end;
+    align-self:start;
 }
 .connection_button{
     margin: 2rem;
     
 }
 
+ img {
+        width: 150px;
+        height: auto;
+        border-radius: 10px;
+        transition: transform 0.3s ease;
+    }
+
 </style>
 <NavBar current_page="/me/profile/settings"></NavBar>
 <Panel title="Settings">
-    <div class="buttons">
-        <div class="notifications">
-            <Button buttonText="FAQ" link="/profile/settings/notifications"></Button>
-        </div>
-        <div class="privacy">
-            <Button buttonText="Privacy" link="/profile/settings/privacy"></Button>
-        </div>
-        <div class="help">
-            <Button buttonText="Help" link="/profile/settings/help"></Button>
-        </div>
-        <div class="delete">
-            <Button buttonText="Delete Account" on:click={handleDeleteAccount}></Button>
-            {#if error}
-                <ErrorPopup message={error}></ErrorPopup>
-            {/if}
-        </div>
-        <div class="logout" on:click={handleLogout}>
-            <Button buttonText="Logout"></Button>
-        </div>
-        <div class="myaccount">
-            <button on:click={goToAccountSettings}>My Account</button>
-        </div>
-    
-    </div>
-    <div class="connection"> 
-        <Panel title="Your connected platforms">
-            <div class="connection_button">
-                <Button buttonText="Connect to another platform" link="/profile/connection"></Button>
+    <div class="container">
+        <div class="buttons">
+            <div class="myaccount" >
+                <Button buttonText="My Account" link="/profile/edit"></Button>
             </div>
-        </Panel>
+            <div class="notifications">
+                <Button buttonText="FAQ" link="/profile/settings/notifications"></Button>
+            </div>
+            <div class="privacy">
+                <Button buttonText="Privacy" link="/profile/settings/privacy"></Button>
+            </div>
+            <div class="help">
+                <Button buttonText="Help" link="/profile/settings/help"></Button>
+            </div>
+            <div class="delete">
+                <Button buttonText="Delete Account" action={handleDeleteAccount}></Button>
+                {#if error}
+                    <ErrorPopup message={error}></ErrorPopup>
+                {/if}
+            </div>
+            <div class="logout">
+                <Button buttonText="Logout" action={handleLogout}></Button>
+            </div>
+        
+        </div>
+        <div class="connection"> 
+            <Panel title="Your connected platforms">
+                {#if spotify}
+                <img src={spotifyIcon} alt="Spotify Logo">
+                {/if}
+                {#if deezer}
+                <img src={deezerIcon} alt="Deezer Logo">
+                {/if}
+                <div class="connection_button">
+                    <Button buttonText="Connect to another platform" link="/profile/connection"></Button>
+                </div>
+            </Panel>
+        </div>
     </div>
 </Panel>
+    

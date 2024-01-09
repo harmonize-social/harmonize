@@ -1,13 +1,15 @@
 <script lang="ts">
     export let type: 'like' | 'liked' | 'save' | 'saved';
     export let state: boolean = false;
+    export let action = () => {};
 
     function toggleState() {
         state = !state;
     }
+    //TODO: fix the action prop on the action button
 </script>
 
-<button on:click={toggleState}>
+<button on:click={action = toggleState}>
     {#if type === 'like'}
         {#if state == false}
             <svg viewBox="0 0 24.00 24.00" fill="none" xmlns="http://www.w3.org/2000/svg"
