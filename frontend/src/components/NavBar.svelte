@@ -29,7 +29,7 @@
         </div>
     {/each}
     <div class="search">
-        <TextInputNav placeholder="Search" />
+        <TextInputNav placeholder="Username" />
     </div>
 </nav>
 
@@ -45,7 +45,7 @@
 
     a {
         text-decoration: none;
-        color: black;
+        color:  #f8e7e7;
         height: 100%;
         width: 100%;
         display: flex;
@@ -58,7 +58,7 @@
     }
 
     .active p {
-        border-bottom: 2px solid black;
+        border-bottom: 2px solid #f8e7e7;
     }
 
     .nav-element {

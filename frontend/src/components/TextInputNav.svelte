@@ -1,7 +1,7 @@
 <script lang="ts">
     import { get, throwError } from '../fetch';
 
-    export let placeholder = 'Search';
+    export let placeholder = '';
     let input: string = '';
     let list: string[] = [];
 
@@ -47,6 +47,10 @@
         display: inline-block;
     }
 
+    .search-container input {
+        background-color: #f8e7e7;
+    }
+
     .textInputNav {
         grid-area: searchbox;
 
@@ -69,7 +73,7 @@
         border: 1px solid #ddd;
         border-radius: 4px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        background-color: white;
+        background-color: #f6e5e5;
         z-index: 1000;
     }
 
