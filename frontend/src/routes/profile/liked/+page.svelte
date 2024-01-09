@@ -34,7 +34,7 @@
     });
 </script>
 
-<NavBar current_page="/me/saved"></NavBar>
+<NavBar></NavBar>
 <Panel title="Your liked posts">
         {#each liked_posts as post}
             <div class="post">

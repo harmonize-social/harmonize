@@ -4,7 +4,6 @@
 	import Button from '../../../components/Button.svelte';
 	import Panel from '../../../components/Panel.svelte';
 	import TextInput from '../../../components/TextInput.svelte';
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { loginpost, throwError } from '../../../fetch';
 	import { errorMessage } from '../../../store';
@@ -85,8 +84,4 @@
 		margin-top: 10px;
 	}
 
-	.error-message {
-		color: red;
-		text-align: center;
-	}
 </style>
