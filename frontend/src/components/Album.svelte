@@ -27,7 +27,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        border: 1px solid black;
+        border: 1px solid #ccc;
         border-radius: 5px;
         width: 300px;
         margin: 10px;
