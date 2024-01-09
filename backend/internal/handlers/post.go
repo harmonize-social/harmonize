@@ -12,6 +12,11 @@ import (
     "github.com/google/uuid"
 )
 
+/*
+Get my feed
+
+GET /me/feed?limit=<limit>&offset=<offset>
+*/
 func GetFeed(w http.ResponseWriter, r *http.Request) {
     limit, offset, user, err := GetLimitOffsetSession(r)
     if err != nil {
@@ -72,6 +77,11 @@ func GetFeed(w http.ResponseWriter, r *http.Request) {
     models.Result(w, posts)
 }
 
+/*
+Get my posts
+
+GET /me/posts?limit=<limit>&offset=<offset>
+*/
 func GetMePosts(w http.ResponseWriter, r *http.Request) {
     limit, offset, user, err := GetLimitOffsetSession(r)
 
@@ -128,6 +138,18 @@ func GetMePosts(w http.ResponseWriter, r *http.Request) {
     models.Result(w, posts)
 }
 
+/*
+Make a new post
+
+POST /me/posts
+
+{
+    "caption": "This is a caption",
+    "type": "songs",
+    "platformSpecificId": "4iV5W9uYEdYUVa79Axb7Rh",
+    "platform": "spotify",
+}
+*/
 func NewPost(w http.ResponseWriter, r *http.Request) {
     sessionId := r.Header.Get("id")
     user, err := auth.GetUserFromSession(uuid.MustParse(sessionId))
@@ -229,6 +251,11 @@ func NewPost(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+/*
+Get a username's posts
+
+GET /posts?username=<username>&limit=<limit>&offset=<offset>
+*/
 func GetUserPosts(w http.ResponseWriter, r *http.Request) {
     limit, offset, user, err := GetLimitOffsetSession(r)
     if err != nil {

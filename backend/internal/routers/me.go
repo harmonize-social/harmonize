@@ -6,6 +6,11 @@ import (
     "github.com/gorilla/mux"
 )
 
+/*
+A router for the user-specific endpoints.
+
+/me
+*/
 func MeRouter() *mux.Router {
     router := mux.NewRouter()
 

@@ -7,6 +7,9 @@ import (
     "github.com/gorilla/mux"
 )
 
+/*
+A router for user authentication and registration.
+*/
 func UserRouter() *mux.Router {
     router := mux.NewRouter()
 

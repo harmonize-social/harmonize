@@ -6,6 +6,9 @@ import (
     "github.com/gorilla/mux"
 )
 
+/*
+A router for the OAuth callbacks.
+*/
 func OAuthRouter() *mux.Router {
     router := mux.NewRouter()
 

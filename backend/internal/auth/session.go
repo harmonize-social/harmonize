@@ -8,6 +8,9 @@ import (
     "github.com/google/uuid"
 )
 
+/*
+Get user from session
+*/
 func GetUserFromSession(sessionID uuid.UUID) (models.User, error) {
     var user models.User
 

@@ -12,6 +12,11 @@ import (
     "github.com/google/uuid"
 )
 
+/*
+Follow a user
+
+POST /follow?username=<username>
+*/
 func PostFollow(w http.ResponseWriter, r *http.Request) {
     id := uuid.MustParse(r.Header.Get("id"))
 
@@ -46,6 +51,11 @@ func PostFollow(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+/*
+Unfollow a user
+
+DELETE /follow?username=<username>
+*/
 func DeleteFollow(w http.ResponseWriter, r *http.Request) {
     id := uuid.MustParse(r.Header.Get("id"))
 
@@ -76,6 +86,11 @@ func DeleteFollow(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+/*
+Get usernames that follow a user
+
+GET /followers?limit=<limit>&offset=<offset>
+*/
 func GetFollowers(w http.ResponseWriter, r *http.Request) {
     limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
     if err != nil {
@@ -123,6 +138,11 @@ func GetFollowers(w http.ResponseWriter, r *http.Request) {
     models.Result(w, users)
 }
 
+/*
+Get usernames that a user is following
+
+GET /following?limit=<limit>&offset=<offset>
+*/
 func GetFollowing(w http.ResponseWriter, r *http.Request) {
     limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
     if err != nil {

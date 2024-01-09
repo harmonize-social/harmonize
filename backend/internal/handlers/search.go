@@ -9,6 +9,11 @@ import (
     "strconv"
 )
 
+/*
+Search users by username
+
+GET /search?username=string&limit=<int>&offset=<int>
+*/
 func Search(w http.ResponseWriter, r *http.Request) {
     limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
     if err != nil {

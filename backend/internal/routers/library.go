@@ -6,6 +6,11 @@ import (
     "github.com/gorilla/mux"
 )
 
+/*
+A router for the library endpoints.
+
+/me/library
+*/
 func LibraryRouter() *mux.Router {
     router := mux.NewRouter()
     router.HandleFunc("/{service}/{type}", handlers.LibraryHandler).Methods("GET")

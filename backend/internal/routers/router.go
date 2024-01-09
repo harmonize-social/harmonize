@@ -12,6 +12,9 @@ import (
     "github.com/gorilla/mux"
 )
 
+/*
+The full router that will be used by the server.
+*/
 func FullRouter() *mux.Router {
     router := mux.NewRouter()
     mount(router, "/api/v1/users", UserRouter())
@@ -19,6 +22,9 @@ func FullRouter() *mux.Router {
     return router
 }
 
+/*
+Verify the JWT token and add the user id to the request header.
+*/
 func Middleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
         splitAuth := strings.Split(r.Header.Get("Authorization"), " ")
@@ -44,6 +50,9 @@ func Middleware(next http.Handler) http.Handler {
     })
 }
 
+/*
+A router that requires authentication.
+*/
 func authedRoutes() *mux.Router {
     router := mux.NewRouter()
 
@@ -59,6 +68,9 @@ func authedRoutes() *mux.Router {
     return router
 }
 
+/*
+A utility function to mount a router to a path.
+*/
 func mount(r *mux.Router, path string, handler http.Handler) {
     r.PathPrefix(path).Handler(
         http.StripPrefix(
