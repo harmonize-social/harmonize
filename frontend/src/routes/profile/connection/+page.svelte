@@ -1,168 +1,125 @@
 <script lang="ts">
-	import { get, delete_, throwError } from '../../../fetch';
-	import Panel from '../../../components/Panel.svelte';
-	import deezerIcon from '../../../lib/assets/deezer-logo-coeur.jpg';
-	import spotifyIcon from '../../../lib/assets/Spotify_App_Logo.svg.png';
-	import { onMount } from 'svelte';
-	import { errorMessage } from '../../../store';
-	import ErrorPopup from '../../../components/ErrorPopup.svelte';
-	import Button from '../../../components/Button.svelte';
+    import { get, delete_, throwError } from '../../../fetch';
+    import Panel from '../../../components/Panel.svelte';
+    import deezerIcon from '../../../lib/assets/deezer.png';
+    import spotifyIcon from '../../../lib/assets/Spotify_App_Logo.svg.png';
+    import { onMount } from 'svelte';
+    import { errorMessage } from '../../../store';
 
-	let connected: string[] = [];
-	let unconnected: Map<string, string> = new Map<string, string>();
-	let showSpotify = false;
-	let showDeezer = false;
-	let showSpotifyConnected = false;
-	let showDeezerConnected = false;
-	let error = '';
-	errorMessage.subscribe((value) => {
-		error = value;
-	});
+    const icons = {
+        spotify: spotifyIcon,
+        deezer: deezerIcon
+    };
 
-	async function getConnected() {
-		try {
-			connected = (await get('/me/library/connected')) as any;
-		} catch (e) {
-			throwError('Internal server error');
-		}
-	}
+    let connected: string[] = [];
+    let unconnected: Map<string, string> = new Map<string, string>();
+    let error = '';
+    errorMessage.subscribe((value) => {
+        error = value;
+    });
 
-	async function getUnconnected() {
-		try {
-			let data = await get('/me/library/unconnected');
-			unconnected = new Map<string, string>(Object.entries(data));
-		} catch (e) {
-			throwError('Internal server error');
-		}
-	}
+    async function getConnected() {
+        try {
+            connected = (await get('/me/library/connected')) as any;
+        } catch (e) {
+            throwError('Internal server error');
+        }
+    }
 
-	async function deleteConnection(platform: string) {
-		try {
-			//await _delete('/me/library/disconnect?platofmr', { platform: platform });
-			await delete_(`/me/library/disconnect?platform=${platform}`);
-			await getConnected();
-			await getUnconnected();
-			updateUI();
-		} catch (e) {
-			throwError('Internal server error');
-		}
-	}
+    async function getUnconnected() {
+        try {
+            let data = await get<any>('/me/library/unconnected');
+            unconnected = new Map<string, string>(Object.entries(data));
+        } catch (e) {
+            throwError('Internal server error');
+        }
+    }
 
-	onMount(async () => {
-		await getConnected();
-		await getUnconnected();
-		updateUI();
-	});
+    async function deleteConnection(platform: string) {
+        try {
+            await delete_(`/me/library/disconnect?platform=${platform}`);
+            await getConnected();
+            await getUnconnected();
+        } catch (e) {
+            throwError('Internal server error');
+        }
+    }
 
-	function updateUI() {
-		console.log(unconnected, connected);
-		showSpotifyConnected = connected.includes('spotify');
-		showDeezerConnected = connected.includes('deezer');
-		showSpotify = containsPlatform('spotify');
-		showDeezer = containsPlatform('deezer');
-	}
-
-	function containsPlatform(platform: string) {
-		for (let key of unconnected.keys()) {
-			if (key == platform) {
-				return true;
-			}
-		}
-		return false;
-	}
+    onMount(async () => {
+        await getConnected();
+        await getUnconnected();
+    });
 </script>
 
 <Panel title="Choose the platform to connect:">
-	<div class="container">
-		<div class="title">Available platforms:</div>
-		<div class="image-container">
-			{#if showSpotify == true}
-				<a href={unconnected.get('spotify')} title="Connect with Spotify">
-					<img src={spotifyIcon} alt="Spotify logo" />
-				</a>
-			{/if}
-			{#if error}
-				<ErrorPopup message={error}></ErrorPopup>
-			{/if}
-			{#if showDeezer == true}
-				<a href={unconnected.get('deezer')} title="Connect with Deezer">
-					<img src={deezerIcon} alt="Deezer logo" />
-				</a>
-			{/if}
-			{#if error}
-				<ErrorPopup message={error}></ErrorPopup>
-			{/if}
-		</div>
-		<div class="connected-platforms">
-			<h3>Your connections:</h3>
-			
-				{#if showSpotifyConnected == true}
-					<img class="logo" src={spotifyIcon} alt="Spotify Logo" />
-					<Button action={() => deleteConnection('spotify')} buttonText="Disconnect Spotify"></Button>
-				{/if}
-				{#if showDeezerConnected == true}
-					<img class="logo" src={deezerIcon} alt="Deezer Logo" />
-					<button on:click={() => deleteConnection('deezer')}>Disconnect Deezer</button>
-				{/if}
-			
-		</div>
-	</div>
+    <div class="container">
+        <div class="platforms unconnected-platforms">
+            <h3>Unconnected platforms</h3>
+            <div class="images">
+                {#each Array.from(unconnected.keys()) as platform}
+                    <a href={unconnected.get(platform)} title={'Connect with ' + platform}>
+                        <img src={icons[platform]} alt={platform + ' logo'} />
+                    </a>
+                {/each}
+            </div>
+        </div>
+        <div class="platforms connected-platforms">
+            <h3>Connected platforms</h3>
+            {#if connected.length == 0}
+                <p>You are not connected to any platform</p>
+            {:else}
+                <p>Click on the logo to disconnect</p>
+            {/if}
+            <div class="images">
+                {#each connected as platform}
+                    <a on:click={() => deleteConnection(platform)} href="#" title={'Disconnect ' + platform}>
+                        <img src={icons[platform]} alt={platform + ' logo'} />
+                    </a>
+                {/each}
+            </div>
+        </div>
+    </div>
 </Panel>
 
 <style>
-	.container {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		text-align: center;
-		padding: 20px;
-	}
-
-	.title {
-		font-size: 24px;
-		margin-bottom: 20px;
-	}
-
-	.image-container {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		gap: 20px;
-	}
-
-	.image-container a {
-		text-decoration: none;
-		color: inherit;
-	}
-
-	.image-container img {
-		width: 150px;
-		height: auto;
-		border-radius: 10px;
-		transition: transform 0.3s ease;
-	}
-
-	.image-container img:hover {
-		transform: scale(1.1);
-	}
-
-	.logo {
-		width: 150px;
-		height: auto;
-		border-radius: 10px;
-		transition: transform 0.3s ease;
-	}
-
-	.connected-platforms {
-		margin-top: 40px;
-		font-size: 18px;
+    .container {
         display: flex;
         flex-direction: column;
         align-items: center;
-	}
+        text-align: center;
+        padding: 20px;
+    }
 
-    .connected-platforms img{
+    .platforms {
+        flex-direction: row;
+        justify-content: space-around;
+        width: 100%;
+    }
+
+    .platforms h3 {
         margin-bottom: 1rem;
     }
 
+    .platforms a {
+        margin: 0 1rem;
+    }
+
+    .platforms img {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 1px solid black;
+    }
+
+    .connected-platforms {
+        margin-top: 40px;
+        font-size: 18px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .connected-platforms img {
+        margin-bottom: 1rem;
+    }
 </style>
