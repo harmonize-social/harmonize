@@ -151,6 +151,22 @@ func Register(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
+User's info handler
+*/
+func GetUserInfo(w http.ResponseWriter, r *http.Request) {
+    user, err := GetUserFromSession(r)
+
+    if err != nil {
+        models.Error(w, http.StatusInternalServerError, "Error getting user")
+        return
+    }
+
+    user.Password = ""
+
+    models.Result(w, user)
+}
+
+/*
 Create a session for a user in the database
 */
 func insertSession(userId uuid.UUID) (uuid.UUID, error) {
