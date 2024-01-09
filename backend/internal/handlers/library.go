@@ -12,6 +12,11 @@ import (
     "github.com/gorilla/mux"
 )
 
+/*
+Get all songs, artists, albums, or playlists from a platform
+
+GET /library/{service}/{type}?limit={limit}&offset={offset}
+*/
 func LibraryHandler(w http.ResponseWriter, r *http.Request) {
     limit, offset, user, err := GetLimitOffsetSession(r)
     if err != nil {
@@ -98,6 +103,11 @@ func LibraryHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/*
+Delete the user's library for a platform
+
+DELETE /library/disconnect?platform={platform}
+*/
 func DeleteConnectedPlatformHandler(w http.ResponseWriter, r *http.Request) {
     platform := r.URL.Query().Get("platform")
     id := uuid.MustParse(r.Header.Get("id"))
@@ -138,6 +148,13 @@ func DeleteConnectedPlatformHandler(w http.ResponseWriter, r *http.Request) {
     models.Result(w, "Success")
 }
 
+/*
+Get the platform names that the user is connected to:
+
+e.g. ["spotify", "deezer"]
+
+GET /library/connected
+*/
 func ConnectedPlatforumsHandler(w http.ResponseWriter, r *http.Request) {
     id := uuid.MustParse(r.Header.Get("id"))
     user, err := auth.GetUserFromSession(id)
@@ -164,6 +181,17 @@ func ConnectedPlatforumsHandler(w http.ResponseWriter, r *http.Request) {
     models.Result(w, platforms)
 }
 
+/*
+Return the platforms that the user is not connected to:
+
+e.g.
+{
+    [platform]: [oauth url],
+}
+
+
+GET /library/unconnected
+*/
 func UnconnectedPlatformsHandler(w http.ResponseWriter, r *http.Request) {
     id := uuid.MustParse(r.Header.Get("id"))
     user, err := auth.GetUserFromSession(id)
