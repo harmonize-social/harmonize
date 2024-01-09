@@ -41,6 +41,7 @@ type Platform interface {
     GetAlbums(limit int, offset int) ([]PlatformAlbum, error)
     GetPlaylists(limit int, offset int) ([]PlatformPlaylist, error)
     GetArtists(limit int, offset int) ([]PlatformArtist, error)
+    Save(typeId string, id string) (bool, error)
 }
 
 type Tokens struct {
