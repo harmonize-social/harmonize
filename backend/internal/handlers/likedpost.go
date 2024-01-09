@@ -11,6 +11,11 @@ import (
     "github.com/google/uuid"
 )
 
+/*
+Get liked posts
+
+GET /me/liked
+*/
 func GetLikedPosts(w http.ResponseWriter, r *http.Request) {
     limit, offset, user, err := GetLimitOffsetSession(r)
     if err != nil {
@@ -90,6 +95,11 @@ func GetLikedPosts(w http.ResponseWriter, r *http.Request) {
     models.Result(w, posts)
 }
 
+/*
+Like a post
+
+POST /me/liked?id=<uuid>
+*/
 func PostLikedPost(w http.ResponseWriter, r *http.Request) {
     id := r.Header.Get("id")
     postId := r.URL.Query().Get("id")
@@ -116,6 +126,11 @@ func PostLikedPost(w http.ResponseWriter, r *http.Request) {
     models.Result(w, savedPostId)
 }
 
+/*
+Remove like from a post
+
+DELETE /me/liked?id=<uuid>
+*/
 func DeleteLikedPost(w http.ResponseWriter, r *http.Request) {
     id := r.Header.Get("id")
     postId := r.URL.Query().Get("id")
