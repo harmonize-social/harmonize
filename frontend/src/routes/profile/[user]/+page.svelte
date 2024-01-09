@@ -186,7 +186,7 @@
 			{#if loading}
 				<p>Loading more posts...</p>
 			{/if}
-			{#if er}
+			{#if error}
 				<ErrorPopup message={error}></ErrorPopup>
 			{/if}
 		</div>
