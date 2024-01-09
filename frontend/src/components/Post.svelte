@@ -79,7 +79,7 @@
 </script>
 
 <div class="post">
-    <p>{ content.username }</p>
+    <p>{content.username}</p>
     {#if content.type == 'song'}
         <Song content={content.content} />
     {:else if content.type == 'album'}
@@ -91,19 +91,25 @@
     {:else}
         <p>Invalid content type</p>
     {/if}
-    <h3>{content.caption}</h3>
-    <h4>Comments:</h4>
+    <!--<h4>Comments:</h4>
     {#if comments.length == 0}
         <p>No comments yet</p>
     {/if}
     {#each comments as comment}
         <Comment content={comment} />
-    {/each}
-    <h4>Likes: {content.likeCount}</h4>
+    {/each}-->
     <div class="action-buttons">
-        <ActionButton state={content.hasLiked} type="like" action={toggleLikeButton} />
+        <h3 class="caption">{content.caption}</h3>
+        <div class="interactions">
+            <div class="likes">
+                <p>{content.likeCount}</p>
+                <ActionButton state={content.hasLiked} type="like" action={toggleLikeButton} />
+            </div>
 
-        <ActionButton state={content.hasSaved} type="save" action={toggleSaveButton} />
+            <div class="saves">
+                <ActionButton state={content.hasSaved} type="save" action={toggleSaveButton} />
+            </div>
+        </div>
     </div>
 
     {#if error}
@@ -125,15 +131,39 @@
         justify-content: center;
     }
 
+    .likes {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .interactions {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
+        width: 100%;
+    }
+
     h3 {
         max-width: 75%;
         justify-items: flex-start;
     }
 
+    .caption {
+        margin-left: 20px;
+    }
+
+    .saves {
+        margin-right: 10px;
+    }
+
     .action-buttons {
         display: flex;
         flex-direction: row;
-        justify-content: space-evenly;
+        justify-content: space-between;
         width: 100%;
+        margin: 20px;
     }
 </style>
