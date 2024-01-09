@@ -145,11 +145,16 @@
         margin-left: 3rem;
     }
 
-    .post .username a {
+     .username a {
         margin: 10px 0px 0px 0px;
         text-decoration: none;
         color: black;
         text-align: left;
+        text-transform: capitalize;
+    }
+
+    .username a:hover{
+        border-bottom: 2px solid black;
     }
 
     .likes {
