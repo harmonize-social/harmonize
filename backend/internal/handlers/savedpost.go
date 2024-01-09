@@ -13,6 +13,11 @@ import (
     "github.com/google/uuid"
 )
 
+/*
+Get my saved posts
+
+GET /me/saved?limit=<limit>&offset=<offset>
+*/
 func GetSavedPosts(w http.ResponseWriter, r *http.Request) {
     limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
     if err != nil {
@@ -98,6 +103,11 @@ func GetSavedPosts(w http.ResponseWriter, r *http.Request) {
     models.Result(w, posts)
 }
 
+/*
+Save a post
+
+POST /me/saved?id=<post_id>
+*/
 func PostSavedPost(w http.ResponseWriter, r *http.Request) {
     id := r.Header.Get("id")
     postId := r.URL.Query().Get("id")
@@ -153,6 +163,11 @@ func PostSavedPost(w http.ResponseWriter, r *http.Request) {
     models.Result(w, savedPostId)
 }
 
+/*
+Unsave a post
+
+DELETE /me/saved?id=<post_id>
+*/
 func DeleteSavedPost(w http.ResponseWriter, r *http.Request) {
     id := r.Header.Get("id")
     postId := r.URL.Query().Get("id")
