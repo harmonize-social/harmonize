@@ -29,5 +29,8 @@
             rgba(255, 0, 219, 1) 50%,
             rgba(105, 9, 121, 1) 100%
         );
+        font-family: 'Roboto', sans-serif;
+        margin: 0;
+        padding: 0;
     }
 </style>
