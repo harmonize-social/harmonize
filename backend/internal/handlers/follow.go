@@ -117,7 +117,7 @@ func GetFollowers(w http.ResponseWriter, r *http.Request) {
 
     sqlStatement := `SELECT u.username FROM follows f JOIN users u ON f.follower_id = u.id WHERE f.followed_id = $1 LIMIT $2 OFFSET $3;`
 
-    rows, err := repositories.Pool.Query(context.Background(), sqlStatement, user.Username, limit, offset)
+    rows, err := repositories.Pool.Query(context.Background(), sqlStatement, user.ID, limit, offset)
 
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get followers")
