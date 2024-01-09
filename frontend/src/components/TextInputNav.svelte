@@ -1,13 +1,12 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
 	import { get, throwError } from '../fetch';
 
 	export let placeholder = 'Search';
 	let input: string = '';
 	let list: string[] = [];
 
-	function handleTextInput(event: InputEvent) {
-		if (event.inputType === 'insertText' && event.data === input)  {
+	function handleTextInput(event: KeyboardEvent) {
+		if (event.key === 'Enter')  {
 			handleInput();
 		}
 	}
@@ -32,13 +31,13 @@
 		isDropdownOpen = false;
 	};
 
-	const timeout = setTimeout(() => {
-		isDropdownOpen = false;
-	}, 3000);
+	// const timeout = setTimeout(() => {
+	// 	isDropdownOpen = false;
+	// }, 3000);
 
-	onDestroy(() => {
-		clearTimeout(timeout);
-	});
+	// onDestroy(() => {
+	// 	clearTimeout(timeout);
+	// });
   //TODO: fix dropdown list and add search functionality
 </script>
 
@@ -47,16 +46,15 @@
 		type="text"
 		class="textInputNav"
 		{placeholder}
-on:input={handleTextInput}
+on:keydown={handleTextInput}
 		on:focusout={handleDropdownFocusLoss}
 		bind:value={input}
 	/>
-
-	{#each list as item}
-		<p class="list">
-			<a href="/profile/{item}">{item}</a>
-		</p>
-	{/each}
+	<div class="list">
+		{#each list as item}
+				<a href="/profile/{item}">{item}</a>
+		{/each}
+	</div>
 </div>
 
 <style>
@@ -77,6 +75,9 @@ on:input={handleTextInput}
 	}
 
 	.list {
+		display: flex;
+		align-items: center;
+		flex-direction: column;
 		position: absolute;
 		top: 100%;
 		left: 0;
@@ -92,6 +93,10 @@ on:input={handleTextInput}
 		margin: 10px;
 		cursor: pointer;
 		text-decoration: none;
+
+	}
+	.list a:hover{
+		text-transform: uppercase;
 	}
 
 </style>

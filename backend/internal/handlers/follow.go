@@ -49,6 +49,8 @@ func PostFollow(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusBadRequest, "already following")
         return
     }
+
+    models.Result(w, "OK");
 }
 
 /*
@@ -84,6 +86,8 @@ func DeleteFollow(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusBadRequest, "not following")
         return
     }
+
+    models.Result(w, "OK");
 }
 
 /*

@@ -8,7 +8,7 @@
     .artist {
         position: relative;
         text-align: center;
-        border: 1px solid black;
+        border: 1px solid #ccc;
         width: 200px;
         margin: 10px;
     }

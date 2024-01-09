@@ -35,7 +35,7 @@
         align-items: center;
         width: 300px;
         height: 300px;
-        border: 1px solid black;
+        border: 1px solid #ccc;
         border-radius: 5px;
         margin: 10px;
     }

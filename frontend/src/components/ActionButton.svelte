@@ -5,11 +5,11 @@
 
     function toggleState() {
         state = !state;
+        action();
     }
-    //TODO: fix the action prop on the action button
 </script>
 
-<button on:click={action = toggleState}>
+<button on:click={toggleState}>
     {#if type === 'like'}
         {#if state == false}
             <svg viewBox="0 0 24.00 24.00" fill="none" xmlns="http://www.w3.org/2000/svg"
