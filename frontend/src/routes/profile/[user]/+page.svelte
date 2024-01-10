@@ -38,12 +38,14 @@
 		await getInfo();
 		await getFollowing();
 		if (follows) await getPosts();
+		if (username === me) await getPosts(true);
 		old = username;
 	}
 
-	async function getPosts() {
+	async function getPosts(me = false) {
 		try {
-			posts = await get<PostModel[]>(`/posts?username=${username}`);
+			if (me) posts = await get<PostModel[]>(`/me/posts`);
+			else posts = await get<PostModel[]>(`/posts?username=${username}`);
 		} catch (e) {
 			throwError('Error fetching user posts');
 		}
@@ -87,15 +89,15 @@
 	}
 
 	// function onScroll(event: Event) {
-	//     const target = event.target as HTMLElement;
-	//     if (target.scrollHeight - target.scrollTop === target.clientHeight) {
-	//         loadMorePosts(name);
-	//     }
+	//	   const target = event.target as HTMLElement;
+	//	   if (target.scrollHeight - target.scrollTop === target.clientHeight) {
+	//		   loadMorePosts(name);
+	//	   }
 	// }
 	// async function loadMorePosts(name: string) {
-	//     if (loading) return;
-	//     const morePosts = await _fetchUserData(name);
-	//     posts = [...posts, ...morePosts];
+	//	   if (loading) return;
+	//	   const morePosts = await _fetchUserData(name);
+	//	   posts = [...posts, ...morePosts];
 	// }
 
 	let isClicked = false;
@@ -174,7 +176,7 @@
 			{#if username !== me}
 				<h2 class="username">{username}</h2>
 			{/if}
-			{#if !follows}
+			{#if !follows && username !== me}
 				<p>Get followed by {username} to see their posts!</p>
 			{:else if posts.length === 0}
 				<p>{username} did not post yet!</p>

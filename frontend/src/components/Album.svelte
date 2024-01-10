@@ -27,8 +27,6 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        border: 1px solid #ccc;
-        border-radius: 5px;
         width: 300px;
         margin: 10px;
     }
@@ -48,6 +46,8 @@
         overflow-y: scroll;
         scrollbar-width: none;
         -ms-overflow-style: none;
+        mask-image: linear-gradient(to bottom, transparent 0%, black 48px, black calc(100% - 48px), transparent 100%);
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 48px, black calc(100% - 48px), transparent 100%);
     }
 
     .songs::-webkit-scrollbar {
@@ -55,7 +55,6 @@
     }
 
     .song {
-        border: 1px solid black;
         margin: 10px;
     }
 </style>
