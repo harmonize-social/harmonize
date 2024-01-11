@@ -1,6 +1,7 @@
 package handlers
 
 import (
+    "backend/internal/auth"
     "backend/internal/models"
     "backend/internal/repositories"
     "context"
@@ -11,10 +12,15 @@ import (
     "github.com/google/uuid"
 )
 
+/*
+Follow a user
+
+POST /follow?username=<username>
+*/
 func PostFollow(w http.ResponseWriter, r *http.Request) {
     id := uuid.MustParse(r.Header.Get("id"))
 
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get session")
         return
@@ -43,12 +49,19 @@ func PostFollow(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusBadRequest, "already following")
         return
     }
+
+    models.Result(w, "OK");
 }
 
+/*
+Unfollow a user
+
+DELETE /follow?username=<username>
+*/
 func DeleteFollow(w http.ResponseWriter, r *http.Request) {
     id := uuid.MustParse(r.Header.Get("id"))
 
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get session")
         return
@@ -73,8 +86,15 @@ func DeleteFollow(w http.ResponseWriter, r *http.Request) {
         models.Error(w, http.StatusBadRequest, "not following")
         return
     }
+
+    models.Result(w, "OK");
 }
 
+/*
+Get usernames that follow a user
+
+GET /followers?limit=<limit>&offset=<offset>
+*/
 func GetFollowers(w http.ResponseWriter, r *http.Request) {
     limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
     if err != nil {
@@ -88,7 +108,7 @@ func GetFollowers(w http.ResponseWriter, r *http.Request) {
 
     id := uuid.MustParse(r.Header.Get("id"))
 
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
 
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get session")
@@ -97,7 +117,7 @@ func GetFollowers(w http.ResponseWriter, r *http.Request) {
 
     sqlStatement := `SELECT u.username FROM follows f JOIN users u ON f.follower_id = u.id WHERE f.followed_id = $1 LIMIT $2 OFFSET $3;`
 
-    rows, err := repositories.Pool.Query(context.Background(), sqlStatement, user.Username, limit, offset)
+    rows, err := repositories.Pool.Query(context.Background(), sqlStatement, user.ID, limit, offset)
 
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get followers")
@@ -122,6 +142,11 @@ func GetFollowers(w http.ResponseWriter, r *http.Request) {
     models.Result(w, users)
 }
 
+/*
+Get usernames that a user is following
+
+GET /following?limit=<limit>&offset=<offset>
+*/
 func GetFollowing(w http.ResponseWriter, r *http.Request) {
     limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
     if err != nil {
@@ -135,7 +160,7 @@ func GetFollowing(w http.ResponseWriter, r *http.Request) {
 
     id := uuid.MustParse(r.Header.Get("id"))
 
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
 
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get session")
@@ -154,7 +179,7 @@ func GetFollowing(w http.ResponseWriter, r *http.Request) {
 
     defer rows.Close()
 
-    var users []string
+    users := make([]string, 0)
 
     for rows.Next() {
         var username string

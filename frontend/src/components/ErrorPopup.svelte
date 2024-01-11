@@ -10,7 +10,7 @@
   
     const timeout = setTimeout(() => {
       closePopup();
-    }, 5000);
+    }, 3000);
   
     onDestroy(() => {
       clearTimeout(timeout);
@@ -33,18 +33,27 @@
       border-radius: 0.5rem;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
       z-index: 1000;
+      background: rgb(234, 185, 255);
+    background: linear-gradient(
+      0deg,
+      rgba(234, 185, 255, 1) 24%,
+      rgba(241, 207, 243, 1) 41%,
+      rgba(248, 231, 231, 1) 100%
+    );
     }
   
     .popup button {
-      position: absolute;
-      top: 0.5rem;
-      right: 0.5rem;
+      position: fixed;
+      top: 0.1rem;
+      right: 0.1rem;
       background-color: transparent;
       border: none;
       cursor: pointer;
+      color: black;
     }
   
     .popup p {
       margin: 0;
+      color: black;
     }
   </style>

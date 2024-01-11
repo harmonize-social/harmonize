@@ -1,15 +1,23 @@
 package handlers
 
 import (
+    "backend/internal/auth"
     "backend/internal/models"
+    "backend/internal/platforms"
     "backend/internal/repositories"
     "context"
+    "fmt"
     "net/http"
     "strconv"
 
     "github.com/google/uuid"
 )
 
+/*
+Get my saved posts
+
+GET /me/saved?limit=<limit>&offset=<offset>
+*/
 func GetSavedPosts(w http.ResponseWriter, r *http.Request) {
     limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
     if err != nil {
@@ -22,7 +30,7 @@ func GetSavedPosts(w http.ResponseWriter, r *http.Request) {
 
     id := uuid.MustParse(r.Header.Get("id"))
 
-    user, err := getUserFromSession(id)
+    user, err := auth.GetUserFromSession(id)
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get session")
         return
@@ -70,35 +78,41 @@ func GetSavedPosts(w http.ResponseWriter, r *http.Request) {
             models.Error(w, http.StatusInternalServerError, "Error getting posts")
             return
         }
-        var content interface{}
-        if post.Type == "playlist" {
-            content, err = getPlaylist(typeSpecificId)
-            post.Content = content
-        } else if post.Type == "song" {
-            content, err = getSong(typeSpecificId)
-            post.Content = content
-        } else if post.Type == "album" {
-            content, err = getAlbum(typeSpecificId)
-            post.Content = content
-        } else if post.Type == "artist" {
-            content, err = getArtist(typeSpecificId)
-            post.Content = content
+
+        content, err := repositories.GetPostContent(post.Type, typeSpecificId)
+
+        if err != nil {
+            models.Error(w, http.StatusInternalServerError, "Error getting posts")
+            return
         }
+
+        post.Content = content
+
+        processedComments, err := repositories.GetPostComments(post.ID)
+
         if err != nil {
             println(err.Error())
             models.Error(w, http.StatusInternalServerError, "Error getting posts")
             return
         }
+
+        post.Comments = processedComments
+
         posts = append(posts, post)
     }
     models.Result(w, posts)
 }
 
+/*
+Save a post
+
+POST /me/saved?id=<post_id>
+*/
 func PostSavedPost(w http.ResponseWriter, r *http.Request) {
     id := r.Header.Get("id")
     postId := r.URL.Query().Get("id")
 
-    user, err := getUserFromSession(uuid.MustParse(id))
+    user, err := auth.GetUserFromSession(uuid.MustParse(id))
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get session")
         return
@@ -117,14 +131,48 @@ func PostSavedPost(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    platformItems, err := repositories.GetPostPlatform(uuid.MustParse(postId))
+
+    if err != nil {
+        fmt.Println(err.Error())
+        models.Error(w, http.StatusInternalServerError, "Error saving post")
+    }
+
+    if len(platformItems) == 0 {
+        fmt.Println("No platforms")
+        models.Error(w, http.StatusInternalServerError, "Error saving post")
+        return
+    }
+
+    platform := platforms.GetPlatform(platformItems[0].Platform, user.ID)
+
+    result, err := platform.Save(platformItems[0].Type, platformItems[0].ID)
+
+    if err != nil {
+        fmt.Println(err.Error())
+        models.Error(w, http.StatusInternalServerError, "Error saving post")
+        return
+    }
+
+    if !result {
+        fmt.Println("Failed to save")
+        models.Error(w, http.StatusInternalServerError, "Error saving post")
+        return
+    }
+
     models.Result(w, savedPostId)
 }
 
+/*
+Unsave a post
+
+DELETE /me/saved?id=<post_id>
+*/
 func DeleteSavedPost(w http.ResponseWriter, r *http.Request) {
     id := r.Header.Get("id")
     postId := r.URL.Query().Get("id")
 
-    user, err := getUserFromSession(uuid.MustParse(id))
+    user, err := auth.GetUserFromSession(uuid.MustParse(id))
     if err != nil {
         models.Error(w, http.StatusInternalServerError, "cannot get session")
         return

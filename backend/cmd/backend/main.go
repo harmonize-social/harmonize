@@ -7,11 +7,20 @@ import (
     "log"
     "net/http"
 
+    "github.com/joho/godotenv"
     "github.com/rs/cors"
 )
 
+/*
+Main entry point for the backend server.
+*/
 func main() {
-    err := repositories.CreateConnection()
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    err = repositories.CreateConnection()
     if err != nil {
         log.Fatal(err)
     }
@@ -20,7 +29,7 @@ func main() {
     router := routers.FullRouter()
 
     c := cors.New(cors.Options{
-        AllowedOrigins:   []string{"http://172.20.0.4:5173"},
+        AllowedOrigins:   []string{repositories.FrontendUrl},
         AllowCredentials: true,
         AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
         AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},

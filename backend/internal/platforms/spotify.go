@@ -1,657 +1,344 @@
 package platforms
 
 import (
-    "backend/internal/models"
-    "backend/internal/repositories"
-    "context"
+	"backend/internal/auth"
+	"backend/internal/models"
+	"backend/internal/repositories"
+	"context"
+	"fmt"
+	"net/http"
 
-    "github.com/google/uuid"
-    spotify "github.com/zmb3/spotify/v2"
-    spotifyauth "github.com/zmb3/spotify/v2/auth"
-    "golang.org/x/oauth2"
+	"github.com/google/uuid"
+	spotify "github.com/zmb3/spotify/v2"
+	spotifyauth "github.com/zmb3/spotify/v2/auth"
+	"go.uber.org/ratelimit"
+	"golang.org/x/oauth2"
 )
 
-func SpotifyClientId(userId *uuid.UUID) (*spotify.Client, error) {
-    var token oauth2.Token
-    err := repositories.Pool.QueryRow(context.Background(), "SELECT access_token, refresh_token, expiry FROM connections JOIN libraries ON connections.id = libraries.connection_id WHERE user_id = $1 AND platform_id = $2", userId, "spotify").Scan(&token.AccessToken, &token.RefreshToken, &token.Expiry)
-    if err != nil {
-        return nil, err
-    }
-    auth := spotifyauth.New(
-        spotifyauth.WithClientID(repositories.SpotifyClientId),
-        spotifyauth.WithClientSecret(repositories.SpotifySecret),
-    )
-    newToken, err := auth.RefreshToken(context.Background(), &token)
-    if err != nil {
-        return nil, err
-    }
-    newAuth := spotifyauth.New()
-    httpClient := newAuth.Client(context.Background(), newToken)
-    client := spotify.New(httpClient)
+/*
+Gets the platform provider for a user based on the platform name and the user id
+*/
+func GetPlatform(platform string, userId uuid.UUID) models.Platform {
+	var provider models.Platform
 
-    return client, nil
+	switch platform {
+	case "spotify":
+		provider = SpotifyProvider {
+			UserID: userId,
+		}
+	case "deezer":
+		provider = DeezerProvider {
+			UserID: userId,
+		}
+	}
+	return provider
 }
-
-func GetSpotifySong(userId *uuid.UUID, songId string) (models.Song, error) {
-    song, err := repositories.GetSong("spotify", songId)
-    if err != nil {
-        return song, err
-    }
-
-    spotifyId := spotify.ID(songId)
-    client, err := SpotifyClientId(userId)
-
-    if err != nil {
-        return song, err
-    }
-
-    apiSong, err := client.GetTrack(context.Background(), spotifyId)
-
-    if err != nil {
-        return song, err
-    }
-
-
-    artists := make([]models.Artist, 0)
-    for _, artist := range apiSong.Artists {
-        artists = append(artists, models.Artist{
-            Name: artist.Name,
-            ID: uuid.New(),
-        })
-    }
-
-    song = models.Song{
-        Title: apiSong.Name,
-        ID: uuid.New(),
-        Artists: artists,
-        MediaURL: apiSong.Album.Images[0].URL,
-        PreviewURL: apiSong.PreviewURL,
-    }
-
-    return song, nil
-}
-
-// func Spotify(client spotify.Client, connectionId uuid.UUID) {
-//     fmt.Printf("Create library\n\r")
-//
-//     // TODO: Fetch Albums
-//     standalone_albums, err := FetchUserAlbums(&client)
-//     if err != nil {
-//         fmt.Printf("err in fetching albums: %v", err)
-//         return
-//     }
-//     fmt.Println("albums: ", len(standalone_albums))
-//     // TODO: Fetch Artists
-//     standalone_artists, err := FetchUserArtists(&client)
-//     if err != nil {
-//         fmt.Printf("err in fetching artists: %v", err)
-//         return
-//     }
-//     // TODO: convert artists to simple artists
-//     standalone_simple_artists := make([]spotify.SimpleArtist, 0)
-//     for _, artist := range standalone_artists {
-//         standalone_simple_artists = append(standalone_simple_artists, artist.SimpleArtist)
-//     }
-//     // TODO: Fetch Playlists
-//     fmt.Println("fetching playlists")
-//     standalone_playlists, err := FetchUserPlaylists(&client)
-//     if err != nil {
-//         fmt.Printf("err in fetching playlists: %v", err)
-//         return
-//     }
-//     fmt.Println("fetched playlists: ", len(standalone_playlists))
-//     // TODO: Fetch Songs
-//     fmt.Println("fetching tracks")
-//     standalone_tracks, err := FetchUserTracks(&client)
-//     if err != nil {
-//         fmt.Printf("err in fetching tracks: %v", err)
-//         return
-//     }
-//     fmt.Println("fetched tracks: ", len(standalone_tracks))
-//     // TODO: Fetch Playlist Songs
-//     fmt.Println("fetching playlist tracks for ", len(standalone_playlists), " playlists")
-//     playlist_tracks, err := FetchPlaylistTracks(&client, &standalone_playlists)
-//     if err != nil {
-//         fmt.Printf("err in fetching playlist tracks: %v", err)
-//         return
-//     }
-//     fmt.Println("fetched playlist tracks: ", len(playlist_tracks))
-//     // TODO: Add Playlist Songs and Songs
-//     all_tracks := make([]spotify.FullTrack, 0)
-//     for _, tracks := range playlist_tracks {
-//         all_tracks = append(all_tracks, tracks...)
-//     }
-//     all_tracks = append(all_tracks, standalone_tracks...)
-//     // TODO: Make unique
-//     all_tracks = uniqueTracks(all_tracks)
-//     // TODO: Add albums
-//     all_simple_track_albums := make([]spotify.SimpleAlbum, 0)
-//     for _, track := range all_tracks {
-//         all_simple_track_albums = append(all_simple_track_albums, track.Album)
-//     }
-//     all_simple_track_albums = uniqueAlbums(all_simple_track_albums)
-//     // TODO: Fetch Album Songs
-//     fmt.Println("fetching albums: ", len(all_simple_track_albums))
-//     all_track_albums, err := FetchAlbums(&client, &all_simple_track_albums)
-//     if err != nil {
-//         fmt.Printf("err in fetching album tracks: %v", err)
-//         return
-//     }
-//     fmt.Println("fetched albums: ", len(all_simple_track_albums))
-//     // TODO: Add Song Albums and Albums
-//     all_albums := make([]spotify.FullAlbum, 0)
-//     all_albums = append(all_albums, standalone_albums...)
-//     all_albums = append(all_albums, all_track_albums...)
-//     // TODO: Save Albums
-//     err = SaveAlbums(libraryId, &all_albums)
-//     if err != nil {
-//         fmt.Printf("err in saving albums: %v", err)
-//         return
-//     }
-//     // TODO: Save Artists
-//     err = SaveArtists(libraryId, &standalone_simple_artists)
-//     if err != nil {
-//         fmt.Printf("err in saving artists: %v", err)
-//         return
-//     }
-//     // TODO: Save Playlists
-//     err = SavePlaylists(libraryId, &standalone_playlists, &playlist_tracks)
-//     if err != nil {
-//         fmt.Printf("err in saving playlists: %v", err)
-//         return
-//     }
-//     err = SaveTracks(libraryId, &standalone_tracks)
-//     if err != nil {
-//         fmt.Printf("err in saving tracks: %v", err)
-//         return
-//     }
-// }
-//
-// func uniqueAlbums(slice []spotify.SimpleAlbum) []spotify.SimpleAlbum {
-//     encountered := map[string]bool{}
-//     unique := []spotify.SimpleAlbum{}
-//
-//     for _, item := range slice {
-//         id := item.ID.String()
-//         if !encountered[id] {
-//             encountered[id] = true
-//             unique = append(unique, item)
-//         }
-//     }
-//     return unique
-// }
-//
-// func uniqueTracks(slice []spotify.FullTrack) []spotify.FullTrack {
-//     encountered := map[string]bool{}
-//     unique := []spotify.FullTrack{}
-//
-//     for _, item := range slice {
-//         id := item.ID.String()
-//         if !encountered[id] {
-//             encountered[id] = true
-//             unique = append(unique, item)
-//         }
-//     }
-//     return unique
-// }
-//
-// func uniqueArtists(slice []spotify.SimpleArtist) []spotify.SimpleArtist {
-//     encountered := map[string]bool{}
-//     unique := []spotify.SimpleArtist{}
-//
-//     for _, item := range slice {
-//         id := item.ID.String()
-//         if !encountered[id] {
-//             encountered[id] = true
-//             unique = append(unique, item)
-//         }
-//     }
-//     return unique
-// }
-//
-// func FetchUserPlaylists(client *spotify.Client) ([]spotify.SimplePlaylist, error) {
-//     rl := ratelimit.New(3)
-//     rl.Take()
-//     playlistsPage, err := client.CurrentUsersPlaylists(context.Background())
-//     if err != nil {
-//         return nil, err
-//     }
-//     playlists := playlistsPage.Playlists
-//     for true {
-//         rl.Take()
-//         err := client.NextPage(context.Background(), playlistsPage)
-//         if err == spotify.ErrNoMorePages {
-//             break
-//         }
-//         playlists = append(playlists, playlistsPage.Playlists...)
-//     }
-//     return playlists, nil
-// }
-//
-// func FetchUserAlbums(client *spotify.Client) ([]spotify.FullAlbum, error) {
-//     rl := ratelimit.New(3)
-//     rl.Take()
-//     savedAlbumsPage, err := client.CurrentUsersAlbums(context.Background())
-//     if err != nil {
-//         return nil, err
-//     }
-//     var albums []spotify.FullAlbum
-//     for _, album := range savedAlbumsPage.Albums {
-//         albums = append(albums, album.FullAlbum)
-//     }
-//     for true {
-//         rl.Take()
-//         err := client.NextPage(context.Background(), savedAlbumsPage)
-//         if err == spotify.ErrNoMorePages {
-//             break
-//         }
-//         for _, album := range savedAlbumsPage.Albums {
-//             albums = append(albums, album.FullAlbum)
-//         }
-//     }
-//     return albums, nil
-// }
-//
-// func FetchUserTracks(client *spotify.Client) ([]spotify.FullTrack, error) {
-//     rl := ratelimit.New(3)
-//     rl.Take()
-//     savedTracksPage, err := client.CurrentUsersTracks(context.Background())
-//     if err != nil {
-//         return nil, err
-//     }
-//     var tracks []spotify.FullTrack
-//     for _, track := range savedTracksPage.Tracks {
-//         tracks = append(tracks, track.FullTrack)
-//     }
-//     for true {
-//         rl.Take()
-//         err := client.NextPage(context.Background(), savedTracksPage)
-//         if err == spotify.ErrNoMorePages {
-//             break
-//         }
-//         for _, track := range savedTracksPage.Tracks {
-//             tracks = append(tracks, track.FullTrack)
-//         }
-//     }
-//     return tracks, nil
-// }
-//
-// func FetchUserArtists(client *spotify.Client) ([]spotify.FullArtist, error) {
-//     rl := ratelimit.New(3)
-//     after := "-1"
-//     limit := 5
-//     returned := limit
-//     var artists []spotify.FullArtist
-//     for returned == limit {
-//         rl.Take()
-//         list, err := client.CurrentUsersFollowedArtists(
-//             context.Background(),
-//             spotify.Limit(limit),
-//             spotify.After(after),
-//         )
-//         if err != nil {
-//             return nil, err
-//         }
-//         returned = len(list.Artists)
-//         artists = append(artists, list.Artists...)
-//         after = list.Artists[len(list.Artists)-1].ID.String()
-//     }
-//     return artists, nil
-// }
-//
-// func FetchPlaylistTracks(client *spotify.Client, playlists *[]spotify.SimplePlaylist) (map[string][]spotify.FullTrack, error) {
-//     rl := ratelimit.New(2)
-//     playlistMap := make(map[string][]spotify.FullTrack)
-//     bar := progressbar.Default(int64(len(*playlists)))
-//     for _, playlist := range *playlists {
-//         bar.Add(1)
-//         rl.Take()
-//         playlistTracks, err := client.GetPlaylistItems(context.Background(), playlist.ID)
-//         if err != nil {
-//             bar.Exit()
-//             return nil, err
-//         }
-//         var tracks []spotify.FullTrack
-//         for _, track := range playlistTracks.Items {
-//             if track.Track.Track == nil {
-//                 continue
-//             }
-//             tracks = append(tracks, *track.Track.Track)
-//         }
-//         playlistMap[playlist.ID.String()] = tracks
-//     }
-//     bar.Finish()
-//     return playlistMap, nil
-// }
-//
-// func FetchAlbums(client *spotify.Client, albums *[]spotify.SimpleAlbum) ([]spotify.FullAlbum, error) {
-//     rl := ratelimit.New(2)
-//     fullAlbumIds := make([]spotify.ID, len(*albums))
-//     for _, album := range *albums {
-//         fullAlbumIds = append(fullAlbumIds, album.ID)
-//     }
-//     albumChunks := chunkBy(fullAlbumIds, 20)
-//     fullAlbums := make([]*spotify.FullAlbum, 0)
-//     bar := progressbar.Default(int64(len(albumChunks)))
-//     for _, chunk := range albumChunks {
-//         rl.Take()
-//         bums, err := client.GetAlbums(context.Background(), chunk, spotify.Limit(10))
-//         if err != nil {
-//             return nil, err
-//         }
-//         bar.Add(1)
-//         fullAlbums = append(fullAlbums, bums...)
-//     }
-//     ownedAlbums := make([]spotify.FullAlbum, 0)
-//     for _, album := range fullAlbums {
-//         if album == nil {
-//             continue
-//         }
-//         ownedAlbums = append(ownedAlbums, *album)
-//     }
-//     bar.Finish()
-//     return ownedAlbums, nil
-// }
-//
-// func chunkBy[T any](items []T, chunkSize int) [][]T {
-//     var _chunks = make([][]T, 0, (len(items)/chunkSize)+1)
-//     for chunkSize < len(items) {
-//         items, _chunks = items[chunkSize:], append(_chunks, items[0:chunkSize:chunkSize])
-//     }
-//     return append(_chunks, items)
-// }
-//
-// func SaveAlbums(libraryId uuid.UUID, albums *[]spotify.FullAlbum) error {
-//     artistStatement := `SELECT * FROM insert_new_artist($1, $2, $3);`
-//     albumStatement := `SELECT * FROM insert_new_album($1, $2, $3);`
-//     songStatement := `SELECT * FROM insert_new_song($1, $2, $3, $4);`
-//     bar := progressbar.Default(int64(len(*albums)))
-//     for _, album := range *albums {
-//         var albumId uuid.UUID
-//         var platformAlbumId uuid.UUID
-//         err := repositories.Pool.QueryRow(context.Background(), albumStatement, libraryId, album.ID.String(), album.Name).Scan(&albumId, &platformAlbumId)
-//         if err != nil {
-//             fmt.Printf("here", err)
-//             return err
-//         }
-//         for _, artist := range album.Artists {
-//             var artistId uuid.UUID
-//             var platformArtistId uuid.UUID
-//             err := repositories.Pool.QueryRow(context.Background(), artistStatement, libraryId, artist.ID.String(), artist.Name).Scan(&artistId, &platformArtistId)
-//             if err != nil {
-//                 fmt.Println("print 1")
-//                 return err
-//             }
-//             var artistAlbumId uuid.UUID
-//             err = repositories.Pool.QueryRow(context.Background(), `INSERT INTO artists_album (id, artist_id, album_id) VALUES (uuid_generate_v4(), $1, $2) RETURNING id;`, artistId, albumId).Scan(&artistAlbumId)
-//             if err != nil {
-//                 fmt.Println("print 2")
-//                 return err
-//             }
-//         }
-//         for _, track := range album.Tracks.Tracks {
-//             var songId uuid.UUID
-//             var platformSongId uuid.UUID
-//             err = repositories.Pool.QueryRow(context.Background(), songStatement, libraryId, albumId, track.ID.String(), track.Name).Scan(&songId, &platformSongId)
-//             if err != nil {
-//                 fmt.Println("print 3")
-//                 return err
-//             }
-//         }
-//         var userLikedAlbumId uuid.UUID
-//         err = repositories.Pool.QueryRow(context.Background(), `INSERT INTO user_liked_albums (id, library_id, album_id) VALUES (uuid_generate_v4(), $1, $2) RETURNING id;`, libraryId, platformAlbumId).Scan(&userLikedAlbumId)
-//         if err != nil {
-//             fmt.Println("print 4", platformAlbumId)
-//             return err
-//         }
-//         bar.Add(1)
-//     }
-//     bar.Finish()
-//     return nil
-// }
-//
-// func SaveArtists(libraryId uuid.UUID, artists *[]spotify.SimpleArtist) error {
-//     artistStatement := `SELECT * FROM insert_new_artist($1, $2, $3);`
-//     for _, artist := range *artists {
-//         var artistId uuid.UUID
-//         var platformArtistId uuid.UUID
-//         err := repositories.Pool.QueryRow(context.Background(), artistStatement, libraryId, artist.ID.String(), artist.Name).Scan(&artistId, &platformArtistId)
-//         if err != nil {
-//             return err
-//         }
-//         err = repositories.Pool.QueryRow(context.Background(), `INSERT INTO user_followed_artists (id, library_id, artist_id) VALUES (uuid_generate_v4(), $1, $2) RETURNING id;`, libraryId, platformArtistId).Scan(&artistId)
-//         if err != nil {
-//             return err
-//         }
-//     }
-//     return nil
-// }
-//
-// func SavePlaylists(libraryId uuid.UUID, playlists *[]spotify.SimplePlaylist, playlistMap *map[string][]spotify.FullTrack) error {
-//     bar := progressbar.Default(int64(len(*playlists)))
-//     for _, playlist := range *playlists {
-//         var playlistId uuid.UUID
-//         var platformPlaylistId uuid.UUID
-//         err := repositories.Pool.QueryRow(context.Background(), `SELECT * FROM insert_new_playlist($1, $2, $3);`, libraryId, playlist.ID.String(), playlist.Name).Scan(&playlistId, &platformPlaylistId)
-//         if err != nil {
-//             fmt.Println("print 1")
-//             return err
-//         }
-//         err = repositories.Pool.QueryRow(context.Background(), `INSERT INTO user_followed_playlists (id, library_id, playlist_id) VALUES (uuid_generate_v4(), $1, $2) RETURNING id;`, libraryId, platformPlaylistId).Scan(&playlistId)
-//         if err != nil {
-//             fmt.Println("print 2")
-//             return err
-//         }
-//         songs := (*playlistMap)[playlist.ID.String()]
-//         for _, song := range songs {
-//             var songId uuid.UUID
-//             err = repositories.Pool.QueryRow(context.Background(), `SELECT songs.id FROM platform_songs JOIN songs ON platform_songs.song_id = songs.id WHERE platform_specific_id = $1;`, song.ID.String()).Scan(&songId)
-//             if err != nil {
-//                 fmt.Println("print 3")
-//                 return err
-//             }
-//             err = repositories.Pool.QueryRow(context.Background(), `INSERT INTO playlist_songs (id, playlist_id, song_id) VALUES (uuid_generate_v4(), $1, $2) RETURNING id;`, playlistId, songId).Scan(&songId)
-//             if err != nil {
-//                 fmt.Println("print 4", songId, playlist.ID, playlistId)
-//                 continue
-//             }
-//             err = nil
-//         }
-//         bar.Add(1)
-//     }
-//     bar.Finish()
-//     return nil
-// }
-//
-// func SaveTracks(libraryId uuid.UUID, tracks *[]spotify.FullTrack) error {
-//     for _, track := range *tracks {
-//         var songId uuid.UUID
-//         var platformSongId uuid.UUID
-//         err := repositories.Pool.QueryRow(context.Background(), `SELECT * FROM insert_new_song($1, $2, $3, $4);`, libraryId, track.Album.ID.String(), track.ID.String(), track.Name).Scan(&songId, &platformSongId)
-//         if err != nil {
-//             return err
-//         }
-//         err = repositories.Pool.QueryRow(context.Background(), `INSERT INTO user_liked_songs (id, library_id, song_id) VALUES (uuid_generate_v4(), $1, $2) RETURNING id;`, libraryId, platformSongId).Scan(&songId)
-//         if err != nil {
-//             return err
-//         }
-//     }
-//     return nil
-// }
 
 /*
-DROP FUNCTION IF EXISTS insert_new_artist;
-CREATE OR REPLACE FUNCTION insert_new_artist(new_library_id UUID, platform_specific_id_input VARCHAR(1024), new_name VARCHAR(1024))
-RETURNS UUID AS $$
-DECLARE
-    artists_artist_id UUID;
-    platform_artists_artist_id UUID;
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM platform_artists WHERE platform_specific_id = platform_specific_id_input
-    ) THEN
-        INSERT INTO artists (id, name)
-        VALUES (uuid_generate_v4(), new_name)
-        RETURNING id INTO artists_artist_id;
-
-        INSERT INTO platform_artists (id, platform_specific_id, artist_id)
-        VALUES (uuid_generate_v4(), platform_specific_id_input, artists_artist_id)
-        RETURNING id INTO platform_artists_artist_id;
-
-        RETURN artists_artist_id;
-    ELSE
-        SELECT artists.id FROM platform_artists
-        JOIN artists ON platform_artists.artist_id = artists.id
-        WHERE platform_specific_id = platform_specific_id_input INTO artists_artist_id;
-        RETURN artists_artist_id;
-    END IF;
-END;
-$$ LANGUAGE plpgsql;
-
-
-DROP FUNCTION IF EXISTS insert_new_album;
-CREATE OR REPLACE FUNCTION insert_new_album(new_library_id UUID, platform_specific_album_id VARCHAR(1024), new_name VARCHAR(1024))
-RETURNS UUID AS $$
-DECLARE
-    albums_album_id UUID;
-    platform_albums_album_id UUID;
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM platform_albums WHERE platform_specific_id = platform_specific_album_id
-    ) THEN
-        INSERT INTO albums (id, name, author_id)
-        VALUES (uuid_generate_v4(), new_name, artist_id)
-        RETURNING id INTO albums_album_id;
-
-        INSERT INTO platform_albums (id, platform_specific_id, album_id)
-        VALUES (uuid_generate_v4(), platform_specific_album_id, albums_album_id)
-        RETURNING id INTO platform_albums_album_id;
-
-        RETURN albums_album_id;
-    ELSE
-        SELECT albums.id FROM platform_albums
-        JOIN albums ON platform_albums.album_id = albums.id
-        WHERE platform_specific_id = platform_specific_album_id INTO albums_album_id;
-        RETURN albums_album_id;
-    END IF;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP FUNCTION IF EXISTS insert_new_playlist;
-CREATE OR REPLACE FUNCTION insert_new_playlist(new_library_id UUID, platform_specific_id_input VARCHAR(1024), new_name VARCHAR(1024))
-RETURNS UUID AS $$
-DECLARE
-    playlists_playlist_id UUID;
-    platform_playlists_playlist_id UUID;
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM platform_playlists WHERE platform_specific_id = platform_specific_id_input
-    ) THEN
-        INSERT INTO playlists (id, name)
-        VALUES (uuid_generate_v4(), new_name)
-        RETURNING id INTO playlists_playlist_id;
-
-        INSERT INTO platform_playlists (id, platform_specific_id, playlist_id)
-        VALUES (uuid_generate_v4(), platform_specific_id_input, playlists_playlist_id)
-        RETURNING id INTO platform_playlists_playlist_id;
-
-        RETURN playlists_playlist_id;
-    ELSE
-        SELECT playlists.id FROM platform_playlists
-        JOIN playlists ON platform_playlists.playlist_id = playlists.id
-        WHERE platform_specific_id = platform_specific_id_input INTO playlists_playlist_id;
-        RETURN playlists_playlist_id;
-    END IF;
-END;
-$$ LANGUAGE plpgsql;
-
-DROP FUNCTION IF EXISTS insert_new_song;
-CREATE OR REPLACE FUNCTION insert_new_song(new_library_id UUID, album_id UUID, platform_specific_song_id VARCHAR(1024), new_name VARCHAR(1024))
-RETURNS UUID AS $$
-DECLARE
-    songs_song_id UUID;
-    platform_songs_song_id UUID;
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM platform_songs WHERE platform_specific_id = platform_specific_song_id
-    ) THEN
-        INSERT INTO songs (id, name, album_id)
-        VALUES (uuid_generate_v4(), new_name, album_id)
-        RETURNING id INTO songs_song_id;
-
-        INSERT INTO platform_songs (id, platform_specific_id, song_id)
-        VALUES (uuid_generate_v4(), platform_specific_song_id, songs_song_id)
-        RETURNING id INTO platform_songs_song_id;
-
-        RETURN songs_song_id;
-    ELSE
-        SELECT songs.id FROM platform_songs
-        JOIN songs ON platform_songs.song_id = songs.id
-        WHERE platform_specific_id = platform_specific_song_id INTO songs_song_id;
-        RETURN songs_song_id;
-    END IF;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TABLE IF NOT EXISTS user_followed_artists(
-    id UUID PRIMARY KEY,
-    library_id UUID REFERENCES libraries (id) NOT NULL,
-    artist_id UUID REFERENCES platform_artists (id) NOT NULL
-);
-
-
-CREATE TABLE IF NOT EXISTS user_liked_albums(
-    id UUID PRIMARY KEY,
-    library_id UUID REFERENCES libraries (id) NOT NULL,
-    album_id UUID REFERENCES platform_albums (id) NOT NULL
-);
-
-
-CREATE TABLE IF NOT EXISTS user_followed_playlists(
-    id UUID PRIMARY KEY,
-    library_id UUID REFERENCES libraries (id) NOT NULL,
-    playlist_id UUID REFERENCES platform_playlists (id) NOT NULL
-);
-
-
-CREATE TABLE IF NOT EXISTS user_liked_songs(
-    id UUID PRIMARY KEY,
-    library_id UUID REFERENCES libraries (id) NOT NULL,
-    song_id UUID REFERENCES platform_songs (id) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS artists(
-    id UUID PRIMARY KEY,
-    name VARCHAR(1024) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS albums(
-    id UUID PRIMARY KEY,
-    name VARCHAR(1024) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS artists_album(
-    id UUID PRIMARY KEY,
-    artist_id UUID REFERENCES artists (id) NOT NULL,
-    album_id UUID REFERENCES albums (id) NOT NULL
-);
-
-
-CREATE TABLE IF NOT EXISTS songs(
-    id UUID PRIMARY KEY,
-    name VARCHAR(1024) NOT NULL,
-    album_id UUID REFERENCES albums (id) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS playlists(
-    id UUID PRIMARY KEY,
-    name VARCHAR(1024) NOT NULL
-);
-
-
-CREATE TABLE IF NOT EXISTS playlist_songs(
-    id UUID PRIMARY KEY,
-    playlist_id UUID REFERENCES playlists (id) NOT NULL,
-    song_id UUID REFERENCES songs (id) NOT NULL
-);
+Get a spotify client for a user's id
 */
+func SpotifyClientId(userId *uuid.UUID) (*spotify.Client, error) {
+	tokens, err := repositories.GetTokens("spotify", *userId)
+	if err != nil {
+		return nil, err
+	}
+	token := oauth2.Token{
+		AccessToken:  tokens.AccessToken,
+		RefreshToken: tokens.RefreshToken,
+		Expiry:		  tokens.Expiry,
+	}
+	auth := spotifyauth.New(
+		spotifyauth.WithClientID(repositories.SpotifyClientId),
+		spotifyauth.WithClientSecret(repositories.SpotifySecret),
+	)
+	newToken, err := auth.RefreshToken(context.Background(), &token)
+	if err != nil {
+		return nil, err
+	}
+	newAuth := spotifyauth.New()
+	httpClient := newAuth.Client(context.Background(), newToken)
+	client := spotify.New(httpClient)
+
+	return client, nil
+}
+
+/*
+Generate a spotify oauth url for a user to authenticate with
+*/
+func SpotifyURL(csrf string) (string, error) {
+	url := GetSpotifyAuthenticator(csrf).AuthURL(csrf)
+	return url, nil
+}
+
+/*
+Generate a spotify authenticator which has the scopes and redirect url set
+*/
+func GetSpotifyAuthenticator(csrf string) spotifyauth.Authenticator {
+	auth := spotifyauth.New(
+		spotifyauth.WithRedirectURL(repositories.SpotifyRedirect),
+		spotifyauth.WithScopes(
+			spotifyauth.ScopeImageUpload,
+			spotifyauth.ScopePlaylistReadPrivate,
+			spotifyauth.ScopePlaylistModifyPublic,
+			spotifyauth.ScopePlaylistModifyPrivate,
+			spotifyauth.ScopePlaylistReadCollaborative,
+			spotifyauth.ScopeUserFollowModify,
+			spotifyauth.ScopeUserFollowRead,
+			spotifyauth.ScopeUserLibraryModify,
+			spotifyauth.ScopeUserLibraryRead,
+			spotifyauth.ScopeUserReadPrivate,
+			spotifyauth.ScopeUserReadEmail,
+			spotifyauth.ScopeUserReadCurrentlyPlaying,
+			spotifyauth.ScopeUserReadPlaybackState,
+			spotifyauth.ScopeUserModifyPlaybackState,
+			spotifyauth.ScopeUserReadRecentlyPlayed,
+			spotifyauth.ScopeUserTopRead,
+			spotifyauth.ScopeStreaming,
+		),
+		spotifyauth.WithClientID(repositories.SpotifyClientId),
+		spotifyauth.WithClientSecret(repositories.SpotifySecret),
+	)
+	return *auth
+}
+
+/*
+Callback handler for spotify oauth
+*/
+func SpotifyCallback(w http.ResponseWriter, r *http.Request) {
+	session := r.URL.Query().Get("state")
+	user, err := auth.GetUserFromSession(uuid.MustParse(session))
+	if err != nil {
+		fmt.Println(err)
+		models.Error(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+	auth := GetSpotifyAuthenticator(session)
+	token, err := auth.Token(r.Context(), session, r)
+	if err != nil {
+		fmt.Println(err)
+		models.Error(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+	err = repositories.CreateConnectionAndLibrary(user.ID, "spotify", token.AccessToken, token.RefreshToken, token.Expiry)
+	if err != nil {
+		fmt.Println(err)
+		models.Error(w, http.StatusInternalServerError, "Internal server error")
+		return
+	}
+	models.Result(w, "Ok")
+}
+
+/*
+A spotify provider which implements the Platform interface
+*/
+type SpotifyProvider struct {
+	UserID uuid.UUID
+}
+
+func (provider SpotifyProvider) GetSongs(limit int, offset int) ([]models.PlatformSong, error) {
+	client, err := SpotifyClientId(&provider.UserID)
+	if err != nil {
+		return nil, err
+	}
+	tracks, err := client.CurrentUsersTracks(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
+	if err != nil {
+		return nil, err
+	}
+
+	songs := make([]models.PlatformSong, len(tracks.Tracks))
+	for i, track := range tracks.Tracks {
+		artists := make([]models.PlatformArtist, len(track.Artists))
+		for j, artist := range track.Artists {
+			artists[j] = models.PlatformArtist{
+				Platform: "spotify",
+				ID:		  artist.ID.String(),
+				Name:	  artist.Name,
+				MediaURL: "",
+			}
+		}
+		albumArtists := make([]models.PlatformArtist, len(track.Album.Artists))
+		for j, artist := range track.Album.Artists {
+			albumArtists[j] = models.PlatformArtist{
+				Platform: "spotify",
+				ID:		  artist.ID.String(),
+				Name:	  artist.Name,
+				MediaURL: "",
+			}
+		}
+		songs[i] = models.PlatformSong{
+			Platform: "spotify",
+			ID:		  track.ID.String(),
+			Title:	  track.Name,
+			Album: models.PlatformAlbum{
+				Platform: "spotify",
+				ID:		  track.Album.ID.String(),
+				Title:	  track.Album.Name,
+				Artists:  albumArtists,
+				MediaURL: track.Album.Images[0].URL,
+			},
+			Artists:	artists,
+			MediaURL:	track.Album.Images[0].URL,
+			PreviewURL: track.PreviewURL,
+		}
+	}
+	return songs, nil
+}
+
+func (provider SpotifyProvider) GetArtists(limit int, offset int) ([]models.PlatformArtist, error) {
+	client, err := SpotifyClientId(&provider.UserID)
+	if err != nil {
+		return nil, err
+	}
+	artistsPage, err := client.CurrentUsersFollowedArtists(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
+	if err != nil {
+		return nil, err
+	}
+
+	artists := make([]models.PlatformArtist, 0)
+	for _, artist := range artistsPage.Artists {
+		if err != nil {
+			return nil, err
+		}
+
+		platformArtist := models.PlatformArtist{
+			Platform: "spotify",
+			ID:		  artist.ID.String(),
+			Name:	  artist.Name,
+			MediaURL: artist.Images[0].URL,
+		}
+
+		artists = append(artists, platformArtist)
+	}
+	return artists, nil
+}
+
+func (provider SpotifyProvider) GetAlbums(limit int, offset int) ([]models.PlatformAlbum, error) {
+	client, err := SpotifyClientId(&provider.UserID)
+	if err != nil {
+		return nil, err
+	}
+	albumsPage, err := client.CurrentUsersAlbums(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
+	if err != nil {
+		return nil, err
+	}
+
+	albums := make([]models.PlatformAlbum, len(albumsPage.Albums))
+	for i, album := range albumsPage.Albums {
+		fullAlbum, err := client.GetAlbum(context.Background(), album.ID)
+		if err != nil {
+			return nil, err
+		}
+		artists := make([]models.PlatformArtist, len(album.Artists))
+		for j, artist := range album.Artists {
+			artists[j] = models.PlatformArtist{
+				Platform: "spotify",
+				ID:		  artist.ID.String(),
+				Name:	  artist.Name,
+				MediaURL: "",
+			}
+		}
+		songs := make([]models.PlatformSong, len(fullAlbum.Tracks.Tracks))
+		for j, track := range fullAlbum.Tracks.Tracks {
+			songs[j] = models.PlatformSong{
+				Platform:	"spotify",
+				ID:			track.ID.String(),
+				Title:		track.Name,
+				PreviewURL: track.PreviewURL,
+			}
+		}
+
+		albums[i] = models.PlatformAlbum{
+			Platform: "spotify",
+			ID:		  album.ID.String(),
+			Title:	  album.Name,
+			Artists:  artists,
+			Songs:	  songs,
+			MediaURL: album.Images[0].URL,
+		}
+	}
+	return albums, nil
+}
+
+func (provider SpotifyProvider) GetPlaylists(limit int, offset int) ([]models.PlatformPlaylist, error) {
+	rl := ratelimit.New(2)
+	rl.Take()
+	client, err := SpotifyClientId(&provider.UserID)
+	if err != nil {
+		return nil, err
+	}
+	rl.Take()
+	playlistsPage, err := client.CurrentUsersPlaylists(context.Background(), spotify.Limit(limit), spotify.Offset(offset))
+	if err != nil {
+		return nil, err
+	}
+
+	playlists := make([]models.PlatformPlaylist, len(playlistsPage.Playlists))
+	for i, playlist := range playlistsPage.Playlists {
+		rl.Take()
+		fullPlaylist, err := client.GetPlaylistItems(context.Background(), playlist.ID)
+		if err != nil {
+			return nil, err
+		}
+		songs := make([]models.PlatformSong, 0)
+		for _, track := range fullPlaylist.Items {
+			if track.Track.Track == nil {
+				continue
+			}
+			track := track.Track.Track
+			artists := make([]models.PlatformArtist, len(track.Artists))
+			for k, artist := range track.Artists {
+				artists[k] = models.PlatformArtist{
+					Platform: "spotify",
+					ID:		  artist.ID.String(),
+					Name:	  artist.Name,
+					MediaURL: "",
+				}
+			}
+			song := models.PlatformSong{
+				Platform: "spotify",
+				ID:		  track.ID.String(),
+				Album: models.PlatformAlbum{
+					Platform: "spotify",
+					ID:		  track.Album.ID.String(),
+					Title:	  track.Album.Name,
+					MediaURL: track.Album.Images[0].URL,
+				},
+				Artists:	artists,
+				Title:		track.Name,
+				PreviewURL: track.PreviewURL,
+			}
+			songs = append(songs, song)
+		}
+
+		playlists[i] = models.PlatformPlaylist{
+			Platform: "spotify",
+			ID:		  playlist.ID.String(),
+			Title:	  playlist.Name,
+			Songs:	  songs,
+			MediaURL: playlist.Images[0].URL,
+		}
+	}
+	return playlists, nil
+}
+
+func (provider SpotifyProvider) Save(typeId string, id string) (bool, error) {
+	client, err := SpotifyClientId(&provider.UserID)
+	if err != nil {
+		return false, err
+	}
+	spotifyId := spotify.ID(id)
+	switch typeId {
+	case "artist":
+		err = client.FollowArtist(context.Background(), spotifyId)
+	case "song":
+		err = client.AddTracksToLibrary(context.Background(), spotifyId)
+	case "album":
+		err = client.AddAlbumsToLibrary(context.Background(), spotifyId)
+	case "playlist":
+		err = client.FollowPlaylist(context.Background(), spotifyId, false)
+	}
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}

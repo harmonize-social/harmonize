@@ -1,7 +1,7 @@
 //https://eckertalex.dev/blog/typescript-fetch-wrapper
 //https://github.com/EHB-TI/programming-project-groep-3_brussel-student-guide/blob/main/frontend/src/fetch.ts
 
-import ErrorPopup from './components/ErrorPopup.svelte';
+import { goto } from '$app/navigation';
 import { errorMessage } from './store';
 
 const API_URL = process.env.API_URL;
@@ -17,12 +17,8 @@ export async function http<T>(path: string, config: RequestInit): Promise<T> {
     const request = new Request(url, config);
     const response = await fetch(request);
 
-    if (response.status === 401) {
-        console.error('Unauthorized access detected');
-        throw new Error('Unauthorized');
-    }
-
     if (!response.ok) {
+        goto('/auth/login');
         throw new Error('Error fetching.');
     }
 
@@ -34,7 +30,7 @@ export async function http<T>(path: string, config: RequestInit): Promise<T> {
         }
         return object;
     } catch (error) {
-        console.error('Error parsing JSON response:', error);
+        console.error(error);
         throw new Error('Error parsing JSON response');
     }
 }

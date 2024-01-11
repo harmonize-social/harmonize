@@ -1,18 +1,19 @@
 <script lang="ts">
     import { get, delete_, throwError } from '../../../fetch';
     import Panel from '../../../components/Panel.svelte';
-    import deezerIcon from '../../../lib/assets/deezer-logo-coeur.jpg';
+    import NavBar from '../../../components/NavBar.svelte';
+    import deezerIcon from '../../../lib/assets/deezer.png';
     import spotifyIcon from '../../../lib/assets/Spotify_App_Logo.svg.png';
     import { onMount } from 'svelte';
     import { errorMessage } from '../../../store';
-    import ErrorPopup from '../../../components/ErrorPopup.svelte';
+
+    const icons = {
+        spotify: spotifyIcon,
+        deezer: deezerIcon
+    };
 
     let connected: string[] = [];
     let unconnected: Map<string, string> = new Map<string, string>();
-    let showSpotify = false;
-    let showDeezer = false;
-    let showSpotifyConnected = false;
-    let showDeezerConnected = false;
     let error = '';
     errorMessage.subscribe((value) => {
         error = value;
@@ -28,7 +29,7 @@
 
     async function getUnconnected() {
         try {
-            let data = await get('/me/library/unconnected');
+            let data = await get<any>('/me/library/unconnected');
             unconnected = new Map<string, string>(Object.entries(data));
         } catch (e) {
             throwError('Internal server error');
@@ -37,71 +38,48 @@
 
     async function deleteConnection(platform: string) {
         try {
-            //await _delete('/me/library/disconnect?platofmr', { platform: platform });
             await delete_(`/me/library/disconnect?platform=${platform}`);
             await getConnected();
             await getUnconnected();
-            updateUI();
         } catch (e) {
             throwError('Internal server error');
         }
     }
 
     onMount(async () => {
+        errorMessage.set('');
         await getConnected();
         await getUnconnected();
-        updateUI();
     });
-
-    function updateUI() {
-        console.log(unconnected, connected);
-        showSpotifyConnected = connected.includes('spotify');
-        showDeezerConnected = connected.includes('deezer');
-        showSpotify = containsPlatform('spotify');
-        showDeezer = containsPlatform('deezer');
-    }
-
-    function containsPlatform(platform: string) {
-        for (let key of unconnected.keys()) {
-            if (key == platform) {
-                return true;
-            }
-        }
-        return false;
-    }
 </script>
 
+<NavBar />
 <Panel title="Choose the platform to connect:">
     <div class="container">
-        <div class="title">Select your preferred music platform:</div>
-        <div class="image-container">
-            {#if showSpotify == true}
-                <a href={unconnected.get('spotify')} title="Connect with Spotify">
-                    <img src={spotifyIcon} alt="Spotify logo" />
-                </a>
-            {/if}
-            {#if error}
-                <ErrorPopup message={error}></ErrorPopup>
-            {/if}
-            {#if showDeezer == true}
-                <a href={unconnected.get('deezer')} title="Connect with Deezer">
-                    <img src={deezerIcon} alt="Deezer logo" />
-                </a>
-            {/if}
-            {#if error}
-                <ErrorPopup message={error}></ErrorPopup>
-            {/if}
+        <div class="platforms unconnected-platforms">
+            <h3>Unconnected platforms</h3>
+            <div class="images">
+                {#each Array.from(unconnected.keys()) as platform}
+                    <a href={unconnected.get(platform)} title={'Connect with ' + platform}>
+                        <img src={icons[platform]} alt={platform + ' logo'} />
+                    </a>
+                {/each}
+            </div>
         </div>
-        <div class="connected-platforms">
-            Your current connections:
-            <ul>
-                {#if showSpotifyConnected == true}
-                    <button on:click={() => deleteConnection('spotify')}>Disconnect Spotify</button>
-                {/if}
-                {#if showDeezerConnected == true}
-                    <button on:click={() => deleteConnection('deezer')}>Disconnect Deezer</button>
-                {/if}
-            </ul>
+        <div class="platforms connected-platforms">
+            <h3>Connected platforms</h3>
+            {#if connected.length == 0}
+                <p>You are not connected to any platform</p>
+            {:else}
+                <p>Click on the logo to disconnect</p>
+            {/if}
+            <div class="images">
+                {#each connected as platform}
+                    <a on:click={() => deleteConnection(platform)} href="#" title={'Disconnect ' + platform}>
+                        <img src={icons[platform]} alt={platform + ' logo'} />
+                    </a>
+                {/each}
+            </div>
         </div>
     </div>
 </Panel>
@@ -115,36 +93,36 @@
         padding: 20px;
     }
 
-    .title {
-        font-size: 24px;
-        margin-bottom: 20px;
+    .platforms {
+        flex-direction: row;
+        justify-content: space-around;
+        width: 100%;
     }
 
-    .image-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 20px;
+    .platforms h3 {
+        margin-bottom: 1rem;
     }
 
-    .image-container a {
-        text-decoration: none;
-        color: inherit;
+    .platforms a {
+        margin: 0 1rem;
     }
 
-    .image-container img {
-        width: 150px;
-        height: auto;
-        border-radius: 10px;
-        transition: transform 0.3s ease;
-    }
-
-    .image-container img:hover {
-        transform: scale(1.1);
+    .platforms img {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 1px solid black;
     }
 
     .connected-platforms {
         margin-top: 40px;
         font-size: 18px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .connected-platforms img {
+        margin-bottom: 1rem;
     }
 </style>

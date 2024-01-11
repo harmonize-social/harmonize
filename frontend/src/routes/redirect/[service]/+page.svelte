@@ -20,7 +20,7 @@
         }
         try {
             let response = await get(`/oauth/callback/${service}?state=${state}&code=${code}`);
-            window.location.href = '/profile';
+            window.location.href = '/profile/connection';
         } catch (e) {
             if (e instanceof Error) {
                 error = e.message;

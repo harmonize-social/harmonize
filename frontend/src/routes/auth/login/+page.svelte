@@ -4,11 +4,11 @@
 	import Button from '../../../components/Button.svelte';
 	import Panel from '../../../components/Panel.svelte';
 	import TextInput from '../../../components/TextInput.svelte';
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { loginpost, throwError } from '../../../fetch';
 	import { errorMessage } from '../../../store';
 	import ErrorPopup from '../../../components/ErrorPopup.svelte';
+	import { onMount } from 'svelte';
 
 	let username = '';
 	let password = '';
@@ -30,6 +30,9 @@
 			throwError('Login failed');
 		}
 	};
+	onMount(async () => {
+		errorMessage.set('');
+	});
 </script>
 
 <div class="panel-container">
@@ -44,10 +47,10 @@
 		<div class="text-input">
 			<TextInput placeholder="Password" type="password" bind:value={password} />
 		</div>
-		<div class="buttonlogin" on:click={handleLogin}>
-			<Button buttonText="Login" />
+		<div class="buttonlogin">
+			<Button buttonText="Login" action={handleLogin} />
 		</div>
-		<a class="forgot-password" href="/forget-password">Forgot Password?</a>
+		<a class="forgot-password" href="/auth/forgot-password">Forgot Password?</a>
 		<a class="not-registered" href="/auth/register">Not registred yet?</a>
 	</Panel>
 </div>
@@ -83,10 +86,5 @@
 		display: flex;
 		justify-content: center;
 		margin-top: 10px;
-	}
-
-	.error-message {
-		color: red;
-		text-align: center;
 	}
 </style>

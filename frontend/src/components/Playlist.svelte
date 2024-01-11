@@ -1,31 +1,54 @@
 <!-- Playlist.svelte -->
 <script lang="ts">
-	import Song from '../components/Song.svelte';
-	import type PlaylistModel from '../models/playlist';
-	export let content: PlaylistModel;
-
+    import type PlaylistModel from '../models/playlist';
+    import PlaylistSong from './PlaylistSong.svelte';
+    export let content: PlaylistModel;
 </script>
 
 <div class="playlist">
-	<a href={content.mediaUrl}><h1>{content.title}</h1></a>
-	{#each content.songs as song}
-		<Song content={{ title: song.title, mediaUrl: song.mediaUrl, id: song.id, artists: song.artists, previewUrl: song.previewUrl }} />
-	{/each}
-
+    <h3>{content.title}</h3>
+    <img class="playlist-image" src={content.mediaUrl} alt="Playlist Cover" />
+    <div class="songs">
+        {#each content.songs as song, i}
+            <div class="song">
+                <PlaylistSong number={i + 1} content={song} />
+            </div>
+        {/each}
+    </div>
 </div>
 
 <style>
-	.playlist {
-		border: 1px solid #ccc;
-		border-radius: 10px;
-		padding: 20px;
-		margin: 20px;
-		text-align: center;
-	}
+    .playlist {
+        border-radius: 10px;
+        margin: 10px;
+        text-align: center;
+    }
 
-	/* .playlist-image {
-        /* max-width: 100%;
-        border-radius: 8px;
-        margin-bottom: 10px;
-    } */
+    .playlist img {
+        width: 100px;
+        height: 100px;
+    }
+
+    .playlist h3 {
+        margin: 0 0 10px 0;
+    }
+
+    .songs {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 350px;
+        overflow-y: scroll;
+        -webkit-scrollbar: none;
+        mask-image: linear-gradient(to bottom, transparent 0%, black 48px, black calc(100% - 48px), transparent 100%);
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 48px, black calc(100% - 48px), transparent 100%);
+    }
+
+    .songs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .song {
+        margin: auto;
+    }
 </style>
