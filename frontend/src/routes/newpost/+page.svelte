@@ -7,6 +7,7 @@
     import { errorMessage } from '../../store';
     import ErrorPopup from '../../components/ErrorPopup.svelte';
     import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
     let data: {};
     let caption = '';
     let error = '';
@@ -30,9 +31,12 @@
             throwError('Failed to post item');
         }
     }
+    onMount(() => {
+        errorMessage.set('');
+    }); 
 </script>
 
-<NavBar current_page='/newpost'></NavBar>
+<NavBar></NavBar>
 <Panel title="New Post">
     <div class="form">
         <div class="caption">

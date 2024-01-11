@@ -12,6 +12,7 @@
     import type AlbumModel from '../../../models/album';
     import type PlaylistModel from '../../../models/playlist';
     import type ArtistModel from '../../../models/artist';
+    import { goto } from '$app/navigation';
 
     let contentTypeOptions: string[] = ['songs', 'albums', 'playlists', 'artists'];
     let selectedContentType: string = contentTypeOptions[0];
@@ -27,8 +28,13 @@
     });
 
     onMount(async () => {
+        errorMessage.set('');
         try {
             libraries = await get('/me/library/connected');
+            if (libraries.length == 0) {
+                goto('/profile/connection');
+                return;
+            }
             selectedLibrary = libraries[0];
             updateRenderedContent();
         } catch (e) {
@@ -86,7 +92,7 @@
     }
 </script>
 
-<NavBar current_page="/profile/library"></NavBar>
+<NavBar></NavBar>
 <Panel title="Libraries">
     <div class="library-names">
         {#each libraries as library, i}

@@ -1,56 +1,98 @@
 <script lang="ts">
-	import TextInputNav from './TextInputNav.svelte';
-	import NavLink from './NavLink.svelte';
-	import Logo from './Logo.svelte';
-	import { page } from '$app/stores';
-	import { goto } from '$app/navigation';
-	export let current_page = $page.url.pathname;
-	export let url1: string = '#';
-	export let url2: string = '#';
-	export let text1: string = 'Feed';
-	export let text2: string = 'Settings';
-	switch (current_page) {
-		case '/me/feed':
-			url1 = '/profile';
-			url2 = '/profile/settings';
-			text1 = 'Profile';
-			text2 = 'Settings';
-			break;
-		case '/me/profile/settings':
-			url1 = '/feed';
-			url2 = '/profile';
-			text1 = 'Feed';
-			text2 = 'Profile';
-			break;
-		default:
-			url1 = '/feed';
-			url2 = '/profile/settings';
-			text1 = 'Feed';
-			text2 = 'Settings';
-			break;
-	}
+    import TextInputNav from './TextInputNav.svelte';
+    import Logo from './Logo.svelte';
+    import { goto } from '$app/navigation';
+    import { onMount } from 'svelte';
+    import { get, throwError } from '../fetch';
+    let pages = {};
+    let currentPage: string;
+
+    async function getInfo() {
+        try {
+            const info = await get<{
+                    username: string;
+                }>('/me/info');
+            pages = {
+                feed: '/feed',
+                profile: '/profile/' + info.username,
+                settings: '/profile/settings'
+            };
+        } catch (e) {
+            throwError('Error fetching profile information');
+        }
+    }
+
+    onMount(async () => {
+        currentPage = window.location.pathname;
+        await getInfo();
+    });
 </script>
 
 <nav class="navbar">
-	<div class="logo" on:click={() => goto('/feed')}><Logo></Logo></div>
-	<NavLink text={text1} url={url1} id={1}></NavLink>
-	<NavLink text={text2} url={url2} id={2}></NavLink>
-	<TextInputNav placeholder="Search"></TextInputNav>
+    <div class="logo" on:click={() => goto('/feed')}>
+        <Logo />
+    </div>
+    {#each Object.entries(pages) as [k, v]}
+        <div class="nav-element">
+            {#if currentPage === v}
+                <a href={v} class="active"><p>{k}</p></a>
+            {:else}
+                <a href={v}><p>{k}</p></a>
+            {/if}
+        </div>
+    {/each}
+    <div class="search">
+        <TextInputNav placeholder="Username" />
+    </div>
 </nav>
 
 <style>
-	.navbar {
-		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		grid-template-areas: 'logo navlink1 navlink2 searchbox';
-		width: 45%;
-		height: 70px;
-		border: 1px solid black;
-		background-color: grey;
-		border-radius: 0 100px 100px 0;
-	}
+    .logo {
+        display: flex;
+        justify-content: flex-start;
+    }
 
-	.logo{
-		cursor: pointer;
-	}
+    .search {
+        margin-right: 7px;
+    }
+
+    a {
+        text-decoration: none;
+        color: #f8e7e7;
+        height: 100%;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    a:hover {
+        text-transform: uppercase;
+    }
+
+    .active p {
+        border-bottom: 2px solid #f8e7e7;
+    }
+
+    .nav-element {
+        width: 100%;
+        text-transform: capitalize;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .navbar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: row;
+        width: 45%;
+        height: 70px;
+    }
+
+    .logo {
+        cursor: pointer;
+    }
 </style>

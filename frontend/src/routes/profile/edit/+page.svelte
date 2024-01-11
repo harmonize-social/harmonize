@@ -6,6 +6,7 @@
     import { post, throwError } from '../../../fetch'; 
 	import { errorMessage } from '../../../store';
     import ErrorPopup from '../../../components/ErrorPopup.svelte';
+	import { onMount } from 'svelte';
 
 
     let newUsername = '';
@@ -53,6 +54,10 @@
         } catch (e) {
             throwError('Failed to update user information');        }
     }
+
+    onMount(async () => {
+        errorMessage.set('');
+    });
 </script>
 
 <style>

@@ -25,6 +25,7 @@
     }
 
     onMount(async () => {
+        errorMessage.set('');
         await getConnected();
     });
 
@@ -102,8 +103,11 @@ async function handleLogout() {
     }
 
 </style>
-<NavBar current_page="/me/profile/settings"></NavBar>
+<NavBar></NavBar>
 <Panel title="Settings">
+    {#if error}
+        <ErrorPopup message={error}></ErrorPopup>
+    {/if}
     <div class="container">
         <div class="buttons">
             <div class="myaccount" >
@@ -112,7 +116,7 @@ async function handleLogout() {
             <div class="notifications">
                 <Button buttonText="FAQ" link="/profile/settings/notifications"></Button>
             </div>
-            <div class="privacy">
+            <!-- <div class="privacy">
                 <Button buttonText="Privacy" link="/profile/settings/privacy"></Button>
             </div>
             <div class="help">
@@ -123,7 +127,7 @@ async function handleLogout() {
                 {#if error}
                     <ErrorPopup message={error}></ErrorPopup>
                 {/if}
-            </div>
+            </div> -->
             <div class="logout">
                 <Button buttonText="Logout" action={handleLogout}></Button>
             </div>

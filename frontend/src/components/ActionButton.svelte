@@ -2,6 +2,7 @@
     export let type: 'like' | 'liked' | 'save' | 'saved';
     export let state: boolean = false;
     export let action = () => {};
+    export let hover: string = '';
 
     function toggleState() {
         state = !state;
@@ -9,7 +10,7 @@
     }
 </script>
 
-<button on:click={toggleState}>
+<button on:click={toggleState} title={hover}>
     {#if type === 'like'}
         {#if state == false}
             <svg viewBox="0 0 24.00 24.00" fill="none" xmlns="http://www.w3.org/2000/svg"

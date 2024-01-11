@@ -33,6 +33,7 @@ func GetFeed(w http.ResponseWriter, r *http.Request) {
                      LEFT JOIN liked_posts ON liked_posts.post_id = posts.id
                      LEFT JOIN saved_posts ON saved_posts.post_id = posts.id
                      WHERE follows.follower_id = $1
+                     OR posts.user_id = $1
                      GROUP BY posts.id, users.id
                      ORDER BY posts.created_at DESC
                      LIMIT $2

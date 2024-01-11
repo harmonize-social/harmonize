@@ -125,7 +125,7 @@ func (provider DeezerProvider) GetSongs(limit int, offset int) ([]models.Platfor
     if err != nil {
         return nil, err
     }
-    schema, err := client.UserMeTracks(context.Background(), limit, offset)
+    schema, err := client.UserMeTracks(context.Background(), offset, limit)
     if err != nil {
         return nil, err
     }
@@ -185,7 +185,7 @@ func (provider DeezerProvider) GetAlbums(limit int, offset int) ([]models.Platfo
     }
 
     rl.Take()
-    schema, err := client.UserMeAlbums(context.Background(), limit, offset)
+    schema, err := client.UserMeAlbums(context.Background(), offset, limit)
     if err != nil {
         return nil, err
     }
@@ -261,12 +261,14 @@ func (provider DeezerProvider) GetAlbums(limit int, offset int) ([]models.Platfo
 
 func (provider DeezerProvider) GetPlaylists(limit int, offset int) ([]models.PlatformPlaylist, error) {
     client, err := DeezerClientId(provider.UserID)
+    rl := ratelimit.New(5)
 
     if err != nil {
         return nil, err
     }
 
-    schema, err := client.UserMePlaylists(context.Background(), limit, offset)
+    rl.Take()
+    schema, err := client.UserMePlaylists(context.Background(), offset, limit)
     if err != nil {
         return nil, err
     }
@@ -280,6 +282,7 @@ func (provider DeezerProvider) GetPlaylists(limit int, offset int) ([]models.Pla
     platformPlaylists := make([]models.PlatformPlaylist, 0)
 
     for _, simplePlaylist := range simplePlaylists {
+        rl.Take()
         fullPlaylist, err := client.Playlist(context.Background(), simplePlaylist.ID)
 
         if err != nil {
@@ -298,6 +301,7 @@ func (provider DeezerProvider) GetPlaylists(limit int, offset int) ([]models.Pla
         }
 
         for _, track := range fullPlaylist.Tracks.Data {
+            rl.Take()
             fullTrack, err := client.Track(context.Background(), track.ID)
             if err != nil {
                 return nil, err
@@ -310,12 +314,21 @@ func (provider DeezerProvider) GetPlaylists(limit int, offset int) ([]models.Pla
                     MediaURL: *fullTrack.Artist.PictureBig,
                 },
             }
+
+            album := models.PlatformAlbum{
+                Platform: "deezer",
+                ID:       fullTrack.Album.ID.String(),
+                Title:    fullTrack.Album.Title,
+                Artists:  artists,
+                MediaURL: fullTrack.Album.Cover,
+            }
+
             song := models.PlatformSong{
                 Platform:   "deezer",
                 ID:         track.ID.String(),
                 Title:      track.Title,
                 Artists:    artists,
-                Album:      models.PlatformAlbum{},
+                Album:      album,
                 MediaURL:   track.Album.Cover,
                 PreviewURL: fullTrack.Preview,
             }
@@ -333,7 +346,7 @@ func (provider DeezerProvider) GetArtists(limit int, offset int) ([]models.Platf
         return nil, err
     }
 
-    schema, err := client.UserMeArtists(context.Background(), limit, offset)
+    schema, err := client.UserMeArtists(context.Background(), offset, limit)
     if err != nil {
         return nil, err
     }
