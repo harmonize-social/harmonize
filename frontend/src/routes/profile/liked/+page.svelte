@@ -17,7 +17,7 @@
     });
     async function getLikedPosts(): Promise<PostModel[]> {
         try {
-            const response: PostModel[] = await get('/me/saved');
+            const response: PostModel[] = await get('/me/liked');
             return response;
         } catch (e) {
             throwError('Internal server error');

@@ -18,7 +18,7 @@
     async function fetchPosts(): Promise<PostModel[]> {
         try {
             loading = true;
-            const response: PostModel[] = await get<PostModel[]>(`/me/feed?offset=${posts.length}`);
+            const response: PostModel[] = await get<PostModel[]>(`/me/feed?offset=${posts.length}&limit=20`);
             return response;
         } catch (error) {
             throwError('Error fetching posts');
@@ -29,7 +29,7 @@
     }
 
     onMount(() => {
-        
+
         errorMessage.set('');
 
         fetchPosts().then((fetchedPosts) => {
